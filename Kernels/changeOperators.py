@@ -1,4 +1,4 @@
-from sigmoidalKernels import SigmoidalKernel, SigmoidalIndicatorKernel
+from Kernels.sigmoidalKernels import SigmoidalKernel, SigmoidalIndicatorKernel
 
 
 def kCP(k1, k2):

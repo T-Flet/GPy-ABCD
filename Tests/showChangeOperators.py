@@ -1,11 +1,11 @@
 from matplotlib import pyplot as plt
 from Util.util import sampleCurves
-from baseKernels import *
+from Kernels.baseKernels import *
 
 
 ## Direct Sigmoidal effects on a given kernel
 
-kBase = kSE
+kBase = SE
 
 # # Ascending Sigmoid
 # k_asc = kBase * SigmoidalKernel(1, True)
@@ -38,12 +38,12 @@ plt.show()
 
 ## Change Operators
 
-k_CP = kCP(kLIN, kPER)
+k_CP = CP(LIN, PER)
 k_CP.plot()
 print(k_CP)
 sampleCurves(k_CP)
 
-k_CW = kCW(kLIN, kPER)
+k_CW = CW(LIN, PER)
 k_CW.plot()
 print(k_CW)
 sampleCurves(k_CW)

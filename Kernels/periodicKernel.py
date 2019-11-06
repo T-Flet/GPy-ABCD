@@ -1,6 +1,7 @@
 from GPy.kern.src.kern import Kern
 from GPy.core.parameterization import Param
-from paramz.transformations import Logexp, Logistic
+from paramz.transformations import Logexp
+from paramz.caching import Cache_this
 
 import numpy as np
 from scipy.special import i0, i1
@@ -73,6 +74,7 @@ class PureStdPeriodicKernel(Kern):
         return input_dict
 
 
+    @Cache_this(limit=3)
     def K(self, X, X2=None):
         if X2 is None: X2 = X
         cos_term = np.cos(2 * np.pi * (X - X2.T) / self.period)

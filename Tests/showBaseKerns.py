@@ -1,7 +1,4 @@
 from matplotlib import pyplot as plt
-from Util.util import sampleCurves
-from baseKernels import *
-
 
 ## Pure Kernels
 #

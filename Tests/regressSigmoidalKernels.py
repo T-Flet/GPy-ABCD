@@ -1,6 +1,6 @@
 import numpy as np
 from Util.util import doGPR
-from baseKernels import *
+from Kernels.baseKernels import *
 
 # np.seterr(all='raise') # Raise exceptions instead of RuntimeWarnings. The exceptions can then be caught by the debugger
 
@@ -11,7 +11,7 @@ X = np.linspace(-50, 50, 101)[:, None]
 ## Sigmoidal
 
 YS = (1 + np.tanh( -(X - 5) / 10 )) * 5 + np.random.randn(101, 1) * 1 #- 100
-doGPR(X, YS, kS + kC, 10)
+doGPR(X, YS, S + C, 10)
 
 
 ## Sigmoidal Indicator

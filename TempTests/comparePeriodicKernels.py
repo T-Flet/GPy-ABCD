@@ -1,10 +1,8 @@
-import numpy as np
 from matplotlib import pyplot as plt
 from Util.util import sampleCurves, doGPR
-from baseKernels import kC
-import GPy
+from Kernels.baseKernels import C
 
-from periodicKernel import *
+from Kernels.periodicKernel import *
 
 # np.seterr(all='raise') # Raise exceptions instead of RuntimeWarnings. The exceptions can then be caught by the debugger
 
@@ -12,7 +10,7 @@ from periodicKernel import *
 
 # kPER = GPy.kern.Cosine(1) + kC
 # kPER = GPy.kern.StdPeriodic(1) + kC
-kPER = PureStdPeriodicKernel(1) + kC
+kPER = PureStdPeriodicKernel(1) + C
 
 
 

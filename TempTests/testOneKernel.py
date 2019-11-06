@@ -1,9 +1,6 @@
 import numpy as np
-from matplotlib import pyplot as plt
 from Util.util import sampleCurves, doGPR
-from baseKernels import *
-import GPy
-from linearOffsetKernel import LinearWithOffset
+from Kernels.linearOffsetKernel import LinearWithOffset
 
 #kernel = GPy.kern.LogisticBasisFuncKernel(1, 0) * kLIN
 # kernel = kS + kC

@@ -1,16 +1,16 @@
 from matplotlib import pyplot as plt
 from Util.util import sampleCurves
-from baseKernels import *
+from Kernels.baseKernels import *
 
 
 
-kS.plot()
-print(kS)
-sampleCurves(kS)
+S.plot()
+print(S)
+sampleCurves(S)
 
-kSI.plot()
-print(kSI)
-sampleCurves(kSI)
+SI.plot()
+print(SI)
+sampleCurves(SI)
 
 
 plt.show()
