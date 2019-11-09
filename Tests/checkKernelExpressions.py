@@ -38,7 +38,7 @@ from kernelExpressionOperations import *
 # testExpr.right.right.parent = testExpr.right
 # print(testExpr._check_all_parents())
 
-testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'C'])))._initialise()
+# testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'C'])))._initialise()
 # for kex in testExpr.traverse(): print(kex.root)
 # print(testExpr._check_all_parents())
 
@@ -61,6 +61,19 @@ testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), Ch
 # testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), SumKE([], [ProductKE(['WN', 'C'])]))._initialise()
 # print(type(testExpr.right)) # Two nested singleton extractions occurred
 # print(testExpr)
+#
+# testExpr = SumKE([], [ProductKE([], [SumKE([], [ProductKE(['LIN'],[])])])])._initialise()
+# print(testExpr)
+# print(type(testExpr))
+# print(testExpr.composite_terms)
+
+
+## Homogeneous Composites Simplification
+
+# testExpr = SumKE(['PER', 'SE'], [SumKE(['WN', 'C', 'C'], [SumKE(['SE'], [])]), ProductKE(['LIN', 'WN'], [])])._initialise()
+# print(testExpr)
+# print(type(testExpr))
+# print(testExpr.composite_terms)
 
 
 ## Traverse and Reduce

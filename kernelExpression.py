@@ -106,7 +106,7 @@ class SumOrProductKE(KernelExpression): # Abstract
 
     def simplify(self):
         self.composite_terms = [ct.simplify() for ct in self.composite_terms]
-        return self.absorb_singletons().simplify_base_terms()
+        return self.absorb_homogeneous_composites().absorb_singletons().simplify_base_terms()
 
     @abstractmethod
     def simplify_base_terms(self):
@@ -121,6 +121,16 @@ class SumOrProductKE(KernelExpression): # Abstract
 
     def extract_if_singleton(self):
         return list(self.base_terms.elements())[0] if sum(self.base_terms.values()) == 1 and len(self.composite_terms) == 0 else self
+
+    def absorb_homogeneous_composites(self):
+        homogeneous_composites = [ct for ct in self.composite_terms if isinstance(ct, type(self))] # Annoyingly less problematic than lambda-using-self filter
+        for hc in homogeneous_composites:
+            self.base_terms.update(hc.base_terms)
+            self.simplify_base_terms()
+            for hcct in hc.composite_terms: hcct.parent = self
+            self.composite_terms += hc.composite_terms
+            self.composite_terms.remove(hc)
+        return self
 
     def traverse(self):
         return [self] + list(chain.from_iterable([ct.traverse() for ct in self.composite_terms]))

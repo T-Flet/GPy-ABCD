@@ -28,7 +28,7 @@ def expand(k_expr, p_rules):
     return flatten([expand_node(kex, p_rules) for kex in k_expr.traverse()])
 
 
-## Add more simplifications, e.g. regarding having singletons or nested singletons as children
+## Add more simplifications
 ## Add duplicate removal and already-tested-expression filter here; need to implmenet equality comparison (not overloading __eq__ though)
 
 
