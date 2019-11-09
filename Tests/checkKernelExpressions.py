@@ -2,11 +2,11 @@ from kernelExpression import *
 from kernelExpressionOperations import *
 
 
-## Simplification
+## Base Terms Simplification
 
 # aTest = SumKE(['WN', 'WN', 'C', 'C', 'LIN', 'LIN', 'SE', 'SE', 'PER', 'PER'])
 # print(aTest)
-
+#
 # aTest = ProductKE(['C', 'LIN', 'LIN', 'SE', 'SE', 'PER', 'PER'])
 # print(aTest)
 # aTest.new_base('WN')
@@ -15,8 +15,8 @@ from kernelExpressionOperations import *
 
 ## Type and Printing
 
-testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'C'])))
-testKern = testExpr.to_kernel()
+# testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'C'])))
+# testKern = testExpr.to_kernel()
 
 # print(testExpr)
 # print(testKern)
@@ -28,6 +28,7 @@ testKern = testExpr.to_kernel()
 
 ## Root and Parents
 
+# testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'C'])))
 # testExpr.set_root(testExpr)
 # for kex in testExpr.traverse(): print(kex.root)
 
@@ -37,14 +38,34 @@ testKern = testExpr.to_kernel()
 # testExpr.right.right.parent = testExpr.right
 # print(testExpr._check_all_parents())
 
-# testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'C'])))._initialise()
+testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'C'])))._initialise()
 # for kex in testExpr.traverse(): print(kex.root)
 # print(testExpr._check_all_parents())
 
 
+## Composite Singletons Simplifiaction
+
+# testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'C'])))
+# testExpr.set_root(testExpr)._set_all_parents() # I.e. an _initialise without .simplify()
+#
+# print(testExpr.right)
+# print(type(testExpr.right.right))
+# testExpr.right.simplify()
+# print(type(testExpr.right.right))
+# print(testExpr.right)
+#
+# testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'C'])))._initialise()
+# print(type(testExpr.right.right))
+# print(testExpr)
+#
+# testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), SumKE([], [ProductKE(['WN', 'C'])]))._initialise()
+# print(type(testExpr.right)) # Two nested singleton extractions occurred
+# print(testExpr)
+
+
 ## Traverse and Reduce
 
-testTraversed = testExpr.traverse()
+# testTraversed = testExpr.traverse()
 # print([str(x) for x in testTraversed])
 
 # def testFunc(node, acc):

@@ -38,6 +38,10 @@ class KernelExpression(ABC): # Abstract
     def simplify(self):
         pass
 
+    @abstractmethod
+    def extract_if_singleton(self):
+        pass
+
     # @abstractmethod
     # def sum_of_prods_form(self):
     #     pass
@@ -71,7 +75,7 @@ class KernelExpression(ABC): # Abstract
 
     # NOTE: The argument is intended to be the root of a manually coded tree
     def _initialise(self):
-        return self.set_root(self)._set_all_parents()
+        return self.set_root(self)._set_all_parents().simplify()
 
     @abstractmethod
     def reassign_child(self, old_child, new_child):
@@ -101,23 +105,32 @@ class SumOrProductKE(KernelExpression): # Abstract
         return str(kex)
 
     def simplify(self):
-        self.simplify_base_terms()
-        self.composite_terms = [ca.simplify() for ca in self.composite_terms]
-        return self
+        self.composite_terms = [ct.simplify() for ct in self.composite_terms]
+        return self.absorb_singletons().simplify_base_terms()
 
     @abstractmethod
     def simplify_base_terms(self):
         pass
 
+    def absorb_singletons(self):
+        singletons = filter(lambda x: isinstance(x[1], str), [(ct, ct.extract_if_singleton()) for ct in self.composite_terms])
+        for s in singletons:
+            self.new_base(s[1])
+            self.composite_terms.remove(s[0])
+        return self
+
+    def extract_if_singleton(self):
+        return list(self.base_terms.elements())[0] if sum(self.base_terms.values()) == 1 and len(self.composite_terms) == 0 else self
+
     def traverse(self):
-        return [self] + list(chain.from_iterable([ca.traverse() for ca in self.composite_terms]))
+        return [self] + list(chain.from_iterable([ct.traverse() for ct in self.composite_terms]))
 
     def reduce(self, func, acc):
         return reduce(lambda acc2, ct: ct.reduce(func, acc2), self.composite_terms, func(self, acc))
 
     def set_root(self, new_root):
         self.root = new_root
-        for cf in self.composite_terms: cf.set_root(new_root)
+        for ct in self.composite_terms: ct.set_root(new_root)
         return self
 
     def _set_all_parents(self):
@@ -157,6 +170,7 @@ class SumKE(SumOrProductKE):
         # WN and C are addition-idempotent
         if self.base_terms['WN'] > 1: self.base_terms['WN'] = 1
         if self.base_terms['C'] > 1: self.base_terms['C'] = 1
+        return self
 
 
 class ProductKE(SumOrProductKE):
@@ -175,6 +189,7 @@ class ProductKE(SumOrProductKE):
                 self.base_terms['C'] = 0 # C is the multiplication-identity element
             elif self.base_terms['C'] > 1: self.base_terms['C'] = 1 # C is multiplication-idempotent
             if self.base_terms['SE'] > 1: self.base_terms['SE'] = 1 # SE is multiplication-idempotent
+        return self
 
 
 class ChangeKE(KernelExpression):
@@ -188,8 +203,11 @@ class ChangeKE(KernelExpression):
         return self.CP_or_CW + KernelExpression.bs(str(self.left) + ', ' + str(self.right))
 
     def simplify(self):
-        if isinstance(self.left, KernelExpression): self.left.simplify()
-        if isinstance(self.right, KernelExpression): self.right.simplify()
+        if isinstance(self.left, KernelExpression): self.left = self.left.simplify().extract_if_singleton()
+        if isinstance(self.right, KernelExpression): self.right = self.right.simplify().extract_if_singleton()
+        return self
+
+    def extract_if_singleton(self):
         return self
 
     def traverse(self):
