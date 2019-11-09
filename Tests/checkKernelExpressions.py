@@ -2,51 +2,96 @@ from kernelExpression import *
 from kernelExpressionOperations import *
 
 
-### Simplification Tests
+## Simplification
 
-## SumKE
 # aTest = SumKE(['WN', 'WN', 'C', 'C', 'LIN', 'LIN', 'SE', 'SE', 'PER', 'PER'])
 # print(aTest)
 
-## ProductKE
 # aTest = ProductKE(['C', 'LIN', 'LIN', 'SE', 'SE', 'PER', 'PER'])
 # print(aTest)
 # aTest.new_base('WN')
 # print(aTest)
 
 
+## Type and Printing
 
-### General Tests
+testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'C'])))
+testKern = testExpr.to_kernel()
 
-# testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), SumKE(['SE', 'WN']))
-# testKern = testExpr.to_kernel()
-#
 # print(testExpr)
 # print(testKern)
 #
 # print(isinstance(testExpr, KernelExpression))
 # from GPy.kern.src.kern import Kern
 # print(isinstance(testKern, Kern))
-#
-# testTraversed = testExpr.traverse()
+
+
+## Root and Parents
+
+# testExpr.set_root(testExpr)
+# for kex in testExpr.traverse(): print(kex.root)
+
+# testExpr._set_all_parents()
+# testExpr.left.parent = testExpr.right.parent = testExpr
+# testExpr.left.composite_terms[0].parent = testExpr.left
+# testExpr.right.right.parent = testExpr.right
+# print(testExpr._check_all_parents())
+
+# testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'C'])))._initialise()
+# for kex in testExpr.traverse(): print(kex.root)
+# print(testExpr._check_all_parents())
+
+
+## Traverse and Reduce
+
+testTraversed = testExpr.traverse()
 # print([str(x) for x in testTraversed])
+
+# def testFunc(node, acc):
+#     node.set_root('HI')
+#     if isinstance(node, SumOrProductKE): # Or split Sum and Product cases further
+#         node.new_base('LIN')
+#         acc += node.base_terms.elements()
+#     else: # elif isinstance(node, ChangeKE):
+#         if isinstance(node.left, str): acc += [node.left]
+#         if isinstance(node.right, str): acc += [node.right]
+#     return acc
+#
+# a = testExpr.reduce(testFunc, [])
+# for kex in testExpr.traverse(): print(kex.root)
+# print(testExpr)
+# print(a)
+
+
+
+## Root a and Deepcopy Tests (Root part required, otherwise root is None)
+# from copy import deepcopy
 #
 # print(testExpr.root)
 # testExpr.set_root(testExpr)
 # print(testExpr.left.root)
-
-
-## Copy and Deepcopy Tests
-# from copy import copy, deepcopy
+#
+# print(testExpr.root == deepcopy(testExpr).root)
 # print(testExpr.left.root == deepcopy(testExpr.left).root)
+# print(deepcopy(testExpr).root == deepcopy(testExpr).root)
+# dcTE = deepcopy(testExpr)
+# print(dcTE.root == dcTE.root)
+# print(dcTE.root == dcTE.root.root)
+# dcTE.left.set_root(dcTE.right)
+# dcTE.right.set_root(dcTE.left)
+# dcdcTE = deepcopy(dcTE)
+# print(dcdcTE.left.root == dcdcTE.right)
+#
 # dcTestTraversed = deepcopy(testTraversed)
 # print(testTraversed[1].root == dcTestTraversed[1].root)
 # print(testTraversed[0].root == dcTestTraversed[1].root)
 
 
+
 ## Overloading Tests NOT CURRENTLY IMPLEMENTED
 # print(SumKE(['WN', 'C', 'C']) + SumKE(['WN', 'PER', 'C']))
 # print(SumKE(['WN', 'C', 'C']) * SumKE(['WN', 'PER', 'C']))
+
 
 
 
