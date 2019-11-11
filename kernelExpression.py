@@ -36,6 +36,10 @@ class KernelExpression(ABC): # Abstract
         pass
 
     @abstractmethod
+    def __eq__(self, other): ## NOTE: this is intended to check equality of data fields only, i.e. it does not check root or parent
+        pass
+
+    @abstractmethod
     def simplify(self):
         pass
 
@@ -59,7 +63,7 @@ class KernelExpression(ABC): # Abstract
         pass
 
     def is_root(self):
-        if self.root == self:
+        if self.root is self:
             assert self.parent is None, 'Something went rong: ' + str(self) + ' is the root while its parent is not None but ' + str(self.parent)
             return True
         else: return False
@@ -115,6 +119,9 @@ class SumOrProductKE(KernelExpression): # Abstract
     def __str__(self):
         return (' ' + self.symbol + ' ').join([self.bracket_if_needed(f) for f in list(self.base_terms.elements()) + self.composite_terms])
 
+    def __eq__(self, other): ## NOTE: this is intended to check equality of data fields only, i.e. it does not check root or parent
+        return type(self) == type(other) and self.base_terms == other.base_terms and self.composite_terms == other.composite_terms
+
     @staticmethod
     def bracket_if_needed(kex):
         return str(kex)
@@ -165,7 +172,7 @@ class SumOrProductKE(KernelExpression): # Abstract
         return self
 
     def _check_all_parents(self):
-        return all([ct.parent == self and ct._check_all_parents() for ct in self.composite_terms])
+        return all([ct.parent is self and ct._check_all_parents() for ct in self.composite_terms])
 
     def reassign_child(self, old_child, new_child):
         self.composite_terms.remove(old_child)
@@ -229,6 +236,9 @@ class ChangeKE(KernelExpression):
     def __str__(self):
         return self.CP_or_CW + KernelExpression.bs(str(self.left) + ', ' + str(self.right))
 
+    def __eq__(self, other): ## NOTE: this is intended to check equality of data fields only, i.e. it does not check root or parent
+        return type(self) == type(other) and self.CP_or_CW == other.CP_or_CW and self.left == other.left and self.right == other.right
+
     def simplify(self):
         if isinstance(self.left, KernelExpression): self.left = self.left.simplify().extract_if_singleton()
         if isinstance(self.right, KernelExpression): self.right = self.right.simplify().extract_if_singleton()
@@ -266,11 +276,11 @@ class ChangeKE(KernelExpression):
         return self
 
     def _check_all_parents(self):
-        return all([ct.parent == self and ct._check_all_parents() for ct in [self.left, self.right] if isinstance(ct, KernelExpression)])
+        return all([ct.parent is self and ct._check_all_parents() for ct in [self.left, self.right] if isinstance(ct, KernelExpression)])
 
     def reassign_child(self, old_child, new_child):
-        if self.left == old_child:
+        if self.left is old_child:
             self.left = new_child
-        else: # elif self.right == old_child
+        else: # elif self.right is old_child
             self.right = new_child
         return new_child # NOTE THIS RETURN VALUE (used by deep_apply)

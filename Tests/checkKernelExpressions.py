@@ -97,32 +97,42 @@ from kernelExpressionOperations import *
 # print(a)
 
 
-
 ## Root a and Deepcopy Tests (Root part required, otherwise root is None)
 # from copy import deepcopy
 #
+# testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), SumKE([], [ProductKE(['SE', 'LIN'])]))._initialise()
 # print(testExpr.root)
 # testExpr.set_root(testExpr)
 # print(testExpr.left.root)
-#
-# print(testExpr.root == deepcopy(testExpr).root)
-# print(testExpr.left.root == deepcopy(testExpr.left).root)
-# print(deepcopy(testExpr).root == deepcopy(testExpr).root)
+
+# print(testExpr.root is deepcopy(testExpr).root)
+# print(testExpr.left.root is deepcopy(testExpr.left).root)
+# print(deepcopy(testExpr).root is deepcopy(testExpr).root)
 # dcTE = deepcopy(testExpr)
-# print(dcTE.root == dcTE.root)
-# print(dcTE.root == dcTE.root.root)
+# print(dcTE.root is dcTE.root)
+# print(dcTE.root is dcTE.root.root)
 # dcTE.left.set_root(dcTE.right)
 # dcTE.right.set_root(dcTE.left)
 # dcdcTE = deepcopy(dcTE)
-# print(dcdcTE.left.root == dcdcTE.right)
+# print(dcdcTE.left.root is dcdcTE.right)
 #
+# testTraversed = testExpr.traverse()
 # dcTestTraversed = deepcopy(testTraversed)
-# print(testTraversed[1].root == dcTestTraversed[1].root)
-# print(testTraversed[0].root == dcTestTraversed[1].root)
+# print(testTraversed[1].root is dcTestTraversed[1].root)
+# print(testTraversed[0].root is dcTestTraversed[1].root)
 
 
+## __eq__ Tests
+# from copy import deepcopy
+#
+# testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), SumKE([], [ProductKE(['SE', 'LIN'])]))._initialise()
+# print(testExpr is deepcopy(testExpr))
+# print(testExpr == deepcopy(testExpr))
+# print(deepcopy(testExpr) is deepcopy(testExpr))
+# print(deepcopy(testExpr) == deepcopy(testExpr))
 
-## Overloading Tests NOT CURRENTLY IMPLEMENTED
+
+## Overloaded + * Tests NOT CURRENTLY IMPLEMENTED
 # print(SumKE(['WN', 'C', 'C']) + SumKE(['WN', 'PER', 'C']))
 # print(SumKE(['WN', 'C', 'C']) * SumKE(['WN', 'PER', 'C']))
 
