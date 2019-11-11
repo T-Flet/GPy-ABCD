@@ -137,25 +137,32 @@ from kernelExpressionOperations import *
 # print(a[SumKE])
 
 ## add
-# print(add(SumKE(['WN', 'C', 'C']), SumKE(['WN', 'PER', 'C'])))
-# print(add(ProductKE(['PER', 'C']), ProductKE(['LIN', 'C', 'SE'])))
-# print(add(ChangeKE('CP', 'PER', 'C'), ChangeKE('CW', 'LIN', 'SE')))
-# print(add('LIN', 'PER'))
-# print(add('LIN', SumKE(['WN', 'C', 'C'])))
-# print(add('LIN', ProductKE(['PER', 'SE', 'C'])))
-# print(add('LIN', ChangeKE('CP', 'PER', 'C')))
-# print(add(ProductKE(['PER', 'SE', 'C']), SumKE(['WN', 'C', 'C'])))
-# print(add(SumKE(['WN', 'C', 'C']), ChangeKE('CP', 'PER', 'C')))
-# print(add(ProductKE(['PER', 'SE', 'C']), ChangeKE('CP', 'PER', 'C')))
+# print(add(SumKE(['WN', 'C', 'C']), SumKE(['WN', 'PER', 'C']), False))
+# print(add(ProductKE(['PER', 'C']), ProductKE(['LIN', 'C', 'SE']), False))
+# print(add(ChangeKE('CP', 'PER', 'C'), ChangeKE('CW', 'LIN', 'SE'), False))
+# print(add('LIN', 'PER', False))
+# print(add('LIN', SumKE(['WN', 'C', 'C']), False))
+# print(add('LIN', ProductKE(['PER', 'SE', 'C']), False)) ## WITHOUT NESTED CASE HERE; SEE BELOW FOR WITH IT
+# print(add('LIN', ChangeKE('CP', 'PER', 'C'), False))
+# print(add(ProductKE(['PER', 'SE', 'C']), SumKE(['WN', 'C', 'C']), False))
+# print(add(SumKE(['WN', 'C', 'C']), ChangeKE('CP', 'PER', 'C'), False))
+# print(add(ProductKE(['PER', 'SE', 'C']), ChangeKE('CP', 'PER', 'C'), False))
+
+# Only above case which is different for nondeterministic = True
+# for r in add('LIN', ProductKE(['PER', 'SE', 'C'], [ChangeKE('CP', 'C', 'LIN')])): print(r)
+
 
 ## multiply
-# print(multiply(SumKE(['WN', 'C', 'C']), SumKE(['WN', 'PER', 'C'])))
-# print(multiply(ProductKE(['PER', 'C']), ProductKE(['LIN', 'C', 'SE'])))
-# print(multiply(ChangeKE('CP', 'PER', 'C'), ChangeKE('CW', 'LIN', 'SE')))
-# print(multiply('LIN', 'PER'))
-# print(multiply('LIN', SumKE(['WN', 'C', 'C'])))
-# print(multiply('LIN', ProductKE(['PER', 'C'])))
-# print(multiply('LIN', ChangeKE('CP', 'PER', 'C')))
-# print(multiply(ProductKE(['PER', 'C']), SumKE(['WN', 'C', 'C'])))
-# print(multiply(SumKE(['WN', 'C', 'C']), ChangeKE('CP', 'PER', 'C')))
-# print(multiply(ProductKE(['PER', 'C']), ChangeKE('CP', 'PER', 'C')))
+# print(multiply(SumKE(['WN', 'C', 'C']), SumKE(['WN', 'PER', 'C']), False))
+# print(multiply(ProductKE(['PER', 'C']), ProductKE(['LIN', 'C', 'SE']), False))
+# print(multiply(ChangeKE('CP', 'PER', 'C'), ChangeKE('CW', 'LIN', 'SE'), False))
+# print(multiply('LIN', 'PER', False))
+# print(multiply('LIN', SumKE(['WN', 'C', 'C']), False)) ## WITHOUT NESTED CASE HERE; SEE BELOW FOR WITH IT
+# print(multiply('LIN', ProductKE(['PER', 'C']), False))
+# print(multiply('LIN', ChangeKE('CP', 'PER', 'C'), False))
+# print(multiply(ProductKE(['PER', 'C']), SumKE(['WN', 'C', 'C']), False))
+# print(multiply(SumKE(['WN', 'C', 'C']), ChangeKE('CP', 'PER', 'C'), False))
+# print(multiply(ProductKE(['PER', 'C']), ChangeKE('CP', 'PER', 'C'), False))
+
+# Only above case which is different for nondeterministic = True
+# for r in multiply('LIN', SumKE(['WN', 'SE'], [ChangeKE('CP', 'C', 'LIN')])): print(r)

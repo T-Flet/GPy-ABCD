@@ -3,6 +3,7 @@ from Kernels.baseKernels import *
 from collections import Counter
 from itertools import chain
 from functools import reduce
+from copy import deepcopy
 # import kernelExpressionOperations
 
 
@@ -57,6 +58,12 @@ class KernelExpression(ABC): # Abstract
     def reduce(self, func, acc):
         pass
 
+    def is_root(self):
+        if self.root == self:
+            assert self.parent is None, 'Something went rong: ' + str(self) + ' is the root while its parent is not None but ' + str(self.parent)
+            return True
+        else: return False
+
     @abstractmethod
     def set_root(self, new_root):
         pass
@@ -73,12 +80,19 @@ class KernelExpression(ABC): # Abstract
     def _check_all_parents(self):
         pass
 
-    # NOTE: The argument is intended to be the root of a manually coded tree
-    def _initialise(self):
+    def _initialise(self): # NOTE: The argument is intended to be the root of a manually coded tree
         return self.set_root(self)._set_all_parents().simplify()
 
+    def new_tree_with_self_replaced(self, replacement_node): # NOTE: replacement_node is assumed to already have handled changing its childrens' parent to itself
+        copied_replacement, copied_self = deepcopy((replacement_node.set_parent(self.parent), self))
+        if copied_self.is_root():
+            return copied_replacement.set_root(copied_replacement)
+        else:
+            copied_replacement.set_root(copied_self.root)
+            return copied_replacement.parent.reassign_child(copied_self, copied_replacement)
+
     @abstractmethod
-    def reassign_child(self, old_child, new_child):
+    def reassign_child(self, old_child, new_child): # NOTE: has to return new_child (used by deep_apply)
         pass
 
     def to_kernel(self):
@@ -95,7 +109,8 @@ class SumOrProductKE(KernelExpression): # Abstract
         self.base_terms = base_terms if isinstance(base_terms, Counter) else Counter(base_terms)
         self.composite_terms = composite_terms
         self.symbol = symbol
-        self.simplify_base_terms()
+        # self.simplify_base_terms() # Activate only this instead of full simplify for some testing
+        self.simplify()
 
     def __str__(self):
         return (' ' + self.symbol + ' ').join([self.bracket_if_needed(f) for f in list(self.base_terms.elements()) + self.composite_terms])
@@ -155,6 +170,7 @@ class SumOrProductKE(KernelExpression): # Abstract
     def reassign_child(self, old_child, new_child):
         self.composite_terms.remove(old_child)
         self.composite_terms.append(new_child)
+        return new_child # NOTE THIS RETURN VALUE (used by deep_apply)
             
     def new_base(self, new_base_terms):
         if isinstance(new_base_terms, str):
@@ -208,6 +224,7 @@ class ChangeKE(KernelExpression):
         self.CP_or_CW = CP_or_CW
         self.left = left
         self.right = right
+        self.simplify() # Deactivate for some testing
 
     def __str__(self):
         return self.CP_or_CW + KernelExpression.bs(str(self.left) + ', ' + str(self.right))
@@ -256,3 +273,4 @@ class ChangeKE(KernelExpression):
             self.left = new_child
         else: # elif self.right == old_child
             self.right = new_child
+        return new_child # NOTE THIS RETURN VALUE (used by deep_apply)
