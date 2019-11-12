@@ -38,11 +38,10 @@ def expand_node(k_expr, p_rules):
     return unique(flatten(flatten([pr(k_expr) for pr in p_rules])))
 
 ## Add more simplifications, e.g. zeros or identities with composites (singleton WN * composite)
-## Add duplicate removal and already-tested-expression filter here; need to implmenet equality comparison (not overloading __eq__ though)
+## Add already-tested-expression caching and filter here
 
 def deep_apply(operator, S, *args): # Deepcopy the tree and connect the new node to the rest of the tree (setting correct root and updating the parent if not root)
-    copied_node = deepcopy(S) # UNNECESSARY IF operator is guaranteed not to modify its first argument
-    return [copied_node.new_tree_with_self_replaced(new_node) for new_node in operator(copied_node, *args)]
+    return [S.new_tree_with_self_replaced(new_node) for new_node in operator(S, *args)]
 
 
 ## Production Rules

@@ -17,6 +17,11 @@ def sortOutTypePair(k1, k2):
 #       not using copy because it would affect the original ks non-base-type field values
 #       not using deepcopy because it would create much more than the required fields
 
+# POLICY
+#   Related to the above note: deepcopies are left to KernelExpression methods (including __init__) and, if required,
+#   to larger routines (which might use these operators)
+#   ALSO, IMPORTANTLY AND CONSEQUENTLY: no operator is to modify either argument in any way
+
 
 def add(k1, k2, with_nested_case = True): # Simple addition, NOT DISTRIBUTING OR SIMPLIFYING
     # with_nested_case = True returns a list instead of a single result; only str + ProductKE will be a non-singleton

@@ -8,13 +8,14 @@ from copy import deepcopy
 
 
 # IDEA:
-#   Models are represented by a tree of KernelExpressions, which can be Sum, Product and Change nodes;
-#   each type of node may contain raw strings base kernels or composite ones, however bare raw string leaves may only occur in ChangeKEs.
-#   The tree root is stored in each node, as is the direct parent, therefore from any traversal one can just deepcopy
-#   single nodes to get the rest of the tree for free.
-#   When expanding a tree: can apply all production rules at internal nodes, but only base-kernel ones at the leaves;
-#   the mult/sum of sum/mult rules are applied to leaves FROM their parents; this covers the whole tree
-#   Both traverse and reduce ignore bare string leaves and assume the user handles them from their ChangeKE parent.
+#   - Models are represented by a tree of KernelExpressions, which can be Sum, Product and Change nodes;
+#       each type of node may contain raw strings base kernels or composite ones, however bare raw string leaves may only occur in ChangeKEs.
+#   - The tree root is stored in each node, as is the direct parent, therefore from any traversal one can just deepcopy
+#       single nodes to get the rest of the tree for free.
+#   - When expanding a tree: can apply all production rules at internal nodes, but only base-kernel ones at the leaves;
+#       the mult/sum of sum/mult rules are applied to leaves FROM their parents; this covers the whole tree.
+#   - Both traverse and reduce ignore bare string leaves and assume the user handles them from their ChangeKE parent.
+#   - Methods with input arguments make deepcopies of them in order to prevent unintended modification (exceptions for methods used other methods which do)
 
 
 
@@ -96,7 +97,7 @@ class KernelExpression(ABC): # Abstract
             return copied_replacement.parent.reassign_child(copied_self, copied_replacement)
 
     @abstractmethod
-    def reassign_child(self, old_child, new_child): # NOTE: has to return new_child (used by deep_apply)
+    def reassign_child(self, old_child, new_child): # NOTE: has to return new_child (used by new_tree_with_self_replaced)
         pass
 
     def to_kernel(self):
@@ -110,11 +111,12 @@ class KernelExpression(ABC): # Abstract
 class SumOrProductKE(KernelExpression): # Abstract
     def __init__(self, base_terms, composite_terms = [], root: KernelExpression = None, parent: KernelExpression = None, symbol = '+'):
         super().__init__(root, parent)
-        self.base_terms = base_terms if isinstance(base_terms, Counter) else Counter(base_terms)
-        self.composite_terms = composite_terms
+        self.base_terms = deepcopy(base_terms) if isinstance(base_terms, Counter) else Counter(base_terms)
+        self.composite_terms = deepcopy(composite_terms)
         self.symbol = symbol
         # self.simplify_base_terms() # Activate only this instead of full simplify for some testing
         self.simplify()
+        for ct in self.composite_terms: ct.set_parent(self).set_root(self.root)
 
     def __str__(self):
         return (' ' + self.symbol + ' ').join([self.bracket_if_needed(f) for f in list(self.base_terms.elements()) + self.composite_terms])
@@ -176,8 +178,8 @@ class SumOrProductKE(KernelExpression): # Abstract
 
     def reassign_child(self, old_child, new_child):
         self.composite_terms.remove(old_child)
-        self.composite_terms.append(new_child)
-        return new_child # NOTE THIS RETURN VALUE (used by deep_apply)
+        self.composite_terms.append(new_child) # NOT A deepcopy!
+        return new_child # NOTE THIS RETURN VALUE (used by new_tree_with_self_replaced)
             
     def new_base(self, new_base_terms):
         if isinstance(new_base_terms, str):
@@ -189,9 +191,9 @@ class SumOrProductKE(KernelExpression): # Abstract
 
     def new_composite(self, new_composite_terms):
         if isinstance(new_composite_terms, KernelExpression):
-            self.composite_terms += [new_composite_terms]
+            self.composite_terms += [deepcopy(new_composite_terms).set_parent(self).set_root(self.root)]
         else: # list
-            self.composite_terms += new_composite_terms
+            self.composite_terms += [deepcopy(nct).set_parent(self).set_root(self.root) for nct in new_composite_terms]
         return self
 
 
@@ -229,9 +231,11 @@ class ChangeKE(KernelExpression):
     def __init__(self, CP_or_CW, left, right, root: KernelExpression = None, parent: KernelExpression = None):
         super().__init__(root, parent)
         self.CP_or_CW = CP_or_CW
-        self.left = left
-        self.right = right
+        self.left = deepcopy(left)
+        self.right = deepcopy(right)
         self.simplify() # Deactivate for some testing
+        if isinstance(self.left, KernelExpression): self.left.set_parent(self).set_root(self.root)
+        if isinstance(self.right, KernelExpression): self.right.set_parent(self).set_root(self.root)
 
     def __str__(self):
         return self.CP_or_CW + KernelExpression.bs(str(self.left) + ', ' + str(self.right))
@@ -280,7 +284,7 @@ class ChangeKE(KernelExpression):
 
     def reassign_child(self, old_child, new_child):
         if self.left is old_child:
-            self.left = new_child
+            self.left = new_child # NOT A deepcopy!
         else: # elif self.right is old_child
-            self.right = new_child
-        return new_child # NOTE THIS RETURN VALUE (used by deep_apply)
+            self.right = new_child # NOT A deepcopy!
+        return new_child # NOTE THIS RETURN VALUE (used by new_tree_with_self_replaced)

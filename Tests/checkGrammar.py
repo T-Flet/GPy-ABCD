@@ -1,6 +1,7 @@
 from grammar import *
 
 ## unique
+
 # b = [ChangeKE('CP', 'C', 'SE'), ChangeKE('CP', 'C', 'SE'), SumKE(['C', 'SE']), SumKE(['C', 'LIN'])]
 # for e in unique(b):
 #     print(e)
@@ -16,6 +17,7 @@ a = expand(testExpr, production_rules.values())
 
 for e in a: print(e)
 print(len(a))
+print(all([x._check_all_parents() for x in a]))
 
 
 ## Uniqueness in expansions WITH unique REMOVED FROM THE FUNCTIONS THEMSELVES
