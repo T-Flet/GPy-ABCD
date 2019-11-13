@@ -66,6 +66,11 @@ from kernelExpressionOperations import *
 # print(testExpr)
 # print(type(testExpr))
 # print(testExpr.composite_terms)
+#
+# testExpr = SumKE([], [ProductKE([], [SumKE([], [ProductKE(['LIN', 'SE'],[])])])])._initialise()
+# print(testExpr)
+# print(type(testExpr))
+# print(testExpr.composite_terms)
 
 
 ## Homogeneous Composites Simplification

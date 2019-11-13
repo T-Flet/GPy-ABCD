@@ -17,6 +17,8 @@ from copy import deepcopy
 #   - Both traverse and reduce ignore bare string leaves and assume the user handles them from their ChangeKE parent.
 #   - Methods with input arguments make deepcopies of them in order to prevent unintended modification (exceptions for methods used other methods which do)
 
+# TODO:
+#   Add more simplifications, e.g. zeros or identities with composites (singleton WN * composite)
 
 
 class KernelExpression(ABC): # Abstract
@@ -86,12 +88,12 @@ class KernelExpression(ABC): # Abstract
         pass
 
     def _initialise(self): # NOTE: The argument is intended to be the root of a manually coded tree
-        return self.set_root(self)._set_all_parents().simplify()
+        return self.set_root()._set_all_parents().simplify()
 
     def new_tree_with_self_replaced(self, replacement_node): # NOTE: replacement_node is assumed to already have handled changing its childrens' parent to itself
         copied_replacement, copied_self = deepcopy((replacement_node.set_parent(self.parent), self))
         if copied_self.is_root():
-            return copied_replacement.set_root(copied_replacement)
+            return copied_replacement.set_root()
         else:
             copied_replacement.set_root(copied_self.root)
             return copied_replacement.parent.reassign_child(copied_self, copied_replacement)
@@ -143,8 +145,10 @@ class SumOrProductKE(KernelExpression): # Abstract
             self.composite_terms.remove(s[0])
         return self
 
-    def extract_if_singleton(self):
-        return list(self.base_terms.elements())[0] if sum(self.base_terms.values()) == 1 and len(self.composite_terms) == 0 else self
+    def extract_if_singleton(self): # This modifies the composite_child's parent if that kind of singleton
+        if sum(self.base_terms.values()) == 1 and len(self.composite_terms) == 0: return list(self.base_terms.elements())[0]
+        elif sum(self.base_terms.values()) == 0 and len(self.composite_terms) == 1: return self.composite_terms[0].set_parent(self.parent)
+        else: return self
 
     def absorb_homogeneous_composites(self):
         homogeneous_composites = [ct for ct in self.composite_terms if isinstance(ct, type(self))] # Annoyingly less problematic than lambda-using-self filter
@@ -162,7 +166,8 @@ class SumOrProductKE(KernelExpression): # Abstract
     def reduce(self, func, acc):
         return reduce(lambda acc2, ct: ct.reduce(func, acc2), self.composite_terms, func(self, acc))
 
-    def set_root(self, new_root):
+    def set_root(self, new_root = None):
+        if new_root is None: new_root = self
         self.root = new_root
         for ct in self.composite_terms: ct.set_root(new_root)
         return self
@@ -264,7 +269,8 @@ class ChangeKE(KernelExpression):
                [branch for branch in (self.left, self.right) if isinstance(branch, KernelExpression)],
                func(self, acc))
 
-    def set_root(self, new_root):
+    def set_root(self, new_root = None):
+        if new_root is None: new_root = self
         self.root = new_root
         if isinstance(self.left, KernelExpression): self.left.set_root(new_root)
         if isinstance(self.right, KernelExpression): self.right.set_root(new_root)

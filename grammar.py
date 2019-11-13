@@ -28,17 +28,20 @@ def unique(xs):
 
 ## Expansion functions
 
+def standardise_singleton_root(k_expr_root): # Standardise a root if singleton: to SumKE of a base kernel or to the single composite term, making it the root
+    simplified = k_expr_root.extract_if_singleton()
+    if simplified is k_expr_root: return k_expr_root
+    elif isinstance(simplified, str): return SumKE([simplified]).set_root()
+    else: return standardise_singleton_root(simplified.set_parent(None).set_root())
+
 def roots(k_expr_list):
-    return [kex.root for kex in k_expr_list]
+    return [standardise_singleton_root(kex.root) for kex in k_expr_list]
 
 def expand(k_expr, p_rules):
     return unique(roots(flatten([expand_node(kex, p_rules) for kex in k_expr.traverse()])))
 
 def expand_node(k_expr, p_rules):
     return unique(flatten(flatten([pr(k_expr) for pr in p_rules])))
-
-## Add more simplifications, e.g. zeros or identities with composites (singleton WN * composite)
-## Add already-tested-expression caching and filter here
 
 def deep_apply(operator, S, *args): # Deepcopy the tree and connect the new node to the rest of the tree (setting correct root and updating the parent if not root)
     return [S.new_tree_with_self_replaced(new_node) for new_node in operator(S, *args)]
@@ -49,18 +52,16 @@ def deep_apply(operator, S, *args): # Deepcopy the tree and connect the new node
 def plus_base(S): return [deep_apply(add, S, B) for B in base_kerns]
 def times_base(S): return [deep_apply(multiply, S, B) for B in base_kerns - set('C')]
 # def replace_base(S): return [swap_base(S, B) for B in base_kerns]
-production_rules = { # IS A LIST BETTER BECAUSE KEYS ARE NEVER USED?
+production_rules = {
     'plus_base': plus_base,
     'times_base': times_base,
     # 'replace_base': replace_base
 }
 
 
-
-
-# LHS:
-#   S: B | CP()  | CW() | ( .. )
-#   B: WN, C, LIN, SE, PER
+# TODO:
+#   Implement all remaining production rules
+#   Decide whether to store them in a list instead since the dictionary keys are not and might not be used
 prod_rules_to_implement = [
     ('S', 'S + B'),
     ('S', 'S * B'),

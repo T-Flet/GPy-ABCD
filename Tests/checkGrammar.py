@@ -13,11 +13,19 @@ testExpr = ChangeKE('CP', ProductKE(['PER'], [SumKE(['WN', 'C', 'SE'])]), Change
 # a = flatten(times_base(testExpr.left.composite_terms[0]))
 # a = expand_node(testExpr.left.composite_terms[0], production_rules.values())
 # a = expand_node(testExpr, production_rules.values())
-a = expand(testExpr, production_rules.values())
+# a = expand(testExpr, production_rules.values())
+#
+# for e in a: print(e)
+# print(len(a))
+# print(all([x._check_all_parents() for x in a]))
 
-for e in a: print(e)
-print(len(a))
-print(all([x._check_all_parents() for x in a]))
+
+## Simplest expansion and standardised roots
+
+# a = expand(SumKE(['WN'])._initialise(), production_rules.values())
+# for e in a: print(e)
+# print(len(a))
+# print(all([x._check_all_parents() for x in a]))
 
 
 ## Uniqueness in expansions WITH unique REMOVED FROM THE FUNCTIONS THEMSELVES
