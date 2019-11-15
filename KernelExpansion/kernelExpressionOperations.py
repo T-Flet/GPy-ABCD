@@ -1,4 +1,4 @@
-from kernelExpression import *
+from KernelExpansion.kernelExpression import *
 
 
 def sortOutTypePair(k1, k2):

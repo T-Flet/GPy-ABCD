@@ -1,7 +1,4 @@
-from Kernels.baseKernels import *
-from kernelExpression import *
-from kernelExpressionOperations import *
-from copy import deepcopy
+from KernelExpansion.kernelExpressionOperations import *
 from itertools import chain
 
 

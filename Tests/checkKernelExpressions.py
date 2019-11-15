@@ -1,5 +1,5 @@
-from kernelExpression import *
-from kernelExpressionOperations import *
+from KernelExpansion.kernelExpression import *
+from KernelExpansion.kernelExpressionOperations import *
 
 
 ## Base Terms Simplification

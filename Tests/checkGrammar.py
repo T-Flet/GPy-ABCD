@@ -1,4 +1,5 @@
-from grammar import *
+from KernelExpansion.grammar import *
+
 
 ## unique
 
