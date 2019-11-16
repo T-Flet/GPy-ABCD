@@ -48,17 +48,18 @@ def deep_apply(operator, S, *args): # Deepcopy the tree and connect the new node
 
 def plus_base(S): return [deep_apply(add, S, B) for B in base_kerns]
 def times_base(S): return [deep_apply(multiply, S, B) for B in base_kerns - set('C')]
-# def replace_base(S): return [swap_base(S, B) for B in base_kerns]
+def replace_base(S): return [deep_apply(swap_base, S, B) for B in base_kerns]
 production_rules = {
     'plus_base': plus_base,
     'times_base': times_base,
-    # 'replace_base': replace_base
+    'replace_base': replace_base
 }
 
 
 # TODO:
 #   Implement all remaining production rules
 #   Decide whether to store them in a list instead since the dictionary keys are not and might not be used
+#   Decide whether all rules should be used at each depth or whether some (e.g. some changepoint ones) should be dropped at some point
 prod_rules_to_implement = [
     ('S', 'S + B'),
     ('S', 'S * B'),
@@ -71,8 +72,8 @@ prod_rules_to_implement = [
     ('S', 'CW(C, S)'),
     ('S', 'S * (B + C)'),
     ('S', 'B'),
-    ('S + S', 'S'),
-    ('S * S', 'S'),
+    ('S + S2', 'S'),
+    ('S * S2', 'S'),
     ('S', '')
 ]
 

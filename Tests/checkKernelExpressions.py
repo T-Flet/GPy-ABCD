@@ -181,3 +181,11 @@ from KernelExpansion.kernelExpressionOperations import *
 
 # Only above case which is different for nondeterministic = True
 # for r in multiply('LIN', SumKE(['WN', 'SE'], [ChangeKE('CP', 'C', 'LIN')])): print(r)
+
+
+## swap_base
+# for e in swap_base(SumKE(['WN', 'PER', 'C']), 'SE'): print(e)
+# for e in swap_base(ProductKE(['LIN', 'PER', 'PER']), 'SE'): print(e)
+# for e in swap_base(ChangeKE('CP', 'WN', SumKE(['PER', 'C'])), 'SE'): print(e)
+# for e in swap_base(ChangeKE('CP', SumKE(['PER', 'C']), 'LIN'), 'SE'): print(e)
+# for e in swap_base('LIN', 'SE'): print(e)

@@ -19,6 +19,7 @@ from copy import deepcopy
 
 # TODO:
 #   Add more simplifications, e.g. zeros or identities with composites (singleton WN * composite)
+#   Think about the issue of accumulating variance parameters in repeated multiplications GPy.kern multiplications; worth trying to prevent it?
 
 
 class KernelExpression(ABC): # Abstract

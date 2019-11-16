@@ -1,8 +1,12 @@
 from operator import methodcaller, attrgetter
 import warnings
 from GPy.models import GPRegression
+import numpy as np
 from KernelExpansion.grammar import *
+from multiprocessing import Pool, cpu_count
 
+
+## Model class
 
 class GPModel():
     def __init__(self, X, Y, kernel_expression = SumKE(['WN'])._initialise()):
@@ -47,32 +51,19 @@ class GPModel():
         return self.cached_utility_function
 
 
-# Model Testing functions
 
+## Model Sarch
 
-from concurrent.futures import ProcessPoolExecutor
-def fit_one_model(arg_tuple): # arg_tuple = (X, Y, kex, restarts)
-    return GPModel(arg_tuple[0], arg_tuple[1], arg_tuple[2]).fit(arg_tuple[3])
-    # X, Y, kex, restarts = arg_tuple
-    # return GPModel(X, Y, kex).fit(restarts)
-def fit_model_list(X, Y, k_exprs, restarts = 5, chunksize = 5):
-    with ProcessPoolExecutor() as executor:
-            return executor.map(fit_one_model, [(X, Y, kex, restarts) for kex in k_exprs], chunksize = chunksize)
+# NOTE: Any code that calls (however many nested levels in) fit_model_list, needs to be within a
+#   if __name__ == '__main__':
+#   preamble in order to work on Windows. Note that this includes find_best_model, and hence any call to this project.
 
-# import multiprocessing as mp
-# def fit_one_model(X, Y, kex, restarts): return GPModel(X, Y, kex).fit(restarts)
-# def fit_model_list(X, Y, k_exprs, restarts = 5, chunksize = 5):
-#     with mp.Pool() as pool:
-#         return pool.starmap_async(fit_one_model, [(X, Y, kex, restarts) for kex in k_exprs], chunksize).get()
-#         # return pool.starmap(fit_one_model, [(X, Y, kex, restarts) for kex in k_exprs], chunksize)
+# TODO:
+#  Decide whether to have a set of initial common models before or instead of WN expansion in order to return something quickly
 
-# def fit_model_list(X, Y, k_exprs, restarts = 5, chunksize = 5):
-#     return [GPModel(X, Y, kex).fit(restarts) for kex in k_exprs]
-
-# def fit_model_list(X, Y, k_exprs, restarts = 5, chunksize = 5):
-#     local_models = []
-#     for kex in k_exprs: local_models.append(GPModel(X, Y, kex).fit(restarts))
-#     return local_models
+def fit_one_model(X, Y, kex, restarts): return GPModel(X, Y, kex).fit(restarts)
+def fit_model_list(X, Y, k_exprs, restarts = 5):
+    with Pool() as pool: return pool.starmap_async(fit_one_model, [(X, Y, kex, restarts) for kex in k_exprs], int(len(k_exprs) / cpu_count()) + 1).get()
 
 
 def find_best_model(X, Y, start_kernel = SumKE(['WN'])._initialise(), p_rules = production_rules, restarts = 5,
@@ -84,66 +75,11 @@ def find_best_model(X, Y, start_kernel = SumKE(['WN'])._initialise(), p_rules = 
     for d in range(1, depth + 1):
         tested_models.append([]) # tested_models[d] = []
         model_buffer = tested_models[d - 1][:buffer] if len(tested_models[d - 1]) >= buffer else tested_models[d - 1]
-
-
-        new_k_exprs = [kex for kex in flatten([expand(model.kernel_expression, p_rules.values()) for model in model_buffer]) if kex not in tested_k_exprs]
+        new_k_exprs = [kex for kex in unique(flatten([expand(model.kernel_expression, p_rules.values()) for model in model_buffer])) if kex not in tested_k_exprs]
         tested_models[d] += fit_model_list(X, Y, new_k_exprs, restarts)
         tested_k_exprs += new_k_exprs
-
-        # for model in model_buffer:
-        #     for kex in expand(model.kernel_expression, p_rules.values()):
-        #         if kex not in tested_k_exprs:
-        #             mod = GPModel(X, Y, kex).fit(restarts)
-        #             tested_k_exprs.append(kex)
-        #             tested_models[d].append(mod)
-
-
         tested_models[d].sort(key = methodcaller(utility_function))
         if verbose: print(f'Best depth-{d} model: {tested_models[d][0].kernel_expression}')
     sorted_models = sorted(flatten(tested_models), key = attrgetter('cached_utility_function'))
     if verbose: print(f'Best model overall: {sorted_models[0].kernel_expression}')
     return sorted_models[:5], tested_models, tested_k_exprs
-
-
-
-
-
-
-## TESTING
-
-if __name__ == '__main__':
-    import numpy as np
-
-    # np.seterr(all='raise') # Raise exceptions instead of RuntimeWarnings. The exceptions can then be caught by the debugger
-
-
-    X = np.linspace(-10, 10, 101)[:, None]
-
-    Y = np.cos( (X - 5) / 2 )**2 * 7 + np.random.randn(101, 1) * 1 #- 100
-
-    # from Util.util import doGPR
-    # doGPR(X, Y, PER + C, 10)
-
-
-
-    from timeit import timeit
-    def statement():
-        best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernel=SumKE(['WN'])._initialise(), p_rules=production_rules,
-                                                         restarts=3, utility_function='BIC', depth=2, buffer=5, verbose=True)
-    print(timeit(statement, number = 5))
-
-
-
-    # best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernel = SumKE(['WN'])._initialise(), p_rules = production_rules,
-    #                                                  restarts = 2, utility_function = 'BIC', depth = 2, buffer = 5, verbose= True)
-
-    # from matplotlib import pyplot as plt
-    # for bm in best_mods:
-    #     print(bm.kernel_expression)
-    #     print(bm.model.kern)
-    #     print(bm.model.log_likelihood())
-    #     print(bm.cached_utility_function)
-    #     bm.model.plot()
-    #
-    # plt.show()
-

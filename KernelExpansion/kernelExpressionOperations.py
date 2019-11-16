@@ -85,3 +85,15 @@ def multiply(k1, k2, with_nested_case = True): # Simple multiplication, NOT DIST
         else: # elif pair.keys() == {ProductKE, ChangeKE}:
             res = ProductKE(pair[ProductKE].base_terms, pair[ProductKE].composite_terms + [pair[ChangeKE]])
     return [res] if with_nested_case else res
+
+
+def swap_base(S, B):
+    res = []
+    if isinstance(S, SumKE) or isinstance(S, ProductKE):
+        res = [type(S)((+S.base_terms) + Counter({bt: -1, B: 1}), S.composite_terms) for bt in (+S.base_terms).keys()]
+    elif isinstance(S, ChangeKE):
+        res += [ChangeKE(S.CP_or_CW, B, S.right)] if isinstance(S.left, str) and S.left != B else []
+        res += [ChangeKE(S.CP_or_CW, S.left, B)] if isinstance(S.right, str) and S.right != B else []
+    else: # elif isinstance(k1, str): # This never occurs in the expansion though
+        res = [B]
+    return res
