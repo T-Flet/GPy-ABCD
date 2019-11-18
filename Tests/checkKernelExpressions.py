@@ -189,3 +189,26 @@ from KernelExpansion.kernelExpressionOperations import *
 # for e in swap_base(ChangeKE('CP', 'WN', SumKE(['PER', 'C'])), 'SE'): print(e)
 # for e in swap_base(ChangeKE('CP', SumKE(['PER', 'C']), 'LIN'), 'SE'): print(e)
 # for e in swap_base('LIN', 'SE'): print(e)
+
+
+## one_change and both_changes
+# for e in one_change(SumKE(['WN', 'PER', 'C']), 'CP'): print(e)
+# for e in one_change(SumKE(['WN', 'PER', 'C']), 'CW', ProductKE(['PER', 'SE'])): print(e)
+# for e in one_change(SumKE(['WN', 'PER', 'C']), 'CP', 'WN'): print(e)
+
+# for e in both_changes(SumKE(['WN', 'PER', 'C'])): print(e)
+# for e in both_changes(SumKE(['WN', 'PER', 'C']), ProductKE(['PER', 'SE'])): print(e)
+# for e in both_changes(SumKE(['WN', 'PER', 'C']), 'WN'): print(e)
+
+
+## replace_node
+# for e in replace_node(SumKE(['WN', 'PER', 'C']), ProductKE(['PER', 'SE'])): print(e)
+# for e in replace_node(SumKE(['WN', 'PER', 'C']), 'WN'): print(e)
+
+
+## remove_a_term
+# for e in remove_a_term(SumKE(['WN', 'PER', 'C'])): print(e)
+# for e in remove_a_term(ProductKE(['PER', 'SE', 'LIN'])): print(e)
+# for e in remove_a_term(ChangeKE('CP', SumKE(['WN', 'PER', 'C']), 'LIN')): print(str(e) + str(type(e)))
+# for e in remove_a_term('PER'): print(e) # This does not occur in expansions
+

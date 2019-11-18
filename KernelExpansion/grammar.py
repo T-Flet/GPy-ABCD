@@ -49,10 +49,22 @@ def deep_apply(operator, S, *args): # Deepcopy the tree and connect the new node
 def plus_base(S): return [deep_apply(add, S, B) for B in base_kerns]
 def times_base(S): return [deep_apply(multiply, S, B) for B in base_kerns - set('C')]
 def replace_base(S): return [deep_apply(swap_base, S, B) for B in base_kerns]
+def change_same(S): return [deep_apply(both_changes, S)]
+def change_window_constant(S): return [deep_apply(one_change, S, 'CW', 'C')]
+def times_shifted_base(S): return [deep_apply(multiply, S, SumKE([B, 'C'])) for B in base_kerns - set('C')]
+def replace_with_singleton(S): return [deep_apply(replace_node, S, SumKE([B])) for B in base_kerns]
+def remove_some_term(S): return [deep_apply(remove_a_term, S) for B in base_kerns]
+# def remove_node(S): return [deep_apply(replace_node, S, SumKE([B])) for B in base_kerns]
 production_rules = {
     'plus_base': plus_base,
     'times_base': times_base,
-    'replace_base': replace_base
+    'replace_base': replace_base,
+    'change_same': change_same,
+    'change_window_constant': change_window_constant,
+    'times_shifted_base': times_shifted_base,
+    'replace_with_singleton': replace_with_singleton,
+    'remove_some_term': remove_some_term,
+    # 'remove_node': remove_node ## SAME CODE AS remove_some_term WHEN term_count() == 1 (provided that it needs to be implmeneted)
 }
 
 
@@ -65,8 +77,6 @@ prod_rules_to_implement = [
     ('S', 'S * B'),
     ('B', 'B'),
     ('S', 'CP(S, S)'),
-    ('S', 'CP(S, C)'),
-    ('S', 'CP(C, S)'),
     ('S', 'CW(S, S)'),
     ('S', 'CW(S, C)'),
     ('S', 'CW(C, S)'),

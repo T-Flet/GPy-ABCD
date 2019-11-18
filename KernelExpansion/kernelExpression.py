@@ -202,6 +202,9 @@ class SumOrProductKE(KernelExpression): # Abstract
             self.composite_terms += [deepcopy(nct).set_parent(self).set_root(self.root) for nct in new_composite_terms]
         return self
 
+    def term_count(self):
+        return sum(self.base_terms.values()) + len(self.composite_terms)
+
 
 class SumKE(SumOrProductKE):
     def __init__(self, base_terms, composite_terms = [], root: KernelExpression = None, parent: KernelExpression = None):
@@ -226,9 +229,8 @@ class ProductKE(SumOrProductKE):
         if self.base_terms['WN'] > 0: # WN acts as a multiplicative zero for all stationary kernels, i.e. all but LIN
             self.base_terms = Counter({'WN': 1, 'LIN': self.base_terms['LIN']})
         else:
-            if self.base_terms['C'] > 0 and sum(self.base_terms.values()) - self.base_terms['C'] != 0: # If C is not the only present kernel
-                self.base_terms['C'] = 0 # C is the multiplication-identity element
-            elif self.base_terms['C'] > 1: self.base_terms['C'] = 1 # C is multiplication-idempotent
+            if self.base_terms['C'] > 0: # C is the multiplication-identity element, therefore remove it unless it is the only factor
+                self.base_terms['C'] = 0 if self.term_count() != self.base_terms['C'] else 1
             if self.base_terms['SE'] > 1: self.base_terms['SE'] = 1 # SE is multiplication-idempotent
         return self
 

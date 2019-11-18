@@ -60,6 +60,7 @@ class GPModel():
 
 # TODO:
 #  Decide whether to have a set of initial common models before or instead of WN expansion in order to return something quickly
+#   (this is related to the different sets of production rules possibly being applied at different depth levels)
 
 def fit_one_model(X, Y, kex, restarts): return GPModel(X, Y, kex).fit(restarts)
 def fit_model_list(X, Y, k_exprs, restarts = 5):
