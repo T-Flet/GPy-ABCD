@@ -92,11 +92,11 @@ class KernelExpression(ABC): # Abstract
         return self.set_root()._set_all_parents().simplify()
 
     def new_tree_with_self_replaced(self, replacement_node): # NOTE: replacement_node is assumed to already have handled changing its childrens' parent to itself
-        copied_replacement, copied_self = deepcopy((replacement_node.set_parent(self.parent), self))
+        copied_replacement, copied_self = deepcopy((replacement_node, self))
         if copied_self.is_root():
-            return copied_replacement.set_root()
+            return copied_replacement.set_parent(None).set_root()
         else:
-            copied_replacement.set_root(copied_self.root)
+            copied_replacement.set_parent(copied_self.parent).set_root(copied_self.root)
             return copied_replacement.parent.reassign_child(copied_self, copied_replacement)
 
     @abstractmethod
