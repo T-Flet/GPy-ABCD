@@ -67,20 +67,21 @@ def fit_model_list(X, Y, k_exprs, restarts = 5):
     with Pool() as pool: return pool.starmap_async(fit_one_model, [(X, Y, kex, restarts) for kex in k_exprs], int(len(k_exprs) / cpu_count()) + 1).get()
 
 
-def find_best_model(X, Y, start_kernel = SumKE(['WN'])._initialise(), p_rules = production_rules, restarts = 5,
+def find_best_model(X, Y, start_kernel = SumKE(['WN'])._initialise(), p_rules = production_rules_all, restarts = 5,
                     utility_function = 'BIC', depth = 2, buffer = 5, verbose = False):
-    if verbose: print(f'Testing {depth} layers of model expansion starting from: {start_kernel}\nModels are fitted with {restarts} random restarts and scored by {utility_function}\nOnly the {buffer} best models proceed to the next layer of expansion')
+    if verbose: print(f'Testing {depth} layers of model expansion starting from: {start_kernel}\nModels are fitted with {restarts} random restarts and scored by {utility_function}\n\nOnly the {buffer} best models proceed to the next layer of expansion')
     tested_k_exprs = [start_kernel]
     tested_models = [[GPModel(X, Y, start_kernel).fit(restarts)]]
     methodcaller(utility_function)(tested_models[0][0])
     for d in range(1, depth + 1):
         tested_models.append([]) # tested_models[d] = []
         model_buffer = tested_models[d - 1][:buffer] if len(tested_models[d - 1]) >= buffer else tested_models[d - 1]
-        new_k_exprs = [kex for kex in unique(flatten([expand(model.kernel_expression, p_rules.values()) for model in model_buffer])) if kex not in tested_k_exprs]
+        new_k_exprs = [kex for kex in unique(flatten([expand(model.kernel_expression, p_rules) for model in model_buffer])) if kex not in tested_k_exprs]
         tested_models[d] += fit_model_list(X, Y, new_k_exprs, restarts)
         tested_k_exprs += new_k_exprs
         tested_models[d].sort(key = methodcaller(utility_function))
-        if verbose: print(f'Best depth-{d} model: {tested_models[d][0].kernel_expression}')
+        if verbose: print(f'\tBest depth-{d} models (descending): {", ".join([str(x.kernel_expression) for x in (tested_models[d][:buffer] if len(tested_models[d]) >= buffer else tested_models[d])])}')
     sorted_models = sorted(flatten(tested_models), key = attrgetter('cached_utility_function'))
-    if verbose: print(f'Best model overall: {sorted_models[0].kernel_expression}')
-    return sorted_models[:5], tested_models, tested_k_exprs
+    best_models = sorted_models[:buffer] if len(sorted_models) >= buffer else sorted_models
+    if verbose: print(f'\tBest models overall (descending): {", ".join([str(x.kernel_expression) for x in best_models])}\n')
+    return best_models, tested_models, tested_k_exprs

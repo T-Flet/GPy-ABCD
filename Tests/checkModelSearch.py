@@ -19,16 +19,16 @@ if __name__ == '__main__':
     # Load testing for parallel computations
     # from timeit import timeit
     # def statement():
-    #     best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernel=SumKE(['WN'])._initialise(), p_rules=production_rules,
+    #     best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernel=SumKE(['WN'])._initialise(), p_rules=production_rules_all,
     #                                                      restarts=5, utility_function='BIC', depth=2, buffer=4, verbose=True)
     # print(timeit(statement, number = 4))
 
 
 
-    best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernel = SumKE(['WN'])._initialise(), p_rules = production_rules,
+    best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernel = SumKE(['WN'])._initialise(), p_rules = production_rules_all,
                                                      restarts = 2, utility_function = 'BIC', depth = 2, buffer = 5, verbose= True)
 
-    for mod_depth in all_mods: print([str(mod.kernel_expression) for mod in mod_depth])
+    for mod_depth in all_mods: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]))
 
     from matplotlib import pyplot as plt
     for bm in best_mods:
