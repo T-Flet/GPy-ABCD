@@ -25,10 +25,11 @@ if __name__ == '__main__':
 
 
 
-    best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernel = SumKE(['WN'])._initialise(), p_rules = production_rules_all,
-                                                     restarts = 2, utility_function = 'BIC', depth = 2, buffer = 5, verbose= True)
+    # best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernels = [SumKE(['WN'])._initialise()], p_rules = production_rules_all,
+    best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all,
+                                                     restarts = 2, utility_function = 'BIC', depth = 2, buffer = 4, verbose= True)
 
-    for mod_depth in all_mods: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]))
+    for mod_depth in all_mods: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]) + f'\n{len(mod_depth)}')
 
     from matplotlib import pyplot as plt
     for bm in best_mods:

@@ -51,6 +51,9 @@ class GPModel():
         return self.cached_utility_function
 
 
+def print_k_list(k_or_model_list):
+    return ', '.join([str(m.kernel_expression) for m in k_or_model_list] if isinstance(k_or_model_list[0], GPModel) else [str(k) for k in k_or_model_list])
+
 
 ## Model Sarch
 
@@ -58,30 +61,35 @@ class GPModel():
 #   if __name__ == '__main__':
 #   preamble in order to work on Windows. Note that this includes find_best_model, and hence any call to this project.
 
-# TODO:
-#  Decide whether to have a set of initial common models before or instead of WN expansion in order to return something quickly
-#   (this is related to the different sets of production rules possibly being applied at different depth levels)
-
 def fit_one_model(X, Y, kex, restarts): return GPModel(X, Y, kex).fit(restarts)
 def fit_model_list(X, Y, k_exprs, restarts = 5):
     with Pool() as pool: return pool.starmap_async(fit_one_model, [(X, Y, kex, restarts) for kex in k_exprs], int(len(k_exprs) / cpu_count()) + 1).get()
+def round_of_fits(X, Y, tested_k_exprs, last_round, buffer, p_rules, restarts):
+    model_buffer = last_round[:buffer] if len(last_round) >= buffer else last_round
+    new_k_exprs = [kex for kex in unique(flatten([expand(model.kernel_expression, p_rules) for model in model_buffer])) if kex not in tested_k_exprs]
+    return fit_model_list(X, Y, new_k_exprs, restarts), new_k_exprs
 
+# TODO:
+#  Decide whether to have a set of initial common models before or instead of WN expansion in order to return something quickly
+#   (this is related to the different sets of production rules possibly being applied at different depth levels)
+#   Introduce stopping of some branches of model testing if, say, no models spawned from a specific one manage to beat it;
+#       none of them should be expanded further; maybe count the expanded terms to do the check and slice the full list?
 
-def find_best_model(X, Y, start_kernel = SumKE(['WN'])._initialise(), p_rules = production_rules_all, restarts = 5,
+def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all, restarts = 5,
                     utility_function = 'BIC', depth = 2, buffer = 5, verbose = False):
-    if verbose: print(f'Testing {depth} layers of model expansion starting from: {start_kernel}\nModels are fitted with {restarts} random restarts and scored by {utility_function}\n\nOnly the {buffer} best models proceed to the next layer of expansion')
-    tested_k_exprs = [start_kernel]
-    tested_models = [[GPModel(X, Y, start_kernel).fit(restarts)]]
-    methodcaller(utility_function)(tested_models[0][0])
+    if verbose: print(f'Testing {depth} layers of model expansion starting from: {print_k_list(start_kernels)}\nModels are fitted with {restarts} random restarts and scored by {utility_function}\n\nOnly the {buffer} best models proceed to the next layer of expansion')
+
+    tested_models = [sorted(fit_model_list(X, Y, start_kernels, restarts), key = methodcaller(utility_function))]
+    tested_k_exprs = start_kernels
+    if verbose: print(f'\tBest depth-{0} models (descending): {print_k_list(tested_models[0][:buffer] if len(tested_models[0]) >= buffer else tested_models[0])}')
+
     for d in range(1, depth + 1):
-        tested_models.append([]) # tested_models[d] = []
-        model_buffer = tested_models[d - 1][:buffer] if len(tested_models[d - 1]) >= buffer else tested_models[d - 1]
-        new_k_exprs = [kex for kex in unique(flatten([expand(model.kernel_expression, p_rules) for model in model_buffer])) if kex not in tested_k_exprs]
-        tested_models[d] += fit_model_list(X, Y, new_k_exprs, restarts)
+        new_models, new_k_exprs = round_of_fits(X, Y, tested_k_exprs, tested_models[d - 1], buffer, p_rules, restarts)
         tested_k_exprs += new_k_exprs
-        tested_models[d].sort(key = methodcaller(utility_function))
-        if verbose: print(f'\tBest depth-{d} models (descending): {", ".join([str(x.kernel_expression) for x in (tested_models[d][:buffer] if len(tested_models[d]) >= buffer else tested_models[d])])}')
+        tested_models.append(sorted(new_models, key = methodcaller(utility_function)))
+        if verbose: print(f'\tBest depth-{d} models (descending): {print_k_list(tested_models[d][:buffer] if len(tested_models[d]) >= buffer else tested_models[d])}')
+
     sorted_models = sorted(flatten(tested_models), key = attrgetter('cached_utility_function'))
     best_models = sorted_models[:buffer] if len(sorted_models) >= buffer else sorted_models
-    if verbose: print(f'\tBest models overall (descending): {", ".join([str(x.kernel_expression) for x in best_models])}\n')
+    if verbose: print(f'\tBest models overall (descending): {print_k_list(best_models)}\n')
     return best_models, tested_models, tested_k_exprs

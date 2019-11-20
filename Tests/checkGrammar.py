@@ -11,10 +11,10 @@ from KernelExpansion.grammar import *
 ## Expansion
 
 testExpr = ChangeKE('CP', ProductKE(['PER'], [SumKE(['WN', 'C', 'SE'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'LIN'])))._initialise()
+# print(testExpr._check_all_parents())
 # a = flatten(times_base(testExpr.left.composite_terms[0]))
-# a = expand_node(testExpr.left.composite_terms[0], production_rules.values())
-# a = expand_node(testExpr, production_rules.values())
-# a = expand(testExpr, production_rules.values())
+# a = expand_node(testExpr.left.composite_terms[0], production_rules_all)
+# a = expand(testExpr, production_rules_all)
 #
 # for e in a: print(e)
 # print(len(a))
@@ -23,7 +23,7 @@ testExpr = ChangeKE('CP', ProductKE(['PER'], [SumKE(['WN', 'C', 'SE'])]), Change
 
 ## Simplest expansion and standardised roots
 
-# a = expand(SumKE(['WN'])._initialise(), production_rules.values())
+# a = expand(SumKE(['WN'])._initialise(), production_rules_all)
 # for e in a: print(e)
 # print(len(a))
 # print(all([x._check_all_parents() for x in a]))
@@ -32,7 +32,7 @@ testExpr = ChangeKE('CP', ProductKE(['PER'], [SumKE(['WN', 'C', 'SE'])]), Change
 ## Uniqueness in expansions WITH unique REMOVED FROM THE FUNCTIONS THEMSELVES
 
 # testExpr = ChangeKE('CP', ProductKE(['PER'], [SumKE(['WN', 'C', 'SE'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'LIN'])))._initialise()
-# a = expand(testExpr, production_rules.values())
+# a = expand(testExpr, production_rules_all)
 # astr = [str(x) for x in a]
 # aUnique = unique(a)
 # aUniqueStr = [str(x) for x in aUnique]
@@ -49,3 +49,15 @@ testExpr = ChangeKE('CP', ProductKE(['PER'], [SumKE(['WN', 'C', 'SE'])]), Change
 # print(len(set(astr)))
 # print(len(set(aUniqueStr)))
 # print(set(astr) - set(aUniqueStr))
+
+
+## Specific expansions
+
+# a = expand(SumKE(['SE'])._initialise(), production_rules_all)
+# a = expand(SumKE(['WN'])._initialise(), production_rules_all)
+# a = expand(SumKE(['SE'])._initialise(), production_rules_start)
+# a = expand(SumKE(['WN'])._initialise(), production_rules_start)
+# a = standard_start_kernels
+
+# for e in a: print(e)
+# print(len(a))
