@@ -61,3 +61,12 @@ testExpr = ChangeKE('CP', ProductKE(['PER'], [SumKE(['WN', 'C', 'SE'])]), Change
 
 # for e in a: print(e)
 # print(len(a))
+
+
+## (PER + C) * (WN + C) -> (PER + C) * (C) and (PER + C) * (SE) and (PER + C) * (LIN)
+# testExpr = ProductKE([], [SumKE(['PER', 'C']), SumKE(['WN', 'C'])])._initialise() # (PER + C) * (WN + C)
+# a = expand(testExpr, [remove_some_term])
+# a = [x.simplify() for x in expand(testExpr, [remove_some_term])]
+## Adding the simplify to "if simplified is k_expr_root: return k_expr_root.simplify()" in standardise_singleton_root solves this
+
+# for e in a: print(e)

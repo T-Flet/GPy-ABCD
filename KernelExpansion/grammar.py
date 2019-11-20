@@ -37,7 +37,7 @@ def unique(xs):
 
 def standardise_singleton_root(k_expr_root): # Standardise a root if singleton: to SumKE of a base kernel or to the single composite term, making it the root
     simplified = k_expr_root.extract_if_singleton()
-    if simplified is k_expr_root: return k_expr_root
+    if simplified is k_expr_root: return k_expr_root.simplify()
     elif isinstance(simplified, str): return SumKE([simplified]).set_root()
     else: return standardise_singleton_root(simplified.set_parent(None).set_root())
 

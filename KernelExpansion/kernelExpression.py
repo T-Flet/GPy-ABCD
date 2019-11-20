@@ -20,7 +20,6 @@ from copy import deepcopy
 # TODO:
 #   Add more simplifications, e.g. zeros or identities with composites (singleton WN * composite)
 #   Think about the issue of accumulating variance parameters in repeated multiplications GPy.kern multiplications; worth trying to prevent it?
-#   This occurred in an expansion: (PER + C) * (C); neither of two simplifications took place
 
 
 def lists_of_unhashables__eq(xs, ys):
