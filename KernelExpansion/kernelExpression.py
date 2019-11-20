@@ -23,6 +23,21 @@ from copy import deepcopy
 #   This occurred in an expansion: (PER + C) * (C); neither of two simplifications took place
 
 
+def lists_of_unhashables__eq(xs, ys):
+    cys = list(ys) # make a mutable copy
+    try:
+        for x in xs: cys.remove(x)
+    except ValueError: return False
+    return not cys
+
+def lists_of_unhashables__diff(xs, ys):
+    cxs = list(xs) # make a mutable copy
+    try:
+        for y in ys: cxs.remove(y)
+    except ValueError: pass
+    return cxs
+
+
 class KernelExpression(ABC): # Abstract
     def __init__(self, root, parent):
         super().__init__()
@@ -126,7 +141,7 @@ class SumOrProductKE(KernelExpression): # Abstract
         return (' ' + self.symbol + ' ').join([self.bracket_if_needed(f) for f in list(self.base_terms.elements()) + self.composite_terms])
 
     def __eq__(self, other): ## NOTE: this is intended to check equality of data fields only, i.e. it does not check root or parent
-        return type(self) == type(other) and self.base_terms == other.base_terms and self.composite_terms == other.composite_terms
+        return type(self) == type(other) and self.base_terms == other.base_terms and lists_of_unhashables__eq(self.composite_terms, other.composite_terms)
 
     @staticmethod
     def bracket_if_needed(kex):

@@ -64,10 +64,6 @@ def print_k_list(k_or_model_list):
 def fit_one_model(X, Y, kex, restarts): return GPModel(X, Y, kex).fit(restarts)
 def fit_model_list(X, Y, k_exprs, restarts = 5):
     with Pool() as pool: return pool.starmap_async(fit_one_model, [(X, Y, kex, restarts) for kex in k_exprs], int(len(k_exprs) / cpu_count()) + 1).get()
-def round_of_fits(X, Y, tested_k_exprs, last_round, buffer, p_rules, restarts):
-    model_buffer = last_round[:buffer] if len(last_round) >= buffer else last_round
-    new_k_exprs = [kex for kex in unique(flatten([expand(model.kernel_expression, p_rules) for model in model_buffer])) if kex not in tested_k_exprs]
-    return fit_model_list(X, Y, new_k_exprs, restarts), new_k_exprs
 
 # TODO:
 #  Decide whether to have a set of initial common models before or instead of WN expansion in order to return something quickly
@@ -76,20 +72,23 @@ def round_of_fits(X, Y, tested_k_exprs, last_round, buffer, p_rules, restarts):
 #       none of them should be expanded further; maybe count the expanded terms to do the check and slice the full list?
 
 def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all, restarts = 5,
-                    utility_function = 'BIC', depth = 2, buffer = 5, verbose = False):
-    if verbose: print(f'Testing {depth} layers of model expansion starting from: {print_k_list(start_kernels)}\nModels are fitted with {restarts} random restarts and scored by {utility_function}\n\nOnly the {buffer} best models proceed to the next layer of expansion')
+                    utility_function = 'BIC', rounds = 2, buffer = 5, verbose = False):
+    if verbose: print(f'Testing {rounds} layers of model expansion starting from: {print_k_list(start_kernels)}\nModels are fitted with {restarts} random restarts and scored by {utility_function}\n\nOnly the {buffer} best not-already-expanded models proceed to the each layer of expansion')
 
     tested_models = [sorted(fit_model_list(X, Y, start_kernels, restarts), key = methodcaller(utility_function))]
+    sorted_models = not_expanded = tested_models[0]
+    expanded = []
     tested_k_exprs = start_kernels
-    if verbose: print(f'\tBest depth-{0} models (descending): {print_k_list(tested_models[0][:buffer] if len(tested_models[0]) >= buffer else tested_models[0])}')
+    if verbose: print(f'(All models are listed in descending order)\n\nBest round-{0} models: {print_k_list(not_expanded[:buffer])}')
 
-    for d in range(1, depth + 1):
-        new_models, new_k_exprs = round_of_fits(X, Y, tested_k_exprs, tested_models[d - 1], buffer, p_rules, restarts)
+    for d in range(1, rounds + 1):
+        new_k_exprs = [kex for kex in unique(flatten([expand(mod.kernel_expression, p_rules) for mod in not_expanded[:buffer]])) if kex not in tested_k_exprs]
+        tested_models.append(sorted(fit_model_list(X, Y, new_k_exprs, restarts), key = methodcaller(utility_function))) # tested_models[d]
+        sorted_models = sorted(flatten(tested_models), key = attrgetter('cached_utility_function')) # Merge-sort would be applicable
+        expanded += not_expanded[:buffer]
+        not_expanded = lists_of_unhashables__diff(sorted_models, expanded) # More efficient than sorting another whole list
         tested_k_exprs += new_k_exprs
-        tested_models.append(sorted(new_models, key = methodcaller(utility_function)))
-        if verbose: print(f'\tBest depth-{d} models (descending): {print_k_list(tested_models[d][:buffer] if len(tested_models[d]) >= buffer else tested_models[d])}')
+        if verbose: print(f'Round-{d} models:\n\tBest new: {print_k_list(tested_models[d][:buffer])}\n\tBest so far: {print_k_list(sorted_models[:buffer])}\n\tBest not-already-expanded: {print_k_list(not_expanded[:buffer])}')
 
-    sorted_models = sorted(flatten(tested_models), key = attrgetter('cached_utility_function'))
-    best_models = sorted_models[:buffer] if len(sorted_models) >= buffer else sorted_models
-    if verbose: print(f'\tBest models overall (descending): {print_k_list(best_models)}\n')
-    return best_models, tested_models, tested_k_exprs
+    if verbose: print(f'\nBest models overall: {print_k_list(sorted_models[:buffer])}\n')
+    return sorted_models[:buffer], tested_models, tested_k_exprs

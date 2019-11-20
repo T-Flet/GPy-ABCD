@@ -43,7 +43,7 @@ from KernelExpansion.kernelExpressionOperations import *
 # print(testExpr._check_all_parents())
 
 
-## Composite Singletons Simplifiaction
+## Composite Singletons Simplification
 
 # testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'C'])))
 # testExpr.set_root(testExpr)._set_all_parents() # I.e. an _initialise without .simplify()
@@ -79,6 +79,13 @@ from KernelExpansion.kernelExpressionOperations import *
 # print(testExpr)
 # print(type(testExpr))
 # print(testExpr.composite_terms)
+
+
+## Edge case simplifications
+# Lists of unhashables
+# a = ProductKE([], [SumKE(['PER', 'C']), SumKE(['WN', 'C'])]) # (PER + C) * (WN + C)
+# b = ProductKE([], [SumKE(['WN', 'C']), SumKE(['PER', 'C'])]) # (WN + C) * (PER + C)
+# print(a == b)
 
 
 ## Traverse and Reduce
