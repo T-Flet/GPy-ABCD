@@ -17,8 +17,8 @@ from copy import deepcopy
 #   - Both traverse and reduce ignore bare string leaves and assume the user handles them from their ChangeKE parent.
 #   - Methods with input arguments make deepcopies of them in order to prevent unintended modification (exceptions for methods used other methods which do)
 
+
 # TODO:
-#   Add more simplifications, e.g. zeros or identities with composites (singleton WN * composite)
 #   Think about the issue of accumulating variance parameters in repeated multiplications GPy.kern multiplications; worth trying to prevent it?
 
 

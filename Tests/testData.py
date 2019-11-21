@@ -3,6 +3,10 @@ import numpy as np
 import scipy.io as sio
 
 
+# TODO:
+#   Solar data: the changewindow is not appropriately captured; need to investigate how to best address this;
+#   maybe add the second location parameter to CW
+
 if __name__ == '__main__':
 
     # np.seterr(all='raise') # Raise exceptions instead of RuntimeWarnings. The exceptions can then be caught by the debugger
@@ -16,8 +20,8 @@ if __name__ == '__main__':
 
 
 
-    best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernel = SumKE(['WN'])._initialise(), p_rules = production_rules_all,
-                                                     restarts = 2, utility_function = 'BIC', depth = 1, buffer = 5, verbose= True)
+    best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all,
+                                                     restarts = 2, utility_function = 'BIC', rounds = 1, buffer = 3, verbose= True)
 
     for mod_depth in all_mods: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]))
 

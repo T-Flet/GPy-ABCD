@@ -55,24 +55,20 @@ def print_k_list(k_or_model_list):
     return ', '.join([str(m.kernel_expression) for m in k_or_model_list] if isinstance(k_or_model_list[0], GPModel) else [str(k) for k in k_or_model_list])
 
 
+
 ## Model Sarch
 
-# NOTE: Any code that calls (however many nested levels in) fit_model_list, needs to be within a
-#   if __name__ == '__main__':
-#   preamble in order to work on Windows. Note that this includes find_best_model, and hence any call to this project.
+# NOTE: Any code that calls fit_model_list (however many nested levels in), needs to be within a "if __name__ == '__main__':"
+#       preamble in order to work on Windows. Note that this includes find_best_model, and hence any call to this project.
 
 def fit_one_model(X, Y, kex, restarts): return GPModel(X, Y, kex).fit(restarts)
 def fit_model_list(X, Y, k_exprs, restarts = 5):
     with Pool() as pool: return pool.starmap_async(fit_one_model, [(X, Y, kex, restarts) for kex in k_exprs], int(len(k_exprs) / cpu_count()) + 1).get()
 
-# TODO:
-#  Decide whether to have a set of initial common models before or instead of WN expansion in order to return something quickly
-#   (this is related to the different sets of production rules possibly being applied at different depth levels)
-#   Introduce stopping of some branches of model testing if, say, no models spawned from a specific one manage to beat it;
-#       none of them should be expanded further; maybe count the expanded terms to do the check and slice the full list?
 
+# start_kernels = [SumKE(['WN'])._initialise()] for the original ABCD
 def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all, restarts = 5,
-                    utility_function = 'BIC', rounds = 2, buffer = 5, verbose = False):
+                    utility_function = 'BIC', rounds = 2, buffer = 4, verbose = False):
     if verbose: print(f'Testing {rounds} layers of model expansion starting from: {print_k_list(start_kernels)}\nModels are fitted with {restarts} random restarts and scored by {utility_function}\n\nOnly the {buffer} best not-already-expanded models proceed to each subsequent layer of expansion')
 
     tested_models = [sorted(fit_model_list(X, Y, start_kernels, restarts), key = methodcaller(utility_function))]

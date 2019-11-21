@@ -36,8 +36,8 @@ def unique(xs):
 ## Expansion functions
 
 def standardise_singleton_root(k_expr_root): # Standardise a root if singleton: to SumKE of a base kernel or to the single composite term, making it the root
-    simplified = k_expr_root.extract_if_singleton()
-    if simplified is k_expr_root: return k_expr_root.simplify()
+    simplified = k_expr_root.simplify().extract_if_singleton()
+    if simplified is k_expr_root: return k_expr_root
     elif isinstance(simplified, str): return SumKE([simplified]).set_root()
     else: return standardise_singleton_root(simplified.set_parent(None).set_root())
 
@@ -83,8 +83,3 @@ production_rules_by_type = {
 production_rules_all = flatten([list(x.values()) for x in production_rules_by_type.values()])
 # production_rules_start = [plus_base, times_base, replace_base, change_new_base]
 # production_rules_start = list(production_rules_by_type['basic'].values()) + [change_same]
-
-
-# TODO:
-#   Decide whether all rules should be used at each depth or whether some types should be dropped or introduced only at some point
-#   Have a 0-depth set of fixed or slightly adaptable kernels; in particular rank the 5 base ones and, say, check CP/CW for the best two
