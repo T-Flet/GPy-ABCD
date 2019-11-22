@@ -12,7 +12,7 @@ class SigmoidalKernelBase(BasisFuncKernel):
     """
 
     def __init__(self, input_dim: int, reverse: bool = False, variance: float = 1., location: float = 0., slope: float = 1.,
-                 active_dims: int = None, name: str = 'sigmoidal_kernel_base') -> object:
+                 active_dims: int = None, name: str = 'sigmoidal_kernel_base') -> None:
         self.reverse = reverse
         super(SigmoidalKernelBase, self).__init__(input_dim, variance, active_dims, False, name)
         # TO REMOVE VARIANCE: comment line above; uncomment below; remove self.variance factors from subclass methods
@@ -52,7 +52,7 @@ class SigmoidalKernel(SigmoidalKernelBase):
     """
 
     def __init__(self, input_dim: int, reverse: bool = False, variance: float = 1., location: float = 0., slope: float = 1.,
-                 active_dims: int = None, name: str = 'sigmoidal') -> object:
+                 active_dims: int = None, name: str = 'sigmoidal') -> None:
         super(SigmoidalKernel, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name)
 
     @Cache_this(limit=3, ignore_args=())
@@ -103,7 +103,7 @@ class SigmoidalIndicatorKernel(SigmoidalKernelBase):
     """
 
     def __init__(self, input_dim: int, reverse: bool = False, variance: float = 1., location: float = 0., slope: float = 1.,
-                 active_dims: int = None, name: str = 'sigmoidal_indicator') -> object:
+                 active_dims: int = None, name: str = 'sigmoidal_indicator') -> None:
         super(SigmoidalIndicatorKernel, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name)
 
     @Cache_this(limit=3, ignore_args=())
@@ -143,6 +143,53 @@ class SigmoidalIndicatorKernel(SigmoidalKernelBase):
             dphi1_ds = 4 * (1 - 2 * asc1) * self._sigmoid_function_ds(X, self.location, self.slope)
             dphi2_ds = 4 * (1 - 2 * asc2) * self._sigmoid_function_ds(X2, self.location, self.slope)
             self.slope.gradient = np.sum(self.variance * (dL_dK * phi1.dot(dphi2_ds.T)).sum() + (dL_dK * phi2.dot(dphi1_ds.T)).sum())
+
+        self.location.gradient = np.where(np.isnan(self.location.gradient), 0, self.location.gradient)
+        self.slope.gradient = np.where(np.isnan(self.slope.gradient), 0, self.slope.gradient)
+
+        if self.reverse: # Works this simply (a single sign flip per product above)
+            self.location.gradient = - self.location.gradient
+            self.slope.gradient = - self.slope.gradient
+
+
+class SigmoidalIndicatorKernelTwoLocations(SigmoidalKernelBase):
+    """
+    Sigmoidal indicator function kernel with a start and a stop location:
+    ascendingSigmoid(location) + (1 - ascendingSigmoid(stop_location)) - 1, i.e. ascendingSigmoid(location) - ascendingSigmoid(stop_location)
+    (hat if location <= stop_location, and positive-well otherwise; can flip from one to the other by reverse=True)
+    """
+
+    def __init__(self, input_dim: int, reverse: bool = False, variance: float = 1., location: float = 0., stop_location: float = 1., slope: float = 1.,
+                 active_dims: int = None, name: str = 'sigmoidal_indicator') -> None:
+        super(SigmoidalIndicatorKernelTwoLocations, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name)
+        self.stop_location = Param('stop_location', stop_location)
+        self.link_parameters(self.stop_location)
+
+
+    @Cache_this(limit=3, ignore_args=())
+    def _phi(self, X):
+        asc = self._sigmoid_function(X, self.location, self.slope)
+        asc2 = self._sigmoid_function(X, self.stop_location, self.slope)
+        hat = asc - asc2 #if self.location <= self.stop_location else asc - asc2 + 1 # Note: it does not affect the gradients
+        return 1 - hat if self.reverse else hat
+
+    def update_gradients_full(self, dL_dK, X, X2=None):
+        super(SigmoidalIndicatorKernelTwoLocations, self).update_gradients_full(dL_dK, X, X2)
+        if X2 is None: X2 = X
+
+        phi1 = self.phi(X)
+        phi2 = self.phi(X2) if X2 is not X else phi1
+        if phi1.ndim != 2:
+            phi1 = phi1[:, None]
+            phi2 = phi2[:, None] if X2 is not X else phi1
+
+        dphi1_dl = self._sigmoid_function_dl(X, self.location, self.slope) - self._sigmoid_function_dl(X, self.stop_location, self.slope)
+        dphi2_dl = self._sigmoid_function_dl(X2, self.location, self.slope) - self._sigmoid_function_dl(X2, self.stop_location, self.slope)
+        self.location.gradient = np.sum(self.variance * (dL_dK * phi1.dot(dphi2_dl.T)).sum() + (dL_dK * phi2.dot(dphi1_dl.T)).sum())
+
+        dphi1_ds = self._sigmoid_function_ds(X, self.location, self.slope) - self._sigmoid_function_ds(X, self.stop_location, self.slope)
+        dphi2_ds = self._sigmoid_function_ds(X2, self.location, self.slope) - self._sigmoid_function_ds(X2, self.stop_location, self.slope)
+        self.slope.gradient = np.sum(self.variance * (dL_dK * phi1.dot(dphi2_ds.T)).sum() + (dL_dK * phi2.dot(dphi1_ds.T)).sum())
 
         self.location.gradient = np.where(np.isnan(self.location.gradient), 0, self.location.gradient)
         self.slope.gradient = np.where(np.isnan(self.slope.gradient), 0, self.slope.gradient)

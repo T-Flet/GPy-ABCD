@@ -27,7 +27,7 @@ class LinearWithOffset(Kern):
     :rtype: Kernel object
     """
 
-    def __init__(self, input_dim: int, variance: float = 1., offset: float = 0., active_dims: int = None, name: str = 'linear_with_offset'):
+    def __init__(self, input_dim: int, variance: float = 1., offset: float = 0., active_dims: int = None, name: str = 'linear_with_offset') -> None:
         super(LinearWithOffset, self).__init__(input_dim, active_dims, name)
         if variance is not None:
             variance = np.asarray(variance)

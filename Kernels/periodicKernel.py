@@ -41,7 +41,7 @@ class PureStdPeriodicKernel(Kern):
     """
 
     def __init__(self, input_dim: int, variance: float = 1., period: float = 2.*np.pi, lengthscale: float = 2.*np.pi,
-                 active_dims: int = None, name: str = 'pure_std_periodic'):
+                 active_dims: int = None, name: str = 'pure_std_periodic') -> None:
         super(PureStdPeriodicKernel, self).__init__(input_dim, active_dims, name)
 
         self.name = name

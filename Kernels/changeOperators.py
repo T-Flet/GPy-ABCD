@@ -68,3 +68,10 @@ class ChangeWindowKernel(ChangeKernelBase):
 # TODO:
 #   Add 2nd location for Changewindow kernel
 #   Better to make location optionally a tuple and overload methods in ChangeWindowKernel or write the two separately?
+#   Idea: have only one version of each sigmoidal kernel, which can fit the reverse too by different parameter values,
+#           (need to unconstrain +ve slope) then only need to look at:
+#               slope for changepoint and order of locations AND slopes for changewindow.
+#       Pros: have to fit HALF the number of change models
+#       Con: the kernel expression does not always match the actual shape anymore
+#   First need to confirm this reverse fitting ability for each sigmoidal kernel
+#       Confirmed for SigmoidalKernel (both with and without constrained +ve slope)

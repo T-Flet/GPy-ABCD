@@ -12,5 +12,9 @@ SI.plot()
 print(SI)
 sampleCurves(SI)
 
+SIT.plot()
+print(SIT)
+sampleCurves(SIT)
+
 
 plt.show()
