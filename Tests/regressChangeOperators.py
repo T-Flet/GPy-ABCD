@@ -11,4 +11,4 @@ Y = np.concatenate(([0.1 * x for x in X[:50]],
 
 kernel = CP(LIN, PER)
 
-doGPR(X, Y, kernel, 10)
+doGPR(X, Y, kernel, 5)

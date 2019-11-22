@@ -1,5 +1,6 @@
 import GPy.kern as _Gk
-from Kernels import sigmoidalKernels as _Sk, periodicKernel as _Pk, linearOffsetKernel as _Lk, changeOperators as _Cs
+from Kernels import sigmoidalKernels as _Sk, periodicKernel as _Pk, linearOffsetKernel as _Lk, changeOperators as _Cs, changeOperatorsAsFunctions as _CFs
+
 
 WN = _Gk.White(1) # OK
 C = _Gk.Bias(1) # OK
@@ -16,5 +17,7 @@ SI = _Sk.SigmoidalIndicatorKernel(1, False)
 SIr = _Sk.SigmoidalIndicatorKernel(1, True)
 
 
-CP = _Cs.kCP
-CW = _Cs.kCW
+# CP = _CFs.kCP
+# CW = _CFs.kCW
+CP = _Cs.ChangePointKernel
+CW = _Cs.ChangeWindowKernel

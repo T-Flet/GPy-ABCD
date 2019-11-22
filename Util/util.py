@@ -54,3 +54,7 @@ def doGPR(X, Y, kernel, restarts):
     plt.show()
 
     return m
+
+
+# TODO:
+#   Add two functions to quickly generate changepoint and changewindow data from two given formulae

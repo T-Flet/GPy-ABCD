@@ -12,7 +12,7 @@ class SigmoidalKernelBase(BasisFuncKernel):
     """
 
     def __init__(self, input_dim: int, reverse: bool = False, variance: float = 1., location: float = 0., slope: float = 1.,
-                 active_dims: int = None, name: str = 'sigmoidal kernel base') -> object:
+                 active_dims: int = None, name: str = 'sigmoidal_kernel_base') -> object:
         self.reverse = reverse
         super(SigmoidalKernelBase, self).__init__(input_dim, variance, active_dims, False, name)
         # TO REMOVE VARIANCE: comment line above; uncomment below; remove self.variance factors from subclass methods
@@ -103,7 +103,7 @@ class SigmoidalIndicatorKernel(SigmoidalKernelBase):
     """
 
     def __init__(self, input_dim: int, reverse: bool = False, variance: float = 1., location: float = 0., slope: float = 1.,
-                 active_dims: int = None, name: str = 'sigmoidalIndicator') -> object:
+                 active_dims: int = None, name: str = 'sigmoidal_indicator') -> object:
         super(SigmoidalIndicatorKernel, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name)
 
     @Cache_this(limit=3, ignore_args=())
