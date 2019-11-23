@@ -3,12 +3,24 @@ from Util.util import doGPR
 from Kernels.baseKernels import *
 
 
-X = np.linspace(-10, 10, 101)[:, None]
+# X = np.linspace(-20, 20, 201)[:, None]
+# Y = np.concatenate(([0.1 * x for x in X[:100]],
+#                     np.array([0])[:, None],
+#                     [2 + 3 * np.sin(x) for x in X[101:]])) + np.random.randn(201, 1) * 0.3
+#
+# kernel = CP(LIN, PER + C)
+#
+# doGPR(X, Y, kernel, 5)
 
-Y = np.concatenate(([0.1 * x for x in X[:50]],
+
+
+X = np.linspace(-10, 20, 212)[:, None]
+Y = np.concatenate(([0.1 * x for x in X[:70]],
                     np.array([0])[:, None],
-                    [2 + 3 * np.sin(x) for x in X[51:]])) + np.random.randn(101, 1) * 0.3
+                    [1 + 3 * np.sin(x*2) for x in X[71:160]],
+                    np.array([0])[:, None],
+                    [0.1 * x for x in X[161:]])) + np.random.randn(212, 1) * 0.3
 
-kernel = CP(LIN, PER + C)
+kernel = CW(LIN, PER + C)
 
 doGPR(X, Y, kernel, 5)

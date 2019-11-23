@@ -12,11 +12,12 @@ PER = _Pk.PureStdPeriodicKernel(1)
 
 
 S = _Sk.SigmoidalKernel(1, False)
-# Sr = _Sk.SigmoidalKernel(1, True)
+Sr = _Sk.SigmoidalKernel(1, True)
 SI = _Sk.SigmoidalIndicatorKernel(1, False)
-# SIr = _Sk.SigmoidalIndicatorKernel(1, True)
+SIr = _Sk.SigmoidalIndicatorKernel(1, True)
 
-SIT = _Sk.SigmoidalIndicatorKernelTwoLocations(1, False)
+SIO = _Sk.SigmoidalIndicatorKernelOneLocation(1, False)
+SIOr = _Sk.SigmoidalIndicatorKernelOneLocation(1, True)
 
 
 # CP = _CFs.kCP

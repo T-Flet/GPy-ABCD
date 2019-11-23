@@ -14,11 +14,18 @@ class ChangeKernelBase(CombinationKernel):
         super(ChangeKernelBase, self).__init__(_newkerns, name)
         self.left = left
         self.right = right
-        self.sigmoidal = sigmoidal(1, False, 1., location, slope)
-        self.sigmoidal_reverse = sigmoidal(1, True, 1., location, slope)
-        self.location = Param('location', location)
-        self.slope = Param('slope', slope, Logexp()) # Logexp is the default constrain_positive constraint
-        self.link_parameters(self.location, self.slope)
+        self.slope = Param('slope', slope)
+        if isinstance(location, tuple):
+            self.sigmoidal = sigmoidal(1, False, 1., location[0], location[1], slope)
+            self.sigmoidal_reverse = sigmoidal(1, True, 1., location[0], location[1], slope)
+            self.location = Param('location', location[0])
+            self.stop_location = Param('stop_location', location[1])
+            self.link_parameters(self.location, self.stop_location, self.slope)
+        else:
+            self.sigmoidal = sigmoidal(1, False, 1., location, slope)
+            self.sigmoidal_reverse = sigmoidal(1, True, 1., location, slope)
+            self.location = Param('location', location)
+            self.link_parameters(self.location, self.slope)
 
     def to_dict(self):
         """
@@ -30,13 +37,13 @@ class ChangeKernelBase(CombinationKernel):
         input_dict["class"] = str("ChangeKernel")
         return input_dict
 
-    @Cache_this(limit=3,)
+    @Cache_this(limit = 3)
     def K(self, X, X2 = None):
         self.sigmoidal_reverse.location = self.sigmoidal.location = self.location
         self.sigmoidal_reverse.slope = self.sigmoidal.slope = self.slope
         return self.left.K(X, X2) * self.sigmoidal_reverse.K(X, X2) + self.right.K(X, X2) * self.sigmoidal.K(X, X2)
 
-    @Cache_this(limit=3)
+    @Cache_this(limit = 3)
     def Kdiag(self, X):
         self.sigmoidal_reverse.location = self.sigmoidal.location = self.location
         self.sigmoidal_reverse.slope = self.sigmoidal.slope = self.slope
@@ -59,19 +66,43 @@ class ChangePointKernel(ChangeKernelBase):
         super(ChangePointKernel, self).__init__(left, right, SigmoidalKernel, location, slope, name)
 
 
-class ChangeWindowKernel(ChangeKernelBase):
+class ChangeWindowKernelOneLocation(ChangeKernelBase):
     """Composite kernel changing from left to right subkernels at a limited location"""
     def __init__(self, left, right, location: float = 0., slope: float = 1., name='change_window'):
-        super(ChangeWindowKernel, self).__init__(left, right, SigmoidalIndicatorKernel, location, slope, name)
+        super(ChangeWindowKernelOneLocation, self).__init__(left, right, SigmoidalIndicatorKernel, location, slope, name)
+
+
+class ChangeWindowKernel(ChangeKernelBase):
+    """Composite kernel changing from left to right subkernels at a limited location"""
+    def __init__(self, left, right, location: float = 0., stop_location: float = 1., slope: float = 1., name='change_window'):
+        super(ChangeWindowKernel, self).__init__(left, right, SigmoidalIndicatorKernel, (location, stop_location), slope, name)
+
+    @Cache_this(limit = 3)
+    def K(self, X, X2 = None):
+        self.sigmoidal_reverse.stop_location = self.sigmoidal.stop_location = self.stop_location
+        return super(ChangeWindowKernel, self).K(X, X2)
+
+    @Cache_this(limit = 3)
+    def Kdiag(self, X):
+        self.sigmoidal_reverse.stop_location = self.sigmoidal.stop_location = self.stop_location
+        return super(ChangeWindowKernel, self).Kdiag(X)
+
+    def update_gradients_full(self, dL_dK, X, X2 = None):
+        super(ChangeWindowKernel, self).update_gradients_full(dL_dK, X, X2)
+        self.stop_location.gradient = self.sigmoidal.stop_location.gradient
+
+    def update_gradients_diag(self, dL_dK, X):
+        super(ChangeWindowKernel, self).update_gradients_diag(dL_dK, X)
+        [p.update_gradients_diag(dL_dK, X) for p in [self.left, self.right, self.sigmoidal]]
+        self.stop_location.gradient = self.sigmoidal.stop_location.gradient
+
 
 
 # TODO:
-#   Add 2nd location for Changewindow kernel
-#   Better to make location optionally a tuple and overload methods in ChangeWindowKernel or write the two separately?
-#   Idea: have only one version of each sigmoidal kernel, which can fit the reverse too by different parameter values,
-#           (need to unconstrain +ve slope) then only need to look at:
-#               slope for changepoint and order of locations AND slopes for changewindow.
+#   Idea: have only one version of each change operator (NOT the sigmoidal kernels themselves), which can fit the reverse too by different parameter values
 #       Pros: have to fit HALF the number of change models
 #       Con: the kernel expression does not always match the actual shape anymore
-#   First need to confirm this reverse fitting ability for each sigmoidal kernel
-#       Confirmed for SigmoidalKernel (both with and without constrained +ve slope)
+#   Separately: polish the two-location version of the sigmoidal indicator kernel
+#
+#   NOTE: is_reversed() is unreliable since these are covariances after all, therefore the curve may take one direction or the other
+#           Is there a check using X and location(s) in order to be sure?

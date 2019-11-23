@@ -1,4 +1,4 @@
-from Kernels.sigmoidalKernels import SigmoidalKernel, SigmoidalIndicatorKernel
+from Kernels.sigmoidalKernels import SigmoidalKernel, SigmoidalIndicatorKernelOneLocation
 
 
 def kCP(k1, k2):
@@ -23,7 +23,7 @@ def kCW(k1, k2):
     :param k2: Kernel during the window
     :return: A kernel of k1 replaced by k2 in some changewindow
     """
-    res = k1 * SigmoidalIndicatorKernel(1, True) + k2 * SigmoidalIndicatorKernel(1, False)
+    res = k1 * SigmoidalIndicatorKernelOneLocation(1, True) + k2 * SigmoidalIndicatorKernelOneLocation(1, False)
     res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.variance)
     res.mul_1.sigmoidal_indicator.variance = res.mul.sigmoidal_indicator.variance
     # res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.location)

@@ -8,13 +8,28 @@ S.plot()
 print(S)
 sampleCurves(S)
 
+Sr.plot()
+print(Sr)
+sampleCurves(Sr)
+
+
 SI.plot()
 print(SI)
 sampleCurves(SI)
 
+SIr.plot()
+print(SIr)
+sampleCurves(SIr)
+
+
 SIT.plot()
 print(SIT)
 sampleCurves(SIT)
+
+SITr.plot()
+print(SITr)
+sampleCurves(SITr)
+
 
 
 plt.show()
