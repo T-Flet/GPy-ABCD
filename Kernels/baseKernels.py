@@ -19,9 +19,14 @@ SIr = _Sk.SigmoidalIndicatorKernel(1, True)
 SIO = _Sk.SigmoidalIndicatorKernelOneLocation(1, False)
 SIOr = _Sk.SigmoidalIndicatorKernelOneLocation(1, True)
 
+SIW = _Sk.SigmoidalIndicatorKernelWithWidth(1, False)
+SIWr = _Sk.SigmoidalIndicatorKernelWithWidth(1, True)
+
 
 # CP = _CFs.kCP
 # CW = _CFs.kCW
 # # CW = _CFs.kCW2
 CP = _Cs.ChangePointKernel
-CW = _Cs.ChangeWindowKernel
+# CW = _Cs.ChangeWindowKernel
+# CW = _Cs.ChangeWindowKernelOneLocation
+CW = _Cs.ChangeWindowKernelWithWidth

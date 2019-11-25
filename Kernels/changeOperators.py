@@ -14,7 +14,7 @@ class ChangeKernelBase(CombinationKernel):
         super(ChangeKernelBase, self).__init__(_newkerns, name)
         self.left = left
         self.right = right
-        self.slope = Param('slope', slope)
+        self.slope = Param('slope', slope, Logexp())
         if isinstance(location, tuple):
             self.sigmoidal = sigmoidal(1, False, 1., location[0], location[1], slope)
             self.sigmoidal_reverse = sigmoidal(1, True, 1., location[0], location[1], slope)
@@ -68,7 +68,7 @@ class ChangePointKernel(ChangeKernelBase):
 
 class ChangeWindowKernelOneLocation(ChangeKernelBase):
     """Composite kernel changing from left to right subkernels at a limited location"""
-    def __init__(self, left, right, location: float = 0., slope: float = 1., name='change_window'):
+    def __init__(self, left, right, location: float = 0., slope: float = 1., name='change_window_one_location'):
         super(ChangeWindowKernelOneLocation, self).__init__(left, right, SigmoidalIndicatorKernel, location, slope, name)
 
 
@@ -88,6 +88,26 @@ class ChangeWindowKernel(ChangeKernelBase):
     def update_gradients_diag(self, dL_dK, X):
         super(ChangeWindowKernel, self).update_gradients_diag(dL_dK, X)
         self.stop_location.gradient = self.sigmoidal.stop_location.gradient
+
+
+class ChangeWindowKernelWithWidth(ChangeKernelBase):
+    """Composite kernel changing from left to right subkernels at a limited location"""
+    def __init__(self, left, right, location: float = 5., slope: float = 1., width: float = 10., name='change_window'):
+        super(ChangeWindowKernelWithWidth, self).__init__(left, right, SigmoidalIndicatorKernel, location, slope, name)
+        self.width = Param('width', width)
+        self.link_parameter(self.width)
+
+    def parameters_changed(self):
+        super(ChangeWindowKernelWithWidth, self).parameters_changed()
+        self.sigmoidal_reverse.width = self.sigmoidal.width = self.width
+
+    def update_gradients_full(self, dL_dK, X, X2 = None):
+        super(ChangeWindowKernelWithWidth, self).update_gradients_full(dL_dK, X, X2)
+        self.width.gradient = self.sigmoidal.width.gradient
+
+    def update_gradients_diag(self, dL_dK, X):
+        super(ChangeWindowKernelWithWidth, self).update_gradients_diag(dL_dK, X)
+        self.width.gradient = self.sigmoidal.width.gradient
 
 
 

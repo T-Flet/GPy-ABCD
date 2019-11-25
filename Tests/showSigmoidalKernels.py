@@ -22,13 +22,22 @@ print(SIr)
 sampleCurves(SIr)
 
 
-SIT.plot()
-print(SIT)
-sampleCurves(SIT)
+SIO.plot()
+print(SIO)
+sampleCurves(SIO)
 
-SITr.plot()
-print(SITr)
-sampleCurves(SITr)
+SIOr.plot()
+print(SIOr)
+sampleCurves(SIOr)
+
+
+SIW.plot()
+print(SIW)
+sampleCurves(SIW)
+
+SIWr.plot()
+print(SIWr)
+sampleCurves(SIWr)
 
 
 
