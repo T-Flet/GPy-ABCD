@@ -22,5 +22,6 @@ Y = np.concatenate(([0.1 * x for x in X[:70]],
                     [0.1 * x for x in X[161:]])) + np.random.randn(212, 1) * 0.3
 
 kernel = CW(LIN, PER + C)
+# kernel = CW(PER + C, LIN)
 
 doGPR(X, Y, kernel, 5)

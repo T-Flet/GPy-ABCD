@@ -22,5 +22,6 @@ SIOr = _Sk.SigmoidalIndicatorKernelOneLocation(1, True)
 
 # CP = _CFs.kCP
 # CW = _CFs.kCW
+# # CW = _CFs.kCW2
 CP = _Cs.ChangePointKernel
 CW = _Cs.ChangeWindowKernel

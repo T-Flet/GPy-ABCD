@@ -41,3 +41,9 @@ if __name__ == '__main__':
         bm.model.plot()
 
     plt.show()
+
+
+# TODO:
+#   Address these testing notes:
+# 	- Changepoint and changewindow kernels seem to throw off PER a bit, and additionally allow SE to match most data
+#   - Change something in grammar: use change_point_linear, or make the starting change kernels use SE or other

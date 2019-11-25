@@ -37,16 +37,16 @@ class ChangeKernelBase(CombinationKernel):
         input_dict["class"] = str("ChangeKernel")
         return input_dict
 
-    @Cache_this(limit = 3)
-    def K(self, X, X2 = None):
+    def parameters_changed(self):
         self.sigmoidal_reverse.location = self.sigmoidal.location = self.location
         self.sigmoidal_reverse.slope = self.sigmoidal.slope = self.slope
+
+    @Cache_this(limit = 3)
+    def K(self, X, X2 = None):
         return self.left.K(X, X2) * self.sigmoidal_reverse.K(X, X2) + self.right.K(X, X2) * self.sigmoidal.K(X, X2)
 
     @Cache_this(limit = 3)
     def Kdiag(self, X):
-        self.sigmoidal_reverse.location = self.sigmoidal.location = self.location
-        self.sigmoidal_reverse.slope = self.sigmoidal.slope = self.slope
         return self.left.Kdiag(X) * self.sigmoidal_reverse.Kdiag(X) + self.right.Kdiag(X) * self.sigmoidal.Kdiag(X)
 
     def update_gradients_full(self, dL_dK, X, X2 = None):
@@ -77,15 +77,9 @@ class ChangeWindowKernel(ChangeKernelBase):
     def __init__(self, left, right, location: float = 0., stop_location: float = 1., slope: float = 1., name='change_window'):
         super(ChangeWindowKernel, self).__init__(left, right, SigmoidalIndicatorKernel, (location, stop_location), slope, name)
 
-    @Cache_this(limit = 3)
-    def K(self, X, X2 = None):
+    def parameters_changed(self):
+        super(ChangeWindowKernel, self).parameters_changed()
         self.sigmoidal_reverse.stop_location = self.sigmoidal.stop_location = self.stop_location
-        return super(ChangeWindowKernel, self).K(X, X2)
-
-    @Cache_this(limit = 3)
-    def Kdiag(self, X):
-        self.sigmoidal_reverse.stop_location = self.sigmoidal.stop_location = self.stop_location
-        return super(ChangeWindowKernel, self).Kdiag(X)
 
     def update_gradients_full(self, dL_dK, X, X2 = None):
         super(ChangeWindowKernel, self).update_gradients_full(dL_dK, X, X2)
@@ -93,7 +87,6 @@ class ChangeWindowKernel(ChangeKernelBase):
 
     def update_gradients_diag(self, dL_dK, X):
         super(ChangeWindowKernel, self).update_gradients_diag(dL_dK, X)
-        [p.update_gradients_diag(dL_dK, X) for p in [self.left, self.right, self.sigmoidal]]
         self.stop_location.gradient = self.sigmoidal.stop_location.gradient
 
 
