@@ -24,9 +24,10 @@ SIWr = _Sk.SigmoidalIndicatorKernelWithWidth(1, True)
 
 
 # CP = _CFs.kCP
-# CW = _CFs.kCW
+# # CW = _CFs.kCW
 # # CW = _CFs.kCW2
-CP = _Cs.ChangePointKernel
+# CW = _CFs.kCWw
+# CP = _Cs.ChangePointKernel
 # CW = _Cs.ChangeWindowKernel
 # CW = _Cs.ChangeWindowKernelOneLocation
 CW = _Cs.ChangeWindowKernelWithWidth

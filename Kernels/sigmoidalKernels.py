@@ -122,7 +122,7 @@ class SigmoidalIndicatorKernelOneLocation(SigmoidalKernelBase):
     def _tanhSigOneLocIndicatorHalfWidth(s, y = 0.01): # Distance from peak of 1-location indicator kernel to when y is reached
         return s * np.arccosh(1 / np.sqrt(y))
 
-    def start_and_end_locations(self, y = 0.01): # Start and end locations for a 1-location indicator kernel
+    def start_and_end_locations(self, y = 0.5): # Start and end locations for a 1-location indicator kernel
         w = SigmoidalIndicatorKernelOneLocation._tanhSigOneLocIndicatorHalfWidth(self.slope, y)
         return self.location - w, self.location + w
 
@@ -190,8 +190,7 @@ class SigmoidalIndicatorKernel(SigmoidalKernelBase):
 
     @staticmethod
     def _sigmoid_function_opposites_sum_height(l, sl, s):  # Height of sig(x, l, s) + sig(x, sl, -s) - 1
-        return np.tanh(
-            (sl - l) / (2 * s))  # Simplification of: 2 * SigmoidalKernelBase._sigmoid_function((sl - l) / 2, 0, s) - 1
+        return np.tanh((sl - l) / (2 * s))  # Simplification of: 2 * SigmoidalKernelBase._sigmoid_function((sl - l) / 2, 0, s) - 1
 
     def is_reversed(self):
         return ((self.location > self.stop_location) ^ (self.slope < 0)) ^ self.reverse
@@ -214,10 +213,13 @@ class SigmoidalIndicatorKernel(SigmoidalKernelBase):
             phi1 = phi1[:, None]
             phi2 = phi2[:, None] if X2 is not X else phi1
 
-        asc = self._sigmoid_function(X, self.location, self.slope)
-        desc = self._sigmoid_function(X, self.stop_location, -self.slope)
+        asc1 = self._sigmoid_function(X, self.location, self.slope)
+        asc2 = self._sigmoid_function(X2, self.location, self.slope)
+        desc1 = self._sigmoid_function(X, self.stop_location, -self.slope)
+        desc2 = self._sigmoid_function(X2, self.stop_location, -self.slope)
         inv_height = 1 / SigmoidalIndicatorKernel._sigmoid_function_opposites_sum_height(self.location, self.stop_location, self.slope)
-        numerator = asc + desc - 1
+        numerator1 = asc1 + desc1 - 1
+        numerator2 = asc2 + desc2 - 1
 
         height_arg = (self.location - self.stop_location) / (2 * self.slope)
         dinvheight_dl = (SigmoidalKernelBase._csch(height_arg) ** 2) / (2 * self.slope)
@@ -225,17 +227,17 @@ class SigmoidalIndicatorKernel(SigmoidalKernelBase):
         dinvheight_ds = 2 * height_arg * dinvheight_dsl
 
         # Only asc * inv_height contains l
-        dphi1_dl = self._sigmoid_function_dl(X, self.location, self.slope) * inv_height + asc * dinvheight_dl
-        dphi2_dl = self._sigmoid_function_dl(X2, self.location, self.slope) * inv_height + asc * dinvheight_dl
+        dphi1_dl = self._sigmoid_function_dl(X, self.location, self.slope) * inv_height + asc1 * dinvheight_dl
+        dphi2_dl = self._sigmoid_function_dl(X2, self.location, self.slope) * inv_height + asc2 * dinvheight_dl
         self.location.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_dl.T) + phi2.dot(dphi1_dl.T))).sum())
 
         # Only desc * inv_height contains sl
-        dphi1_dsl = self._sigmoid_function_dl(X, self.stop_location, -self.slope) * inv_height + desc * dinvheight_dsl
-        dphi2_dsl = self._sigmoid_function_dl(X2, self.stop_location, -self.slope) * inv_height + desc * dinvheight_dsl
+        dphi1_dsl = self._sigmoid_function_dl(X, self.stop_location, -self.slope) * inv_height + desc1 * dinvheight_dsl
+        dphi2_dsl = self._sigmoid_function_dl(X2, self.stop_location, -self.slope) * inv_height + desc2 * dinvheight_dsl
         self.stop_location.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_dsl.T) + phi2.dot(dphi1_dsl.T))).sum())
 
-        dphi1_ds = (self._sigmoid_function_ds(X, self.location, self.slope) - self._sigmoid_function_ds(X, self.stop_location, -self.slope)) * inv_height + numerator * dinvheight_ds
-        dphi2_ds = (self._sigmoid_function_ds(X2, self.location, self.slope) - self._sigmoid_function_ds(X2, self.stop_location, -self.slope)) * inv_height + numerator * dinvheight_ds
+        dphi1_ds = (self._sigmoid_function_ds(X, self.location, self.slope) - self._sigmoid_function_ds(X, self.stop_location, -self.slope)) * inv_height + numerator1 * dinvheight_ds
+        dphi2_ds = (self._sigmoid_function_ds(X2, self.location, self.slope) - self._sigmoid_function_ds(X2, self.stop_location, -self.slope)) * inv_height + numerator2 * dinvheight_ds
         self.slope.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_ds.T) + phi2.dot(dphi1_ds.T))).sum())
 
         self.location.gradient = np.where(np.isnan(self.location.gradient), 0, self.location.gradient)
@@ -292,10 +294,9 @@ class SigmoidalIndicatorKernelWithWidth(SigmoidalKernelBase):
             phi2 = phi2[:, None] if X2 is not X else phi1
 
         hw = self.width / 2
-        asc = self._sigmoid_function(X, self.location - hw, self.slope)
-        desc = self._sigmoid_function(X, self.location - hw, -self.slope)
         inv_height = 1 / SigmoidalIndicatorKernelWithWidth._sigmoid_function_opposites_sum_height(self.width, self.slope)
-        numerator = asc + desc - 1
+        numerator1 = self._sigmoid_function(X, self.location - hw, self.slope) + self._sigmoid_function(X, self.location + hw, -self.slope) - 1 # asc1 + desc1 - 1
+        numerator2 = self._sigmoid_function(X2, self.location - hw, self.slope) + self._sigmoid_function(X2, self.location + hw, -self.slope) - 1 # asc2 + desc2 - 1
 
         height_arg = self.width / (2 * self.slope)
         dinvheight_dw = - (SigmoidalKernelBase._csch(height_arg) ** 2) / (2 * self.slope)
@@ -303,14 +304,14 @@ class SigmoidalIndicatorKernelWithWidth(SigmoidalKernelBase):
 
         dphi1_dl = (self._sigmoid_function_dl(X, self.location - hw, self.slope) + self._sigmoid_function_dl(X, self.location + hw, -self.slope)) * inv_height #+ (asc + desc) * dinvheight_dl, which is 0
         dphi2_dl = (self._sigmoid_function_dl(X2, self.location - hw, self.slope) + self._sigmoid_function_dl(X2, self.location + hw, -self.slope)) * inv_height #+ (asc + desc) * dinvheight_dl, which is 0
-
-        dphi1_ds = (self._sigmoid_function_ds(X, self.location - hw, self.slope) - self._sigmoid_function_ds(X, self.location + hw, -self.slope)) * inv_height + numerator * dinvheight_ds
-        dphi2_ds = (self._sigmoid_function_ds(X2, self.location - hw, self.slope) - self._sigmoid_function_ds(X2, self.location + hw, -self.slope)) * inv_height + numerator * dinvheight_ds
-        self.slope.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_ds.T) + phi2.dot(dphi1_ds.T))).sum())
         self.location.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_dl.T) + phi2.dot(dphi1_dl.T))).sum())
 
-        dphi1_dw = (self._sigmoid_function_dw(X, self.location, self.slope, hw, -1) + self._sigmoid_function_dw(X, self.location, -self.slope, hw, +1)) * inv_height + numerator * dinvheight_dw
-        dphi2_dw = (self._sigmoid_function_dw(X2, self.location, self.slope, hw, -1) + self._sigmoid_function_dw(X2, self.location, -self.slope, hw, +1)) * inv_height + numerator * dinvheight_dw
+        dphi1_ds = (self._sigmoid_function_ds(X, self.location - hw, self.slope) - self._sigmoid_function_ds(X, self.location + hw, -self.slope)) * inv_height + numerator1 * dinvheight_ds
+        dphi2_ds = (self._sigmoid_function_ds(X2, self.location - hw, self.slope) - self._sigmoid_function_ds(X2, self.location + hw, -self.slope)) * inv_height + numerator2 * dinvheight_ds
+        self.slope.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_ds.T) + phi2.dot(dphi1_ds.T))).sum())
+
+        dphi1_dw = (self._sigmoid_function_dw(X, self.location, self.slope, hw, -1) + self._sigmoid_function_dw(X, self.location, -self.slope, hw, +1)) * inv_height + numerator1 * dinvheight_dw
+        dphi2_dw = (self._sigmoid_function_dw(X2, self.location, self.slope, hw, -1) + self._sigmoid_function_dw(X2, self.location, -self.slope, hw, +1)) * inv_height + numerator2 * dinvheight_dw
         self.width.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_dw.T) + phi2.dot(dphi1_dw.T))).sum())
 
         self.location.gradient = np.where(np.isnan(self.location.gradient), 0, self.location.gradient)

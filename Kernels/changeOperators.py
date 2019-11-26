@@ -92,7 +92,7 @@ class ChangeWindowKernel(ChangeKernelBase):
 
 class ChangeWindowKernelWithWidth(ChangeKernelBase):
     """Composite kernel changing from left to right subkernels at a limited location"""
-    def __init__(self, left, right, location: float = 5., slope: float = 1., width: float = 10., name='change_window'):
+    def __init__(self, left, right, location: float = 0., slope: float = 1., width: float = 1., name='change_window'):
         super(ChangeWindowKernelWithWidth, self).__init__(left, right, SigmoidalIndicatorKernel, location, slope, name)
         self.width = Param('width', width)
         self.link_parameter(self.width)
