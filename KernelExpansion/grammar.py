@@ -1,5 +1,5 @@
 from KernelExpansion.kernelExpressionOperations import *
-from itertools import chain
+from Util.genericUtil import *
 
 
 # base_kerns is already in scope
@@ -21,16 +21,6 @@ extended_start_kernels = [k._initialise() for k in
                           [SumKE([B]) for B in base_kerns] + # Base Kernels
                           [SumKE(['PER', 'SE'])] + # A catch-all-shapes periodic kernel
                           both_changes('LIN')] # To catch a possible changepoint or changewindow with simple enough shapes
-
-
-## Utility functions
-
-def flatten(list_of_lists):
-    return list(chain.from_iterable(list_of_lists))
-
-def unique(xs):
-    seen = [] # Note: 'in' tests x is z or x == z, hence it works with __eq__ overloading
-    return [x for x in xs if x not in seen and not seen.append(x)] # Neat short-circuit 'and' trick
 
 
 ## Expansion functions

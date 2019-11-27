@@ -1,6 +1,9 @@
 from Kernels.sigmoidalKernels import *
 
 
+# NOTE: This is all because tie_to is documented but not implemented in GPy yet
+
+
 def kCP(k1, k2):
     """
     :param k1: Kernel before the changepoint
@@ -67,15 +70,3 @@ def kCWw(k1, k2):
     res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.slope)
     res.mul_1.sigmoidal_indicator.slope = res.mul.sigmoidal_indicator.slope
     return res
-
-
-# TODO:
-#   NOTE: This is all because tie_to is documented but not implemented in GPy yet
-#   In order to tie the parameters and have the whole system work, try in order:
-#     V 1: manually unlink mul_1 sigmoid params and set them to the mul ones
-#       2: make the KernelExpression to_kernel method compose from smaller parts instead of the one-shot conversion
-#           (this step also allows addressing the piling-up of variance parameters in products of kernels)
-#   Alternatively:
-#       0: Make each change class properly wrap the sum of products and mimic each method but without the undesired
-#           parameters and the remaining ones shifted up to this class instead of mul
-

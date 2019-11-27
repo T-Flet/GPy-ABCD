@@ -1,5 +1,5 @@
 import numpy as np
-from Util.util import doGPR
+from Util.kernelUtil import doGPR
 from Kernels.baseKernels import *
 
 

@@ -1,5 +1,5 @@
 from matplotlib import pyplot as plt
-from Util.util import sampleCurves
+from Util.kernelUtil import sampleCurves
 from Kernels.baseKernels import *
 
 

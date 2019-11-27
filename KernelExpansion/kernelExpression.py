@@ -118,12 +118,12 @@ class KernelExpression(ABC): # Abstract
         pass
 
     @abstractmethod
-    def to_kernel_by_parts(self):
+    def to_kernel(self):
         pass
 
-    def to_kernel(self):
+    def to_kernel_unrefined(self):
         # return eval(str(self))
-        return eval(re.sub(r'([A-Z]+(?!\(|[A-Z]))', r'\1()', str(self))) # In case kernels are functions returning a new instance
+        return eval(re.sub(r'([A-Z]+(?!\(|[A-Z]))', r'\1()', str(self))) # Call the kernels in case they are functions returning a new instance
 
     @staticmethod
     def bs(str_expr):
@@ -205,7 +205,7 @@ class SumOrProductKE(KernelExpression): # Abstract
         self.composite_terms.remove(old_child)
         self.composite_terms.append(new_child) # NOT A deepcopy!
         return new_child # NOTE THIS RETURN VALUE (used by new_tree_with_self_replaced)
-            
+
     def new_base(self, new_base_terms):
         if isinstance(new_base_terms, str):
             self.base_terms[new_base_terms] += 1
@@ -225,7 +225,7 @@ class SumOrProductKE(KernelExpression): # Abstract
         return sum(self.base_terms.values()) + len(self.composite_terms)
 
     @abstractmethod
-    def to_kernel_by_parts(self):
+    def to_kernel(self):
         pass
 
 
@@ -239,8 +239,8 @@ class SumKE(SumOrProductKE):
         if self.base_terms['C'] > 1: self.base_terms['C'] = 1
         return self
 
-    def to_kernel_by_parts(self):
-        return reduce(operator.add, [base_str_to_ker[bt] for bt in list(self.base_terms.elements())] + [ct.to_kernel_by_parts() for ct in self.composite_terms])
+    def to_kernel(self):
+        return reduce(operator.add, [base_str_to_ker(bt) for bt in list(self.base_terms.elements())] + [ct.to_kernel() for ct in self.composite_terms])
 
 
 class ProductKE(SumOrProductKE):
@@ -261,11 +261,11 @@ class ProductKE(SumOrProductKE):
         return self
 
 
-    def to_kernel_by_parts(self):
-        terms = [base_str_to_ker[bt] for bt in list(self.base_terms.elements())] + [ct.to_kernel_by_parts() for ct in self.composite_terms]
-        if len(terms) > 1: # I.e. leave only one of the removable variance parameters per product, preferring the first factor to have it
-            if not any([remove_top_level_variance(term) for term in terms[1:]]): remove_top_level_variance(terms[0])
-        return reduce(operator.add, terms)
+    def to_kernel(self):
+        bt_kers = [base_str_to_ker(bt) for bt in list(self.base_terms.elements())]
+        if len(bt_kers) > 1: # I.e. leave only one of the removable variance parameters (i.e. the base_terms') per product, preferring the first factor to have it
+            for btk in bt_kers[1:]: btk.unlink_parameter(btk.variance)
+        return reduce(operator.add, bt_kers + [ct.to_kernel() for ct in self.composite_terms])
 
 
 class ChangeKE(KernelExpression):
@@ -331,7 +331,7 @@ class ChangeKE(KernelExpression):
             self.right = new_child # NOT A deepcopy!
         return new_child # NOTE THIS RETURN VALUE (used by new_tree_with_self_replaced)
 
-    def to_kernel_by_parts(self):
-        left_ker = self.left.to_kernel_by_parts() if isinstance(self.left, KernelExpression) else base_str_to_ker[self.left]
-        right_ker = self.right.to_kernel_by_parts() if isinstance(self.right, KernelExpression) else base_str_to_ker[self.right]
-        return base_str_to_ker[self.CP_or_CW](left_ker, right_ker)
+    def to_kernel(self):
+        left_ker = self.left.to_kernel() if isinstance(self.left, KernelExpression) else base_str_to_ker(self.left)
+        right_ker = self.right.to_kernel() if isinstance(self.right, KernelExpression) else base_str_to_ker(self.right)
+        return base_str_to_ker_func[self.CP_or_CW](left_ker, right_ker)

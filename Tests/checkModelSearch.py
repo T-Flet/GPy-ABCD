@@ -45,6 +45,5 @@ if __name__ == '__main__':
 
 # TODO:
 #   Address these testing notes:
-#   - Test for performance: functions + kernel by parts, functions + kernel by eval, objects
 # 	- Changepoint and changewindow kernels seem to throw off PER a bit, and additionally allow SE to match most data
 #   - Change something in grammar: use change_point_linear, or make the starting change kernels use SE or other

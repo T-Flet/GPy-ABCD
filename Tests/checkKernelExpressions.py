@@ -152,8 +152,9 @@ from KernelExpansion.kernelExpressionOperations import *
 ## to_kernel_by_parts
 
 # testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), SumKE([], [ProductKE(['SE', 'LIN'])]))._initialise()
-# ker_by_parts = testExpr.to_kernel_by_parts()
-# ker_by_eval = testExpr.to_kernel()
+# # testExpr = ProductKE(['WN'], [SumKE(['PER', 'C'])])._initialise()
+# ker_by_parts = testExpr.to_kernel()
+# ker_by_eval = testExpr.to_kernel_unrefined()
 # print(ker_by_parts)
 # print(len(ker_by_parts.parameter_names()))
 # print(ker_by_eval)

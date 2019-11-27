@@ -1,5 +1,5 @@
 import numpy as np
-from Util.util import sampleCurves, doGPR
+from Util.kernelUtil import sampleCurves, doGPR
 from Kernels.linearOffsetKernel import LinearWithOffset
 
 #kernel = GPy.kern.LogisticBasisFuncKernel(1, 0) * kLIN

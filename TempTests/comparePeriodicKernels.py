@@ -1,5 +1,5 @@
 from matplotlib import pyplot as plt
-from Util.util import sampleCurves, doGPR
+from Util.kernelUtil import sampleCurves, doGPR
 from Kernels.baseKernels import C
 
 from Kernels.periodicKernel import *
