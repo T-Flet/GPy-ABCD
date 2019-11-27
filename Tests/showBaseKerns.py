@@ -1,26 +1,28 @@
+from Kernels.baseKernels import *
+from Util.util import sampleCurves
 from matplotlib import pyplot as plt
 
 ## Pure Kernels
-#
-# kWN.plot()
-# print(kWN)
-# sampleCurves(kWN)
-#
-# kC.plot()
-# print(kC)
-# sampleCurves(kC)
-#
-# kLIN.plot()
-# print(kLIN)
-# sampleCurves(kLIN)
-#
-# kSE.plot()
-# print(kSE)
-# sampleCurves(kSE)
-#
-# kPER.plot()
-# print(kPER)
-# sampleCurves(kPER)
+
+WN().plot()
+print(WN())
+sampleCurves(WN())
+
+C().plot()
+print(C())
+sampleCurves(C())
+
+LIN().plot()
+print(LIN())
+sampleCurves(LIN())
+
+SE().plot()
+print(SE())
+sampleCurves(SE())
+
+PER().plot()
+print(PER())
+sampleCurves(PER())
 
 
 plt.show()
@@ -29,12 +31,12 @@ plt.show()
 
 ## Combinations of kernels
 
-# k_prod = kLIN * kPER
+# k_prod = LIN() * PER()
 # k_prod.plot()
 # print(k_prod)
 # sampleCurves(k_prod)
 #
-# k_add = kLIN + kPER
+# k_add = LIN() + PER()
 # k_add.plot()
 # print(k_add)
 # sampleCurves(k_add)

@@ -74,7 +74,7 @@ def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = prod
     tested_models = [sorted(fit_model_list(X, Y, start_kernels, restarts), key = methodcaller(utility_function))]
     sorted_models = not_expanded = tested_models[0]
     expanded = []
-    tested_k_exprs = start_kernels
+    tested_k_exprs = deepcopy(start_kernels)
     if verbose: print(f'(All models are listed in descending order)\n\nBest round-{0} models: {print_k_list(not_expanded[:buffer])}')
 
     for d in range(1, rounds + 1):

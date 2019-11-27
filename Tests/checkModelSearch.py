@@ -17,12 +17,12 @@ if __name__ == '__main__':
 
 
 
-    # Load testing for parallel computations
+    # # Load testing for parallel computations
     # from timeit import timeit
     # def statement():
-    #     best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernel=SumKE(['WN'])._initialise(), p_rules=production_rules_all,
-    #                                                      restarts=5, utility_function='BIC', depth=2, buffer=4, verbose=True)
-    # print(timeit(statement, number = 4))
+    #     best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernels=standard_start_kernels, p_rules=production_rules_all,
+    #                                                      restarts=2, utility_function='BIC', rounds=2, buffer=3, verbose=True)
+    # print(timeit(statement, number = 3))
 
 
 
@@ -45,5 +45,6 @@ if __name__ == '__main__':
 
 # TODO:
 #   Address these testing notes:
+#   - Test for performance: functions + kernel by parts, functions + kernel by eval, objects
 # 	- Changepoint and changewindow kernels seem to throw off PER a bit, and additionally allow SE to match most data
 #   - Change something in grammar: use change_point_linear, or make the starting change kernels use SE or other

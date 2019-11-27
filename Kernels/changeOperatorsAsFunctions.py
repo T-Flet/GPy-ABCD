@@ -63,7 +63,7 @@ def kCWw(k1, k2):
     res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.location)
     res.mul_1.sigmoidal_indicator.location = res.mul.sigmoidal_indicator.location
     res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.width)
-    res.mul_1.sigmoidal_indicator.stop_location = res.mul.sigmoidal_indicator.width
+    res.mul_1.sigmoidal_indicator.width = res.mul.sigmoidal_indicator.width
     res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.slope)
     res.mul_1.sigmoidal_indicator.slope = res.mul.sigmoidal_indicator.slope
     return res

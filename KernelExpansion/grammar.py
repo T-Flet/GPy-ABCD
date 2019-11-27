@@ -2,7 +2,7 @@ from KernelExpansion.kernelExpressionOperations import *
 from itertools import chain
 
 
-base_kerns = frozenset(['WN', 'C', 'LIN', 'SE', 'PER'])
+# base_kerns is already in scope
 stationary_kerns = frozenset(['WN', 'C', 'SE', 'PER'])
 # addition_idempotent_kerns = frozenset(['WN', 'C'])
 # multiplication_idempotent_kerns = frozenset(['WN', 'C', 'SE'])

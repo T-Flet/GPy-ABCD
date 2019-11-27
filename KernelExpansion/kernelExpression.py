@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 from Kernels.baseKernels import *
+from Kernels.kernelOperations import *
 from collections import Counter
 from itertools import chain
 from functools import reduce
+import operator
 from copy import deepcopy
+import re
 # import kernelExpressionOperations
 
 
@@ -16,10 +19,6 @@ from copy import deepcopy
 #       the mult/sum of sum/mult rules are applied to leaves FROM their parents; this covers the whole tree.
 #   - Both traverse and reduce ignore bare string leaves and assume the user handles them from their ChangeKE parent.
 #   - Methods with input arguments make deepcopies of them in order to prevent unintended modification (exceptions for methods used other methods which do)
-
-
-# TODO:
-#   Think about the issue of accumulating variance parameters in repeated multiplications GPy.kern multiplications; worth trying to prevent it?
 
 
 def lists_of_unhashables__eq(xs, ys):
@@ -118,8 +117,13 @@ class KernelExpression(ABC): # Abstract
     def reassign_child(self, old_child, new_child): # NOTE: has to return new_child (used by new_tree_with_self_replaced)
         pass
 
+    @abstractmethod
+    def to_kernel_by_parts(self):
+        pass
+
     def to_kernel(self):
-        return eval(str(self))
+        # return eval(str(self))
+        return eval(re.sub(r'([A-Z]+(?!\(|[A-Z]))', r'\1()', str(self))) # In case kernels are functions returning a new instance
 
     @staticmethod
     def bs(str_expr):
@@ -220,6 +224,10 @@ class SumOrProductKE(KernelExpression): # Abstract
     def term_count(self):
         return sum(self.base_terms.values()) + len(self.composite_terms)
 
+    @abstractmethod
+    def to_kernel_by_parts(self):
+        pass
+
 
 class SumKE(SumOrProductKE):
     def __init__(self, base_terms, composite_terms = [], root: KernelExpression = None, parent: KernelExpression = None):
@@ -230,6 +238,9 @@ class SumKE(SumOrProductKE):
         if self.base_terms['WN'] > 1: self.base_terms['WN'] = 1
         if self.base_terms['C'] > 1: self.base_terms['C'] = 1
         return self
+
+    def to_kernel_by_parts(self):
+        return reduce(operator.add, [base_str_to_ker[bt] for bt in list(self.base_terms.elements())] + [ct.to_kernel_by_parts() for ct in self.composite_terms])
 
 
 class ProductKE(SumOrProductKE):
@@ -248,6 +259,13 @@ class ProductKE(SumOrProductKE):
                 self.base_terms['C'] = 0 if self.term_count() != self.base_terms['C'] else 1
             if self.base_terms['SE'] > 1: self.base_terms['SE'] = 1 # SE is multiplication-idempotent
         return self
+
+
+    def to_kernel_by_parts(self):
+        terms = [base_str_to_ker[bt] for bt in list(self.base_terms.elements())] + [ct.to_kernel_by_parts() for ct in self.composite_terms]
+        if len(terms) > 1: # I.e. leave only one of the removable variance parameters per product, preferring the first factor to have it
+            if not any([remove_top_level_variance(term) for term in terms[1:]]): remove_top_level_variance(terms[0])
+        return reduce(operator.add, terms)
 
 
 class ChangeKE(KernelExpression):
@@ -312,3 +330,8 @@ class ChangeKE(KernelExpression):
         else: # elif self.right is old_child
             self.right = new_child # NOT A deepcopy!
         return new_child # NOTE THIS RETURN VALUE (used by new_tree_with_self_replaced)
+
+    def to_kernel_by_parts(self):
+        left_ker = self.left.to_kernel_by_parts() if isinstance(self.left, KernelExpression) else base_str_to_ker[self.left]
+        right_ker = self.right.to_kernel_by_parts() if isinstance(self.right, KernelExpression) else base_str_to_ker[self.right]
+        return base_str_to_ker[self.CP_or_CW](left_ker, right_ker)
