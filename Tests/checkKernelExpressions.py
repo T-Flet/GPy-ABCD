@@ -164,13 +164,26 @@ from KernelExpansion.kernelExpressionOperations import *
 ## match_up_fit_parameters
 
 # # testExpr = SumKE(['WN', 'PER', 'C'])._initialise()
+# # testExpr = SumKE(['WN', 'PER', 'PER'])._initialise()
+# # testExpr = SumKE([], [ProductKE(['SE', 'PER']), ProductKE(['SE', 'PER'])])._initialise()
+# # testExpr = SumKE(['WN', 'PER', 'C'], [ProductKE(['SE', 'PER']), ProductKE(['SE', 'PER']), ProductKE(['SE', 'PER'])])._initialise()
 # # testExpr = ProductKE(['SE', 'PER'])._initialise()
+# # testExpr = ProductKE(['SE', 'PER', 'PER'])._initialise()
+# # testExpr = ProductKE([], [SumKE(['SE', 'PER']), SumKE(['SE', 'PER'])])._initialise()
+# testExpr = ProductKE(['SE', 'PER'], [SumKE(['SE', 'PER']), SumKE(['SE', 'PER']), SumKE(['SE', 'PER'])])._initialise()
 # # testExpr = ChangeKE('CP', 'PER', SumKE(['C', 'PER']))._initialise()
-# testExpr = ChangeKE('CW', 'PER', SumKE(['C', 'PER']))._initialise()
+# # testExpr = ChangeKE('CW', 'PER', SumKE(['C', 'PER']))._initialise()
+# # testExpr = ChangeKE('CW', 'LIN', 'LIN')._initialise()
+# # testExpr = ChangeKE('CW', SumKE(['C', 'PER']), SumKE(['C', 'PER']))._initialise()
+#
 # print(testExpr)
-# param_dict = get_param_dict(testExpr.to_kernel())
+# ker = testExpr.to_kernel()
+# ker.randomize()
+# param_dict = get_param_dict(ker)
 # print(param_dict)
-# print(testExpr.match_up_fit_parameters(param_dict, '').parameters)
+# # print(testExpr.match_up_fit_parameters(param_dict, '').parameters)
+# print(testExpr.match_up_fit_parameters(param_dict, '').composite_terms[2].parameters)
+# # print(testExpr.match_up_fit_parameters(param_dict, '').right.parameters)
 
 
 
