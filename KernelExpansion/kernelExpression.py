@@ -37,10 +37,12 @@ def lists_of_unhashables__diff(xs, ys):
 
 
 class KernelExpression(ABC): # Abstract
-    def __init__(self, root, parent):
+    def __init__(self, root, parent, GPy_name = None):
         super().__init__()
         self.root = root
         self.parent = parent
+        self.GPy_name = GPy_name
+        self.parameters = None
 
     ### Overloading with functions that require determingin which subclass of this one each operand is does not seem possible; generic wrapper class?
     # def __add__(self, kex):
@@ -64,10 +66,6 @@ class KernelExpression(ABC): # Abstract
     @abstractmethod
     def extract_if_singleton(self):
         pass
-
-    # @abstractmethod
-    # def sum_of_prods_form(self):
-    #     pass
 
     # NOTE: both traverse and reduce ignore raw-string leaves (which can only happen in ChangeKEs);
     #       care has to be taken to perform required operations on them from their parent
@@ -129,10 +127,16 @@ class KernelExpression(ABC): # Abstract
     def bs(str_expr):
         return '(' + str_expr + ')'
 
+    # Methods for after fit
+
+    @abstractmethod
+    def match_up_fit_parameters(self, fit_ker, prefix): # Note: the prefix has to already contain this node's name at the end
+        pass
+
 
 class SumOrProductKE(KernelExpression): # Abstract
-    def __init__(self, base_terms, composite_terms = [], root: KernelExpression = None, parent: KernelExpression = None, symbol = '+'):
-        super().__init__(root, parent)
+    def __init__(self, base_terms, composite_terms = [], root: KernelExpression = None, parent: KernelExpression = None, symbol = None, GPy_name = None):
+        super().__init__(root, parent, GPy_name)
         self.base_terms = deepcopy(base_terms) if isinstance(base_terms, Counter) else Counter(base_terms)
         self.composite_terms = deepcopy(composite_terms)
         self.symbol = symbol
@@ -228,10 +232,22 @@ class SumOrProductKE(KernelExpression): # Abstract
     def to_kernel(self):
         pass
 
+    # Methods for after fit
+
+    def match_up_fit_parameters(self, param_dict, prefix = ''):
+        if self.is_root(): prefix = self.GPy_name
+        elif prefix == '': raise ValueError('No prefix but not root node in match_up_fit_parameters')
+        self.parameters = []
+        for bt in list(self.base_terms.elements()):
+            self.parameters.append((bt, { p: param_dict[p_full] for p in base_k_param_names[bt]['parameters']
+                                         for p_full in ['.'.join([prefix, base_k_param_names[bt]['name'], p])] # Clunky 'let' assignment; for Python 3.8+: 'if (p_full := '.'.join([prefix, base_k_param_names[bt]['name'], p]))'
+                                         if not (p == 'variance' and p_full not in param_dict) })) # I.e. skip variances if absent
+        return self
+
 
 class SumKE(SumOrProductKE):
     def __init__(self, base_terms, composite_terms = [], root: KernelExpression = None, parent: KernelExpression = None):
-        super().__init__(base_terms, composite_terms, root, parent, '+')
+        super().__init__(base_terms, composite_terms, root, parent, '+', 'sum')
 
     def simplify_base_terms(self):
         # WN and C are addition-idempotent
@@ -245,7 +261,7 @@ class SumKE(SumOrProductKE):
 
 class ProductKE(SumOrProductKE):
     def __init__(self, base_terms, composite_terms = [], root: KernelExpression = None, parent: KernelExpression = None):
-        super().__init__(base_terms, composite_terms, root, parent, '*')
+        super().__init__(base_terms, composite_terms, root, parent, '*', 'mul')
 
     @staticmethod
     def bracket_if_needed(kex):
@@ -260,17 +276,16 @@ class ProductKE(SumOrProductKE):
             if self.base_terms['SE'] > 1: self.base_terms['SE'] = 1 # SE is multiplication-idempotent
         return self
 
-
     def to_kernel(self):
         bt_kers = [base_str_to_ker(bt) for bt in list(self.base_terms.elements())]
         if len(bt_kers) > 1: # I.e. leave only one of the removable variance parameters (i.e. the base_terms') per product, preferring the first factor to have it
             for btk in bt_kers[1:]: btk.unlink_parameter(btk.variance)
-        return reduce(operator.add, bt_kers + [ct.to_kernel() for ct in self.composite_terms])
+        return reduce(operator.mul, bt_kers + [ct.to_kernel() for ct in self.composite_terms])
 
 
 class ChangeKE(KernelExpression):
     def __init__(self, CP_or_CW, left, right, root: KernelExpression = None, parent: KernelExpression = None):
-        super().__init__(root, parent)
+        super().__init__(root, parent, base_k_param_names[CP_or_CW]['name'])
         self.CP_or_CW = CP_or_CW
         self.left = deepcopy(left)
         self.right = deepcopy(right)
@@ -325,13 +340,27 @@ class ChangeKE(KernelExpression):
         return all([ct.parent is self and ct._check_all_parents() for ct in [self.left, self.right] if isinstance(ct, KernelExpression)])
 
     def reassign_child(self, old_child, new_child):
-        if self.left is old_child:
-            self.left = new_child # NOT A deepcopy!
-        else: # elif self.right is old_child
-            self.right = new_child # NOT A deepcopy!
+        if self.left is old_child: self.left = new_child # NOT A deepcopy!
+        else: self.right = new_child # NOT A deepcopy! # I.e. elif self.right is old_child
         return new_child # NOTE THIS RETURN VALUE (used by new_tree_with_self_replaced)
 
     def to_kernel(self):
         left_ker = self.left.to_kernel() if isinstance(self.left, KernelExpression) else base_str_to_ker(self.left)
         right_ker = self.right.to_kernel() if isinstance(self.right, KernelExpression) else base_str_to_ker(self.right)
         return base_str_to_ker_func[self.CP_or_CW](left_ker, right_ker)
+
+    # Methods for after fit
+
+    def match_up_fit_parameters(self, param_dict, prefix = ''):
+        new_prefix = '.'.join([prefix, self.GPy_name])
+        if self.is_root(): new_prefix = prefix = self.GPy_name
+        elif prefix == '': raise ValueError('No prefix but not root node in match_up_fit_parameters')
+        self.parameters = [(self.CP_or_CW, {p: param_dict['.'.join([prefix, p])] for p in base_k_param_names[self.CP_or_CW]['parameters']})]
+        for branch_tuple in (('left', self.left), ('right', self.right)):
+            if isinstance(branch_tuple[1], KernelExpression): branch_tuple[1].match_up_fit_parameters(param_dict, new_prefix)
+            else: self.parameters += [(branch_tuple, {p: param_dict['.'.join([prefix, base_k_param_names[branch_tuple[1]]['name'], p])] for p in base_k_param_names[branch_tuple[1]]['parameters']})]
+        return self
+
+
+# TODO:
+#   - Redo all ChangeKE methods using 'for branch in (self.left, self.right):' instead of repeated code where appropriate

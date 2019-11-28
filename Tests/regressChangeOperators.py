@@ -21,7 +21,7 @@ Y = np.concatenate(([0.05 * x for x in X[:70]],
                     [0.05 * x * (x - 14) for x in X[71:165]],
                     np.array([0])[:, None],
                     [0.05 * x for x in X[166:]])) + np.random.randn(212, 1) * 0.3
-kernel = CW(LIN, LIN * LIN)
+kernel = CW(LIN(), LIN() * LIN())
 # kernel = CW(LIN * LIN, LIN)
 
 # Y = np.concatenate(([np.array([2]) for x in X[:70]],

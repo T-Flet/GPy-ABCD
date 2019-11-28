@@ -161,6 +161,18 @@ from KernelExpansion.kernelExpressionOperations import *
 # print(len(ker_by_eval.parameter_names()))
 
 
+## match_up_fit_parameters
+
+# # testExpr = SumKE(['WN', 'PER', 'C'])._initialise()
+# # testExpr = ProductKE(['SE', 'PER'])._initialise()
+# # testExpr = ChangeKE('CP', 'PER', SumKE(['C', 'PER']))._initialise()
+# testExpr = ChangeKE('CW', 'PER', SumKE(['C', 'PER']))._initialise()
+# print(testExpr)
+# param_dict = get_param_dict(testExpr.to_kernel())
+# print(param_dict)
+# print(testExpr.match_up_fit_parameters(param_dict, '').parameters)
+
+
 
 
 #### kernelExpressionOperators
