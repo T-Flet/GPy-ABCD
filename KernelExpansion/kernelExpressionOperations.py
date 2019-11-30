@@ -120,3 +120,23 @@ def remove_a_term(S):
     else: # elif isinstance(k1, str): # This never occurs in the expansion though
         res = [[]]
     return res
+
+
+
+
+# Functions for after fitting
+
+def add_sum_of_prods_terms(k1, k2):
+    res = None
+    pair = sortOutTypePair(k1, k2)
+    if len(pair) == 1:
+        if isinstance(k1, ProductKE):
+            res = SumKE([], [k1, k2])
+        else: # elif isinstance(k1, SumKE):
+            res = SumKE(+k1.base_terms + k2.base_terms, k1.composite_terms + k2.composite_terms)._new_parameters(k1.parameters + k2.parameters)
+    else: # I.e. one SumKE and one ProductKE
+        if isinstance(k1, ProductKE):
+            res = SumKE(+k2.base_terms, [k1] + k2.composite_terms)._new_parameters(k2.parameters)
+        else:
+            res = SumKE(+k1.base_terms, k1.composite_terms + [k2])._new_parameters(k1.parameters)
+    return res

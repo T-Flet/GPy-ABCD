@@ -183,7 +183,25 @@ from KernelExpansion.kernelExpressionOperations import *
 # print(param_dict)
 # res = testExpr.match_up_fit_parameters(param_dict, '')
 # print(res.parameters)
-# # print(testExpr.match_up_fit_parameters(param_dict, '').composite_terms[2].parameters)
+# # print(res.composite_terms[2].parameters)
+# print(res.right.parameters)
+
+
+## sum_of_prods_form
+
+testExpr = ChangeKE('CW', 'LIN', 'LIN')._initialise()
+
+print(testExpr)
+ker = testExpr.to_kernel()
+ker.randomize()
+param_dict = get_param_dict(ker)
+print(param_dict)
+testExprWithParams = testExpr.match_up_fit_parameters(param_dict, '')
+
+res = testExprWithParams.sum_of_prods_form()
+print(res)
+print(res.parameters)
+print(res.composite_terms[1].parameters)
 # print(res.right.parameters)
 
 

@@ -128,7 +128,7 @@ class KernelExpression(ABC): # Abstract
 
     # Methods for after fit
 
-    def _set_parameters(self, new_parameters):
+    def _new_parameters(self, new_parameters):
         self.parameters.update(new_parameters)
         return self
 
@@ -137,7 +137,7 @@ class KernelExpression(ABC): # Abstract
         pass
 
     @abstractmethod
-    def sum_of_prods_form(self): # Return either a ProductKE or a SumKE with no base_terms and only ProductKEs as composite_terms
+    def sum_of_prods_form(self): # Return either a ProductKE or a SumKE whose composite_terms are only ProductKEs
         pass
 
 
@@ -272,7 +272,7 @@ class SumKE(SumOrProductKE):
         return reduce(operator.add, [base_str_to_ker(bt) for bt in list(self.base_terms.elements())] + [ct.to_kernel() for ct in self.composite_terms])
 
     def sum_of_prods_form(self):
-        pass
+        return self
 
 
 class ProductKE(SumOrProductKE):
@@ -314,11 +314,21 @@ class ProductKE(SumOrProductKE):
             self.parameters['ProductKE'].append({'variance': single_variance})
         return self
 
+    def new_bases_with_parameters(self, base_parameters): # tuple or list of tuples
+        bpss = [base_parameters] if isinstance(base_parameters, tuple) else base_parameters
+        for b, ps in bpss:
+            self.new_base(b)
+            self.parameters[b].append(ps)
 
+        ## SIMPLIFY WITH PARAMETERS HERE (e.g. remove all others if WN present)!!!!!!!!!!!!!!!!!
+
+        return self
 
     def sum_of_prods_form(self):
-        pass
+        return self
 
+
+from KernelExpansion.kernelExpressionOperations import add_sum_of_prods_terms # Needs to be here; requires SumKE and ProductKE
 
 class ChangeKE(KernelExpression):
     def __init__(self, CP_or_CW, left, right, root: KernelExpression = None, parent: KernelExpression = None):
@@ -401,7 +411,26 @@ class ChangeKE(KernelExpression):
         return self
 
     def sum_of_prods_form(self):
-        pass
+        new_children = []
+        for child in (('left', self.left), ('right', self.right)):
+            sigmoid_parameters = (change_k_sigmoid_names[self.CP_or_CW][child[0]], self.parameters[self.CP_or_CW])
+            if isinstance(child[1], str):
+                leaf_params = [self.parameters[k][0] for k in self.parameters.keys() if isinstance(k, tuple) and k[0] == child[0]][0]
+                new_children.append(ProductKE([]).new_bases_with_parameters([(child[1], leaf_params), sigmoid_parameters]))
+            else:
+                new_child = child[1].sum_of_prods_form()
+                if isinstance(new_child, ProductKE): new_child.new_bases_with_parameters(sigmoid_parameters)
+                else: # I.e. SumKE
+                    for pt in new_child.composite_terms: pt.new_bases_with_parameters(sigmoid_parameters)
+                    for bt in new_child.base_terms.elements():
+                        match_ps = new_child.parameters[bt]
+                        new_child.new_composite(ProductKE([]).new_bases_with_parameters([(bt, match_ps[0]), sigmoid_parameters]))
+                        if len(match_ps) == 1: new_child.parameters.pop(bt)
+                        else: del match_ps[0]
+                    new_child.base_terms.clear()
+                new_children.append(new_child)
+        return add_sum_of_prods_terms(new_children[0], new_children[1]).set_parent(self.parent).set_root(self.root)
+
 
 
 # TODO:
