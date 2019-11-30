@@ -1,13 +1,5 @@
 from KernelExpansion.kernelExpression import *
-
-
-def sortOutTypePair(k1, k2):
-    t1 = type(k1)
-    t2 = type(k2)
-    if t1 == t2:
-        return {t1: [k1, k2]}
-    else:
-        return {t1: k1, t2: k2}
+from Util.genericUtil import sortOutTypePair
 
 
 # NICE BUT UNNECESSARY REFACTORING: make add and multiply two cases of the same function

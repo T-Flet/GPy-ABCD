@@ -35,20 +35,20 @@ def S(): return _Sk.SigmoidalKernel(1, False)
 def Sr(): return _Sk.SigmoidalKernel(1, True)
 
 
+# SIW = _Sk.SigmoidalIndicatorKernelWithWidth(1, False)
+def SI(): return _Sk.SigmoidalIndicatorKernelWithWidth(1, False)
+# SIWr = _Sk.SigmoidalIndicatorKernelWithWidth(1, True)
+def SIr(): return _Sk.SigmoidalIndicatorKernelWithWidth(1, True)
+
 # SI = _Sk.SigmoidalIndicatorKernel(1, False)
-def SI(): return _Sk.SigmoidalIndicatorKernel(1, False)
+def SIT(): return _Sk.SigmoidalIndicatorKernel(1, False)
 # SIr = _Sk.SigmoidalIndicatorKernel(1, True)
-def SIr(): return _Sk.SigmoidalIndicatorKernel(1, True)
+def SITr(): return _Sk.SigmoidalIndicatorKernel(1, True)
 
 # SIO = _Sk.SigmoidalIndicatorKernelOneLocation(1, False)
 def SIO(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, False)
 # SIOr = _Sk.SigmoidalIndicatorKernelOneLocation(1, True)
 def SIOr(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, True)
-
-# SIW = _Sk.SigmoidalIndicatorKernelWithWidth(1, False)
-def SIW(): return _Sk.SigmoidalIndicatorKernelWithWidth(1, False)
-# SIWr = _Sk.SigmoidalIndicatorKernelWithWidth(1, True)
-def SIWr(): return _Sk.SigmoidalIndicatorKernelWithWidth(1, True)
 
 
 CP = _Cs.ChangePointKernel

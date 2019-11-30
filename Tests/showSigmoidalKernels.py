@@ -13,13 +13,13 @@ print(Sr)
 sampleCurves(Sr)
 
 
-SI.plot()
-print(SI)
-sampleCurves(SI)
+SIT.plot()
+print(SIT)
+sampleCurves(SIT)
 
-SIr.plot()
-print(SIr)
-sampleCurves(SIr)
+SITr.plot()
+print(SITr)
+sampleCurves(SITr)
 
 
 SIO.plot()
@@ -31,13 +31,13 @@ print(SIOr)
 sampleCurves(SIOr)
 
 
-SIW.plot()
-print(SIW)
-sampleCurves(SIW)
+SI.plot()
+print(SI)
+sampleCurves(SI)
 
-SIWr.plot()
-print(SIWr)
-sampleCurves(SIWr)
+SIr.plot()
+print(SIr)
+sampleCurves(SIr)
 
 
 

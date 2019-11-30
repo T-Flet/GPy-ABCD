@@ -38,12 +38,12 @@ plt.show()
 
 ## Change Operators
 
-k_CP = CP(LIN, PER)
+k_CP = CP(LIN(), PER())
 k_CP.plot()
 print(k_CP)
 sampleCurves(k_CP)
 
-k_CW = CW(LIN, PER)
+k_CW = CW(LIN(), PER())
 k_CW.plot()
 print(k_CW)
 sampleCurves(k_CW)

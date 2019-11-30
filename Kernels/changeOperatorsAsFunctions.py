@@ -26,6 +26,24 @@ def kCW(k1, k2):
     :param k2: Kernel during the window
     :return: A kernel of k1 replaced by k2 in some changewindow
     """
+    res = k1 * SigmoidalIndicatorKernelWithWidth(1, True) + k2 * SigmoidalIndicatorKernelWithWidth(1, False)
+    res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.variance)
+    res.mul_1.sigmoidal_indicator.variance = res.mul.sigmoidal_indicator.variance
+    res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.location)
+    res.mul_1.sigmoidal_indicator.location = res.mul.sigmoidal_indicator.location
+    res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.width)
+    res.mul_1.sigmoidal_indicator.width = res.mul.sigmoidal_indicator.width
+    res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.slope)
+    res.mul_1.sigmoidal_indicator.slope = res.mul.sigmoidal_indicator.slope
+    return res
+
+
+def kCW_separate_locs(k1, k2):
+    """
+    :param k1: Kernel before and after the window
+    :param k2: Kernel during the window
+    :return: A kernel of k1 replaced by k2 in some changewindow
+    """
     res = k1 * SigmoidalIndicatorKernelOneLocation(1, True) + k2 * SigmoidalIndicatorKernelOneLocation(1, False)
     res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.variance)
     res.mul_1.sigmoidal_indicator.variance = res.mul.sigmoidal_indicator.variance
@@ -36,7 +54,7 @@ def kCW(k1, k2):
     return res
 
 
-def kCW2(k1, k2):
+def kCW_two_locs(k1, k2):
     """
     :param k1: Kernel before and after the window
     :param k2: Kernel during the window
@@ -49,24 +67,6 @@ def kCW2(k1, k2):
     res.mul_1.sigmoidal_indicator.location = res.mul.sigmoidal_indicator.location
     res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.stop_location)
     res.mul_1.sigmoidal_indicator.stop_location = res.mul.sigmoidal_indicator.stop_location
-    res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.slope)
-    res.mul_1.sigmoidal_indicator.slope = res.mul.sigmoidal_indicator.slope
-    return res
-
-
-def kCWw(k1, k2):
-    """
-    :param k1: Kernel before and after the window
-    :param k2: Kernel during the window
-    :return: A kernel of k1 replaced by k2 in some changewindow
-    """
-    res = k1 * SigmoidalIndicatorKernelWithWidth(1, True) + k2 * SigmoidalIndicatorKernelWithWidth(1, False)
-    res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.variance)
-    res.mul_1.sigmoidal_indicator.variance = res.mul.sigmoidal_indicator.variance
-    res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.location)
-    res.mul_1.sigmoidal_indicator.location = res.mul.sigmoidal_indicator.location
-    res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.width)
-    res.mul_1.sigmoidal_indicator.width = res.mul.sigmoidal_indicator.width
     res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.slope)
     res.mul_1.sigmoidal_indicator.slope = res.mul.sigmoidal_indicator.slope
     return res

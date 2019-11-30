@@ -37,6 +37,30 @@ X = np.linspace(-50, 50, 101)[:, None]
 #   NOTE: this hinges on self.slope HAVING the +ve constraint
 
 
+## Sigmoidal Indicator with Width
+
+# YSI = ((tanhSigmoid((X + 8) / 10) + tanhSigmoid((X - 5) / (-10)) - 1) / tanhSigTwoLocIndicatorHeight(-8, 5, 10)) * 5 + np.random.randn(101, 1) * 0.4 #- 100
+# doGPR(X, YSI, SI, 5)
+# doGPR(X, YSI, SIr, 5)
+# doGPR(X, YSI, SI + C, 5)
+# YSI = -YSI
+# doGPR(X, YSI, SI, 5)
+# doGPR(X, YSI, SIr, 5)
+# doGPR(X, YSI, SI + C, 5)
+# YSI = (1 - ((tanhSigmoid((X + 8) / 10) + tanhSigmoid((X - 5) / (-10)) - 1) / tanhSigTwoLocIndicatorHeight(-8, 5, 10))) * 5 + np.random.randn(101, 1) * 0.4 #- 100
+# doGPR(X, YSI, SI, 5)
+# doGPR(X, YSI, SIr, 5)
+# doGPR(X, YSI, SI + C, 5)
+# YSI = -YSI
+# doGPR(X, YSI, SI, 5)
+# doGPR(X, YSI, SIr, 5)
+# doGPR(X, YSI, SI + C, 5)
+
+# I.e: Same concept as for S, SIT and SIO etc.: SI only fits functions moving from 0 to +ve or -ve values and then going back to 0; SIr ones going temporarily TO 0
+#   Also, adding a constant makes either version fit any vaguely sigmoidal peak/well shape
+#   NOTE: this hinges on self.slope HAVING the +ve constraint
+
+
 ## Sigmoidal Indicator With One Location
 
 # YSI = (4 * tanhSigmoid((X - 5) / 10) * (1 - tanhSigmoid((X - 5) / 10))) * 5 + np.random.randn(101, 1) * 0.5 #- 100
@@ -64,46 +88,22 @@ X = np.linspace(-50, 50, 101)[:, None]
 ## Sigmoidal Indicator with Two Locations
 
 # YSI = ((tanhSigmoid((X + 8) / 10) + tanhSigmoid((X - 5) / (-10)) - 1) / tanhSigTwoLocIndicatorHeight(-8, 5, 10)) * 5 + np.random.randn(101, 1) * 0.4 #- 100
-# doGPR(X, YSI, SI, 5)
-# doGPR(X, YSI, SIr, 5)
-# doGPR(X, YSI, SI + C, 5)
+# doGPR(X, YSI, SIT, 5)
+# doGPR(X, YSI, SITr, 5)
+# doGPR(X, YSI, SIT + C, 5)
 # YSI = -YSI
-# doGPR(X, YSI, SI, 5)
-# doGPR(X, YSI, SIr, 5)
-# doGPR(X, YSI, SI + C, 5)
+# doGPR(X, YSI, SIT, 5)
+# doGPR(X, YSI, SITr, 5)
+# doGPR(X, YSI, SIT + C, 5)
 # YSI = (1 - ((tanhSigmoid((X + 8) / 10) + tanhSigmoid((X - 5) / (-10)) - 1) / tanhSigTwoLocIndicatorHeight(-8, 5, 10))) * 5 + np.random.randn(101, 1) * 0.4 #- 100
-# doGPR(X, YSI, SI, 5)
-# doGPR(X, YSI, SIr, 5)
-# doGPR(X, YSI, SI + C, 5)
+# doGPR(X, YSI, SIT, 5)
+# doGPR(X, YSI, SITr, 5)
+# doGPR(X, YSI, SIT + C, 5)
 # YSI = -YSI
-# doGPR(X, YSI, SI, 5)
-# doGPR(X, YSI, SIr, 5)
-# doGPR(X, YSI, SI + C, 5)
+# doGPR(X, YSI, SIT, 5)
+# doGPR(X, YSI, SITr, 5)
+# doGPR(X, YSI, SIT + C, 5)
 
-# I.e: Same concept as for S and SIO etc.: SI only fits functions moving from 0 to +ve or -ve values and then going back to 0; SIr ones going temporarily TO 0
-#   Also, adding a constant makes either version fit any vaguely sigmoidal peak/well shape
-#   NOTE: this hinges on self.slope HAVING the +ve constraint
-
-
-## Sigmoidal Indicator with Width
-
-# YSI = ((tanhSigmoid((X + 8) / 10) + tanhSigmoid((X - 5) / (-10)) - 1) / tanhSigTwoLocIndicatorHeight(-8, 5, 10)) * 5 + np.random.randn(101, 1) * 0.4 #- 100
-# doGPR(X, YSI, SIW, 5)
-# doGPR(X, YSI, SIWr, 5)
-# doGPR(X, YSI, SIW + C, 5)
-# YSI = -YSI
-# doGPR(X, YSI, SIW, 5)
-# doGPR(X, YSI, SIWr, 5)
-# doGPR(X, YSI, SIW + C, 5)
-# YSI = (1 - ((tanhSigmoid((X + 8) / 10) + tanhSigmoid((X - 5) / (-10)) - 1) / tanhSigTwoLocIndicatorHeight(-8, 5, 10))) * 5 + np.random.randn(101, 1) * 0.4 #- 100
-# doGPR(X, YSI, SIW, 5)
-# doGPR(X, YSI, SIWr, 5)
-# doGPR(X, YSI, SIW + C, 5)
-# YSI = -YSI
-# doGPR(X, YSI, SIW, 5)
-# doGPR(X, YSI, SIWr, 5)
-# doGPR(X, YSI, SIW + C, 5)
-
-# I.e: Same concept as for S, SI and SIO etc.: SIW only fits functions moving from 0 to +ve or -ve values and then going back to 0; SIr ones going temporarily TO 0
+# I.e: Same concept as for S and SIO etc.: SIT only fits functions moving from 0 to +ve or -ve values and then going back to 0; SITr ones going temporarily TO 0
 #   Also, adding a constant makes either version fit any vaguely sigmoidal peak/well shape
 #   NOTE: this hinges on self.slope HAVING the +ve constraint

@@ -14,6 +14,9 @@ base_k_param_names['CP'] = {'name': 'change_point', 'parameters': ['location', '
 base_k_param_names['CW'] = {'name': 'change_window', 'parameters': ['location', 'slope', 'width']} # Nothing, 'stop_location' or 'width' depending on the used class
 
 
+change_k_sigmoid_names = {'CP': {'left': 'Sr', 'right': 'S'}, 'CW': {'left': 'SIr', 'right': 'S'}}
+
+
 def get_param_dict(fit_ker):
     full_names = fit_ker.parameter_names_flat()
     values = fit_ker.param_array
