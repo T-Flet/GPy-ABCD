@@ -27,6 +27,15 @@ def get_param_dict(fit_ker):
 # print(ker)
 
 
+def init_rand_params(kex, verbose = True): # A testing function to initialise a kernel with random parameters
+    if verbose: print(kex)
+    ker = kex._initialise().to_kernel()
+    ker.randomize()
+    param_dict = get_param_dict(ker)
+    if verbose: print(param_dict)
+    return kex.match_up_fit_parameters(param_dict, '')
+
+
 def remove_top_level_variance(ker):
     has_top_level_variance = 'variance' in ker.parameter_names()
     if has_top_level_variance: ker.unlink_parameter(ker.variance)

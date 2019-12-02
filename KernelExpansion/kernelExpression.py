@@ -7,6 +7,7 @@ from functools import reduce
 import operator
 from copy import deepcopy
 import re
+import numpy as np
 
 
 # IDEA:
@@ -133,7 +134,7 @@ class KernelExpression(ABC): # Abstract
         return self
 
     @abstractmethod
-    def match_up_fit_parameters(self, fit_ker, prefix): # Note: the prefix has to already contain this node's name at the end
+    def match_up_fit_parameters(self, fit_ker, prefix): # Note: the prefix has to already contain THIS node's name followed by a dot at the end
         pass
 
     @abstractmethod
@@ -175,6 +176,9 @@ class SumOrProductKE(KernelExpression): # Abstract
             self.new_base(s[1])
             self.composite_terms.remove(s[0])
         return self
+
+    def _is_singleton(self):
+        return sum(self.base_terms.values()) + len(self.composite_terms) == 1
 
     def extract_if_singleton(self): # This modifies the composite_child's parent if that kind of singleton
         if sum(self.base_terms.values()) == 1 and len(self.composite_terms) == 0: return list(self.base_terms.elements())[0]
@@ -242,19 +246,19 @@ class SumOrProductKE(KernelExpression): # Abstract
     # Methods for after fit
 
     def match_up_fit_parameters(self, param_dict, prefix = ''):
-        if self.is_root(): prefix = self.GPy_name
+        if self.is_root(): prefix = '' if self._is_singleton() else self.GPy_name + '.'
         elif prefix == '': raise ValueError('No prefix but not root node in match_up_fit_parameters')
         seen_terms = Counter([])
         for bt in list(self.base_terms.elements()):
             seen_terms.update([bt])
-            postfix = '_' + str(seen_terms[bt] - 1) if seen_terms[bt] > 1 else ''
+            postfix = '_' + str(seen_terms[bt] - 1) + '.' if seen_terms[bt] > 1 else '.'
             self.parameters[bt].append({ p: param_dict[p_full] for p in base_k_param_names[bt]['parameters']
-                                         for p_full in ['.'.join([prefix, base_k_param_names[bt]['name'] + postfix, p])] # Clunky 'let' assignment; for Python 3.8+: 'if (p_full := '.'.join([prefix, base_k_param_names[bt]['name'], p]))'
+                                         for p_full in [prefix + base_k_param_names[bt]['name'] + postfix + p] # Clunky 'let' assignment; for Python 3.8+: 'if (p_full := '.'.join([prefix, base_k_param_names[bt]['name'], p]))'
                                          if not (p == 'variance' and p_full not in param_dict) }) # I.e. skip variances if absent
         for ct in self.composite_terms:
             seen_terms.update([ct.GPy_name])
-            postfix = '_' + str(seen_terms[ct.GPy_name] - 1) if seen_terms[ct.GPy_name] > 1 else ''
-            ct.match_up_fit_parameters(param_dict, '.'.join([prefix, ct.GPy_name + postfix]))
+            postfix = '_' + str(seen_terms[ct.GPy_name] - 1) + '.' if seen_terms[ct.GPy_name] > 1 else '.'
+            ct.match_up_fit_parameters(param_dict, prefix + ct.GPy_name + postfix)
         return self
 
 
@@ -266,6 +270,7 @@ class SumKE(SumOrProductKE):
         # WN and C are addition-idempotent
         if self.base_terms['WN'] > 1: self.base_terms['WN'] = 1
         if self.base_terms['C'] > 1: self.base_terms['C'] = 1
+        self.base_terms = + self.base_terms
         return self
 
     def to_kernel(self):
@@ -290,6 +295,7 @@ class ProductKE(SumOrProductKE):
             if self.base_terms['C'] > 0: # C is the multiplication-identity element, therefore remove it unless it is the only factor
                 self.base_terms['C'] = 0 if self.term_count() != self.base_terms['C'] else 1
             if self.base_terms['SE'] > 1: self.base_terms['SE'] = 1 # SE is multiplication-idempotent
+        self.base_terms = + self.base_terms
         return self
 
     def to_kernel(self):
@@ -299,6 +305,19 @@ class ProductKE(SumOrProductKE):
         return reduce(operator.mul, bt_kers + [ct.to_kernel() for ct in self.composite_terms])
 
     # Methods for after fit
+
+    def simplify_base_terms_params(self):
+        if 'WN' in self.parameters:
+            PKvar = self.parameters['ProductKE']
+            self.parameters.clear()
+            self.parameters['ProductKE'] = PKvar
+            self.parameters['WN'].append(dict())
+        if 'C' in self.parameters:
+            if 'C' not in self.base_terms: del self.parameters['C']
+            elif len(self.parameters['C']) > 1: self.parameters['C'] = [dict()]
+        if 'SE' in self.parameters and len(self.parameters['SE']) > 1:
+            self.parameters['SE'] = [{'lengthscale': reduce(lambda acc, l: (acc + l) / np.sqrt(acc ** 2 + l ** 2), [ps['lengthscale'] for ps in self.parameters['SE']])}]
+        return self
 
     def match_up_fit_parameters(self, param_dict, prefix = ''):
         super().match_up_fit_parameters(param_dict, prefix)
@@ -315,13 +334,18 @@ class ProductKE(SumOrProductKE):
         return self
 
     def new_bases_with_parameters(self, base_parameters): # tuple or list of tuples
+        if 'ProductKE' not in self.parameters: self.parameters['ProductKE'] = [{'variance': 1.}]
         bpss = [base_parameters] if isinstance(base_parameters, tuple) else base_parameters
+
         for b, ps in bpss:
+            if 'variance' in ps:
+                self.parameters['ProductKE'][0]['variance'] *= ps['variance']
+                del ps['variance']
             self.new_base(b)
             self.parameters[b].append(ps)
 
-        ## SIMPLIFY WITH PARAMETERS HERE (e.g. remove all others if WN present)!!!!!!!!!!!!!!!!!
-
+        self.simplify_base_terms()
+        self.simplify_base_terms_params()
         return self
 
     def sum_of_prods_form(self):
@@ -399,15 +423,15 @@ class ChangeKE(KernelExpression):
     # Methods for after fit
 
     def match_up_fit_parameters(self, param_dict, prefix = ''):
-        if self.is_root(): new_prefix = prefix = self.GPy_name
+        if self.is_root(): new_prefix = prefix = self.GPy_name + '.'
         elif prefix == '': raise ValueError('No prefix but not root node in match_up_fit_parameters')
-        self.parameters[self.CP_or_CW].append({p: param_dict['.'.join([prefix, p])] for p in base_k_param_names[self.CP_or_CW]['parameters']})
+        self.parameters[self.CP_or_CW].append({p: param_dict[prefix + p] for p in base_k_param_names[self.CP_or_CW]['parameters']})
         same_type_branches = type(self.left) == type(self.right) and\
                              ((isinstance(self.left, KernelExpression) and self.left.GPy_name == self.right.GPy_name) or self.left == self.right)
         for child in (('left', self.left), ('right', self.right)):
-            postfix = '_1' if same_type_branches and child[0] == 'right' else ''
-            if isinstance(child[1], KernelExpression): child[1].match_up_fit_parameters(param_dict, '.'.join([prefix, child[1].GPy_name + postfix]))
-            else: self.parameters[child].append({p: param_dict['.'.join([prefix, base_k_param_names[child[1]]['name'] + postfix, p])] for p in base_k_param_names[child[1]]['parameters']})
+            postfix = '_1.' if same_type_branches and child[0] == 'right' else '.'
+            if isinstance(child[1], KernelExpression): child[1].match_up_fit_parameters(param_dict, prefix + child[1].GPy_name + postfix)
+            else: self.parameters[child].append({p: param_dict[prefix + base_k_param_names[child[1]]['name'] + postfix + p] for p in base_k_param_names[child[1]]['parameters']})
         return self
 
     def sum_of_prods_form(self):
