@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from Kernels.baseKernels import *
 from Kernels.kernelOperations import *
 from collections import Counter, defaultdict
-from itertools import chain
+from itertools import chain, product
 from functools import reduce
 import operator
 from copy import deepcopy
@@ -261,6 +261,10 @@ class SumOrProductKE(KernelExpression): # Abstract
             ct.match_up_fit_parameters(param_dict, prefix + ct.GPy_name + postfix)
         return self
 
+    @abstractmethod
+    def sum_of_prods_form(self):
+        pass
+
 
 class SumKE(SumOrProductKE):
     def __init__(self, base_terms, composite_terms = [], root: KernelExpression = None, parent: KernelExpression = None):
@@ -276,7 +280,35 @@ class SumKE(SumOrProductKE):
     def to_kernel(self):
         return reduce(operator.add, [base_str_to_ker(bt) for bt in list(self.base_terms.elements())] + [ct.to_kernel() for ct in self.composite_terms])
 
+    # Methods for after fit
+
+    def simplify_base_terms_params(self):
+        if 'WN' in self.parameters and len(self.parameters['WN']) > 1:
+            self.parameters['WN'] = [{'variance': reduce(operator.add, [ps['variance'] for ps in self.parameters['WN']])}]
+        if 'C' in self.parameters and len(self.parameters['C']) > 1:
+            self.parameters['C'] = [{'variance': reduce(operator.add, [ps['variance'] for ps in self.parameters['C']])}]
+        return self
+
     def sum_of_prods_form(self):
+        cts = [ct.sum_of_prods_form() for ct in self.composite_terms]
+        self.composite_terms.clear()
+        for ct in cts: # Only SumKEs or ProductKEs now
+            if isinstance(ct, SumKE): # The only other type left at this stage is ProductKE, and no change is required for it
+                assert sum(ct.base_terms.values()) == 0, 'There should not be any base terms in nested SumKEs coming from nested sum_of_prods_form'
+                # self.new_base(ct.base_terms)
+                # self._new_parameters(ct.parameters)
+                # self.simplify_base_terms_params()
+                self.new_composite(ct.composite_terms)
+            else: self.composite_terms.append(ct)
+
+        for bt in self.base_terms.elements(): # Move all base_terms to composite_terms as singleton ProductKEs (prepending them to the existing composites)
+            self.composite_terms.insert(0, ProductKE([]).new_bases_with_parameters((bt, self.parameters[bt][0])).set_parent(self).set_root(self.root))
+            self.base_terms[bt] -= 1
+            if len(self.parameters[bt]) == 1: self.parameters.pop(bt)
+            else: del self.parameters[bt][0]
+        assert sum(self.base_terms.values()) == 0 and len(self.parameters) == 0, 'There are some remaining base_terms or parameters after trying to port them to composite ones'
+
+        assert all([isinstance(ct, ProductKE) for ct in self.composite_terms]), 'Some composite_terms of a SumKE after sum_of_prods_form are not-ProductKEs'
         return self
 
 
@@ -340,7 +372,8 @@ class ProductKE(SumOrProductKE):
         for b, ps in bpss:
             if 'variance' in ps:
                 self.parameters['ProductKE'][0]['variance'] *= ps['variance']
-                del ps['variance']
+                if b == 'ProductKE': continue
+                else: del ps['variance']
             self.new_base(b)
             self.parameters[b].append(ps)
 
@@ -348,8 +381,17 @@ class ProductKE(SumOrProductKE):
         self.simplify_base_terms_params()
         return self
 
+    @staticmethod # This would live in kernelExpressionOperations if it did not need to be used within ProductKEs; not changing k0 to self and keeping it static in that spirit
+    def multiply_pure_prods_with_params(k0, ks): # k0 is meant to be the ProductKE containing the pure (i.e. base_terms-only) ks
+        assert sum([len(kex.composite_terms) for kex in ks]) == 0, 'Arguments (not k0) of multiply_pure_prods_with_params are not base_terms-only'
+        return ProductKE([]).new_bases_with_parameters([(key, p) for kex in [k0] + ks for key, ps in list(kex.parameters.items()) for p in ps])
+
     def sum_of_prods_form(self):
-        return self
+        self.composite_terms = [ct.sum_of_prods_form() for ct in self.composite_terms]
+        assert all([isinstance(ct, SumKE) for ct in self.composite_terms]), 'Some non-SumKE terms are coming from sum_of_prods_form calls within a ProductKE composite_terms'
+        sets_of_factors = product(*[cts.composite_terms for cts in self.composite_terms]) # Cartesian product of all sums of products
+        expanded_composites_product = [self.multiply_pure_prods_with_params(self, list(factor_tuple)) for factor_tuple in sets_of_factors]
+        return SumKE([], expanded_composites_product).set_parent(self.parent)._set_all_parents().set_root(self.root)
 
 
 from KernelExpansion.kernelExpressionOperations import add_sum_of_prods_terms # Needs to be here; requires SumKE and ProductKE

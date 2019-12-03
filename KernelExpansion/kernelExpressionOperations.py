@@ -139,4 +139,4 @@ def add_sum_of_prods_terms(k1, k2):
             res = SumKE(+k2.base_terms, [k1] + k2.composite_terms)._new_parameters(k2.parameters)
         else:
             res = SumKE(+k1.base_terms, k1.composite_terms + [k2])._new_parameters(k1.parameters)
-    return res
+    return res._set_all_parents()
