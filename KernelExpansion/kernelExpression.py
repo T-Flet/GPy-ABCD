@@ -1,6 +1,4 @@
 from abc import ABC, abstractmethod
-from Kernels.baseKernels import *
-from Kernels.kernelOperations import *
 from collections import Counter, defaultdict
 from itertools import chain, product
 from functools import reduce
@@ -8,6 +6,9 @@ import operator
 from copy import deepcopy
 import re
 import numpy as np
+from KernelExpansion.kernelOperations import *
+from KernelExpansion.kernelInterpretation import *
+from Util.genericUtil import sortOutTypePair
 
 
 # IDEA:
@@ -153,7 +154,7 @@ class SumOrProductKE(KernelExpression): # Abstract
         for ct in self.composite_terms: ct.set_parent(self).set_root(self.root)
 
     def __str__(self):
-        return (' ' + self.symbol + ' ').join([self.bracket_if_needed(f) for f in list(self.base_terms.elements()) + self.composite_terms])
+        return (' ' + self.symbol + ' ').join([self.bracket_if_needed(f) for f in order_base_kerns(list(self.base_terms.elements())) + self.composite_terms])
 
     def __eq__(self, other): ## NOTE: this is intended to check equality of data fields only, i.e. it does not check root or parent
         return type(self) == type(other) and self.base_terms == other.base_terms and lists_of_unhashables__eq(self.composite_terms, other.composite_terms)
@@ -278,7 +279,7 @@ class SumKE(SumOrProductKE):
         return self
 
     def to_kernel(self):
-        return reduce(operator.add, [base_str_to_ker(bt) for bt in list(self.base_terms.elements())] + [ct.to_kernel() for ct in self.composite_terms])
+        return reduce(operator.add, [base_str_to_ker(bt) for bt in order_base_kerns(list(self.base_terms.elements()))] + [ct.to_kernel() for ct in self.composite_terms])
 
     # Methods for after fit
 
@@ -321,8 +322,9 @@ class ProductKE(SumOrProductKE):
         return KernelExpression.bs(str(kex)) if isinstance(kex, SumKE) else str(kex)
 
     def simplify_base_terms(self):
-        if self.base_terms['WN'] > 0: # WN acts as a multiplicative zero for all stationary kernels, i.e. all but LIN
-            self.base_terms = Counter({'WN': 1, 'LIN': self.base_terms['LIN']})
+        if self.base_terms['WN'] > 0: # WN acts as a multiplicative zero for all stationary kernels, i.e. all but LIN and sigmoids
+            for bt in list(self.base_terms.keys()):
+                if bt not in ['WN', 'LIN'] + list(base_sigmoids): del self.base_terms[bt]
         else:
             if self.base_terms['C'] > 0: # C is the multiplication-identity element, therefore remove it unless it is the only factor
                 self.base_terms['C'] = 0 if self.term_count() != self.base_terms['C'] else 1
@@ -331,7 +333,7 @@ class ProductKE(SumOrProductKE):
         return self
 
     def to_kernel(self):
-        bt_kers = [base_str_to_ker(bt) for bt in list(self.base_terms.elements())]
+        bt_kers = [base_str_to_ker(bt) for bt in order_base_kerns(list(self.base_terms.elements()))]
         if len(bt_kers) > 1: # I.e. leave only one of the removable variance parameters (i.e. the base_terms') per product, preferring the first factor to have it
             for btk in bt_kers[1:]: btk.unlink_parameter(btk.variance)
         return reduce(operator.mul, bt_kers + [ct.to_kernel() for ct in self.composite_terms])
@@ -340,10 +342,8 @@ class ProductKE(SumOrProductKE):
 
     def simplify_base_terms_params(self):
         if 'WN' in self.parameters:
-            PKvar = self.parameters['ProductKE']
-            self.parameters.clear()
-            self.parameters['ProductKE'] = PKvar
-            self.parameters['WN'].append(dict())
+            for bt in list(self.parameters.keys()):
+                if bt not in ['WN', 'ProductKE'] + list(base_sigmoids): del self.parameters[bt]
         if 'C' in self.parameters:
             if 'C' not in self.base_terms: del self.parameters['C']
             elif len(self.parameters['C']) > 1: self.parameters['C'] = [dict()]
@@ -368,15 +368,13 @@ class ProductKE(SumOrProductKE):
     def new_bases_with_parameters(self, base_parameters): # tuple or list of tuples
         if 'ProductKE' not in self.parameters: self.parameters['ProductKE'] = [{'variance': 1.}]
         bpss = [base_parameters] if isinstance(base_parameters, tuple) else base_parameters
-
         for b, ps in bpss:
             if 'variance' in ps:
                 self.parameters['ProductKE'][0]['variance'] *= ps['variance']
                 if b == 'ProductKE': continue
                 else: del ps['variance']
-            self.new_base(b)
+            self.base_terms[b] += 1 # Not using new_base since have a simplify_base_terms later
             self.parameters[b].append(ps)
-
         self.simplify_base_terms()
         self.simplify_base_terms_params()
         return self
@@ -393,8 +391,6 @@ class ProductKE(SumOrProductKE):
         expanded_composites_product = [self.multiply_pure_prods_with_params(self, list(factor_tuple)) for factor_tuple in sets_of_factors]
         return SumKE([], expanded_composites_product).set_parent(self.parent)._set_all_parents().set_root(self.root)
 
-
-from KernelExpansion.kernelExpressionOperations import add_sum_of_prods_terms # Needs to be here; requires SumKE and ProductKE
 
 class ChangeKE(KernelExpression):
     def __init__(self, CP_or_CW, left, right, root: KernelExpression = None, parent: KernelExpression = None):
@@ -464,6 +460,9 @@ class ChangeKE(KernelExpression):
 
     # Methods for after fit
 
+    def to_kernel_with_params(self): # To be used on the result of a sum_of_prods_form
+        assert True, 'to_kernel_with_params called on a ChangeKE; only SumKE and ProductKE terms should be left when calling it after sum_of_prods_form'
+
     def match_up_fit_parameters(self, param_dict, prefix = ''):
         if self.is_root(): new_prefix = prefix = self.GPy_name + '.'
         elif prefix == '': raise ValueError('No prefix but not root node in match_up_fit_parameters')
@@ -475,6 +474,18 @@ class ChangeKE(KernelExpression):
             if isinstance(child[1], KernelExpression): child[1].match_up_fit_parameters(param_dict, prefix + child[1].GPy_name + postfix)
             else: self.parameters[child].append({p: param_dict[prefix + base_k_param_names[child[1]]['name'] + postfix + p] for p in base_k_param_names[child[1]]['parameters']})
         return self
+
+    @staticmethod # This would live in kernelExpressionOperations if it did not need to be used within ChangeKEs
+    def add_sum_of_prods_terms(k1, k2):
+        res = None
+        pair = sortOutTypePair(k1, k2)
+        if len(pair) == 1:
+            if isinstance(k1, ProductKE): res = SumKE([], [k1, k2])
+            else: res = SumKE(+k1.base_terms + k2.base_terms, k1.composite_terms + k2.composite_terms)._new_parameters(k1.parameters + k2.parameters)
+        else:  # I.e. one SumKE and one ProductKE
+            if isinstance(k1, ProductKE): res = SumKE(+k2.base_terms, [k1] + k2.composite_terms)._new_parameters(k2.parameters)
+            else: res = SumKE(+k1.base_terms, k1.composite_terms + [k2])._new_parameters(k1.parameters)
+        return res._set_all_parents()
 
     def sum_of_prods_form(self):
         new_children = []
@@ -495,7 +506,7 @@ class ChangeKE(KernelExpression):
                         else: del match_ps[0]
                     new_child.base_terms.clear()
                 new_children.append(new_child)
-        return add_sum_of_prods_terms(new_children[0], new_children[1]).set_parent(self.parent).set_root(self.root)
+        return self.add_sum_of_prods_terms(new_children[0], new_children[1]).set_parent(self.parent).set_root(self.root)
 
 
 

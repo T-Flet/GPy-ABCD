@@ -17,3 +17,8 @@ def sortOutTypePair(k1, k2):
         return {t1: [k1, k2]}
     else:
         return {t1: k1, t2: k2}
+
+
+def interval_overlap(a, b): # Two interval tuples
+    return max(0, min(a[1], b[1]) - max(a[0], b[0]))
+
