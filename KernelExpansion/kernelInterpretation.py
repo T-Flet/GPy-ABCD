@@ -46,76 +46,6 @@ def first_term_interpretation(bps):
     return res
 
 
-# Functions to apply to each single sigmoid type ps if multiple ones present
-def Sr_overlap(Sr_params):
-    end = sorted(Sr_params, key = lambda p: p['location'])[0]
-    return {'end': end['location'], 'end_slope': end['slope']}
-
-def S_overlap(S_params):
-    start = sorted(S_params, key = lambda p: p['location'], reverse = True)[0]
-    return {'start': start['location'], 'start_slope': start['slope']}
-
-def SI_ps_left(SI_p): return SI_p['location'] - SI_p['width'] / 2
-def SI_ps_right(SI_p): return SI_p['location'] + SI_p['width'] / 2
-def SI_overlap(SI_params):
-    start = max(SI_params, key = SI_ps_left)
-    end = min(SI_params, key = SI_ps_right)
-    interval = {'start': SI_ps_left(start), 'end': SI_ps_right(end), 'start_slope': start['slope'], 'end_slope': end['slope']}
-    return interval if interval['end'] > interval['start'] else None
-
-def get_SIr_intervals(STr_p): return [{'end': SI_ps_left(STr_p), 'end_slope': STr_p['slope']}, {'start': SI_ps_right(STr_p), 'start_slope': STr_p['slope']}]
-def SIr_overlap_step(acc, p): # Acc is a list of dictionaries representing intervals
-    p_end = SI_ps_left(p)
-    p_start = SI_ps_right(p)
-    new_acc = []
-    for a in acc:
-        if 'start' not in a: # Intersect a left-open semi-line with a line without a segment
-            if p_end < a['end']:
-                new_acc.append({'end': p_end, 'end_slope': p['slope']})
-                if p_start < a['end']: new_acc.append({'start': p_start, 'end': a['end'], 'start_slope': p['slope'], 'end_slope': a['end_slope']})
-            else: new_acc.append(a)
-        elif 'end' not in a: # Intersect a right-open semi-line with a line without a segment
-            if p_start > a['start']:
-                if p_end > a['start']: new_acc.append({'start': a['start'], 'end': p_end, 'start_slope': a['start_slope'], 'end_slope': p['slope']})
-                new_acc.append({'start': p_start, 'start_slope': p['slope']})
-            else: new_acc.append(a)
-        else: # Intersect a segment with a line without a segment
-            if a['start'] < p_end:
-                if a['end'] < p_end: new_acc.append(a)
-                else: new_acc.append({'start': a['start'], 'end': p_end, 'start_slope': a['start_slope'], 'end_slope': p['slope']})
-            if a['end'] > p_start:
-                if a['start'] > p_start: new_acc.append(a)
-                else: new_acc.append({'start': p_start, 'end': a['end'], 'start_slope': p['slope'], 'end_slope': a['end_slope']})
-    return new_acc
-def SIr_overlap(SIr_params): return reduce(SIr_overlap_step, SIr_params[1:], get_SIr_intervals(SIr_params[0]))
-
-
-
-# # Intersect two DIFFERENT TYPES of sigmoid parameters (apply after reducing same type ones)
-# def simplify_sigmoidals(sig_bps1, sig_bps2):
-#     b1, p1 = sig_bps1
-#     b2, p2 = sig_bps2
-#     pair = {b1: p1, b2: p2}
-#     if 'S' in pair:
-#         if 'Sr' in pair:
-#
-#         elif 'SI' in pair:
-#
-#         else: # elif 'SIr' in pair:
-#
-#     elif 'Sr' in pair:
-#         if 'SI' in pair:
-#
-#         else: # elif 'SIr' in pair:
-#
-#     else: # elif 'SI' in pair and 'SIr' in pair:
-#
-#     return res
-
-
-
-
-
 def postmodifier_interpretation(bps):
     b, ps = bps
     res = ''
@@ -127,6 +57,14 @@ def postmodifier_interpretation(bps):
             if len(ps) > 1: offsets[-1] = 'and ' + offsets[-1]
             res += ', '.join(offsets)
         else: res = 'with linearly varying amplitude with offset {:.2f}'.format(ps[0]['offset'])
+    # elif b == 'sigmoid_interval':
+    #     if isinstance(ps, list):
+    #
+    #     elif 'start' not in ps:
+    #
+    #     elif 'end' not in ps:
+    #
+    #     elif
     elif b == 'Sr':
         first_location = sorted(ps, key = lambda p: p['location'])[0]
         res = 'which applies from {:.2f} (with change slope {:.f})'.format(first_location['location'], first_location['slope'])
@@ -145,3 +83,99 @@ def postmodifier_interpretation(bps):
         else: res = 'which applies between {:.2f} and {:.2f}'.format(ps[0]['location'] - ps[0]['width'] / 2, ps[0]['location'] + ps[0]['width'] / 2)
     else: raise ValueError(f'An unexpected type of postmodifier term in a pure product has arisen: {b}')
     return res
+
+
+
+
+# Sigmoid-to-interval functions
+
+def S_interval(S_p): return {'start': S_p['location'], 'start_slope': S_p['slope']}
+def Sr_interval(Sr_p): return {'end': Sr_p['location'], 'end_slope': Sr_p['slope']}
+def SI_interval(ST_p): return {'start': SI_ps_left(ST_p), 'end': SI_ps_right(ST_p), 'start_slope': ST_p['slope'], 'end_slope': ST_p['slope']}
+def SIr_hole_interval(STr_p): return {'end': SI_ps_left(STr_p), 'start': SI_ps_right(STr_p), 'end_slope': STr_p['slope'], 'start_slope': STr_p['slope']}
+
+def SIr_split_intervals(hole_interval): return [{'end': hole_interval['end'], 'end_slope': hole_interval['end_slope']}, {'start': hole_interval['start'], 'start_slope': hole_interval['start_slope']}]
+
+def SI_ps_left(SI_p): return SI_p['location'] - SI_p['width'] / 2
+def SI_ps_right(SI_p): return SI_p['location'] + SI_p['width'] / 2
+
+
+# Functions to apply to each single sigmoid type ps if multiple ones present
+
+def Sr_overlap(Sr_params): return min(Sr_params, key = lambda p: p['end'])
+
+def S_overlap(S_params): return max(S_params, key = lambda p: p['start'])
+
+
+def SI_overlap(SI_params):
+    start = S_overlap(SI_params)
+    end = Sr_overlap(SI_params)
+    interval = {'start': start['start'], 'end': end['end'], 'start_slope': start['start_slope'], 'end_slope': end['end_slope']}
+    return interval if interval['end'] > interval['start'] else None
+
+def SIr_overlap_step(acc, p): # Acc is a list of dictionaries representing intervals
+    new_acc = []
+    for a in acc:
+        if 'start' not in a or 'end' not in a: intersect_semiline_hole(a, p, new_acc)
+        else: intersect_segment_hole(a, p, new_acc)
+    return new_acc
+def SIr_overlap(SIr_params): return reduce(SIr_overlap_step, SIr_params[1:], SIr_split_intervals(SIr_params[0]))
+
+
+# Basic interval intersection functions
+
+def intersect_segment_semiline(segment, semiline, res = None):
+    if 'start' not in semiline and segment['start'] < semiline['end']:
+        if segment['end'] < semiline['end']: res = segment
+        else: res = {'start': segment['start'], 'end': semiline['end'], 'start_slope': segment['start_slope'], 'end_slope': semiline['end_slope']}
+    elif 'end' not in semiline and segment['end'] > semiline['start']:
+        if segment['start'] > semiline['start']: res = segment
+        else: res = {'start': semiline['start'], 'end': segment['end'], 'start_slope': semiline['start_slope'], 'end_slope': segment['end_slope']}
+    else: res = None
+    return res
+
+def intersect_segment_hole(segment, hole, res = []):
+    if segment['start'] < hole['end']:
+        if segment['end'] < hole['end']: res.append(segment)
+        else:res.append({'start': segment['start'], 'end': hole['end'], 'start_slope': segment['start_slope'], 'end_slope': hole['slope']})
+    if segment['end'] > hole['start']:
+        if segment['start'] > hole['start']: res.append(segment)
+        else: res.append({'start': hole['start'], 'end': segment['end'], 'start_slope': hole['slope'], 'end_slope': segment['end_slope']})
+    return res
+
+def intersect_semiline_hole(semiline, hole, res = []):
+    if 'start' not in semiline:
+        if hole['end'] < semiline['end']:
+            res.append({'end': hole['end'], 'end_slope': hole['slope']})
+            if hole['start'] < semiline['end']: res.append({'start': hole['start'], 'end': semiline['end'], 'start_slope': hole['start_slope'], 'end_slope': semiline['end_slope']})
+        else: res.append(semiline)
+    else: # elif 'end' not in semiline:
+        if hole['start'] > semiline['start']:
+            if hole['end'] > semiline['start']: res.append({'start': semiline['start'], 'end': hole['end'], 'start_slope': semiline['start_slope'], 'end_slope': hole['end_slope']})
+            res.append({'start': hole['start'], 'start_slope': hole['start_slope']})
+        else: res.append(semiline)
+    return res
+
+
+# Intersect two DIFFERENT TYPES of sigmoid parameters (apply after reducing same type ones)
+def simplify_sigmoidal_intervals(b_ips1, b_ips2):
+    pair = {b_ips1[0]: [b_ips1[1], b_ips2[1]]} if b_ips1[0] == b_ips2[0] else dict([b_ips1, b_ips2])
+    res = []
+    if len(pair) == 2: # Always when called directly
+        if 'SIr' in pair:
+            for interval in pair['SIr']:
+                interval_type = None
+                if 'start' not in interval: interval_type = 'Sr'
+                elif 'end' not in interval: interval_type = 'S'
+                else: interval_type = 'SI'
+                new_interval = simplify_sigmoidal_intervals([(x, pair[x]) for x in pair if x != 'SIr'][0], (interval_type, interval))
+                if new_interval != []: res.append(new_interval)
+        elif 'SI' in pair:
+            new_interval = intersect_segment_semiline(pair['SI'], pair['S' if 'S' in pair else 'Sr'])
+            if new_interval is not None: res.append(new_interval)
+        elif pair['S']['start'] < pair['Sr']['end']: res.append({**pair['S'], **pair['Sr']})
+    else: # Only happens when called by itself for SIr case
+        if 'SI' in pair: res = SI_overlap(pair['SI'])
+        elif 'S' in pair: res = S_overlap(pair['S'])
+        else: res = (Sr_overlap(pair['Sr']))
+    return res[0] if isinstance(res, list) and len(res) == 1 else res

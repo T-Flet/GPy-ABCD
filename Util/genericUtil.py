@@ -13,10 +13,8 @@ def unique(xs): # Using a list instead of a set because of requirement to work w
 def sortOutTypePair(k1, k2):
     t1 = type(k1)
     t2 = type(k2)
-    if t1 == t2:
-        return {t1: [k1, k2]}
-    else:
-        return {t1: k1, t2: k2}
+    if t1 == t2: return {t1: [k1, k2]}
+    else: return {t1: k1, t2: k2}
 
 
 def interval_overlap(a, b): # Two interval tuples
