@@ -490,7 +490,7 @@ class ChangeKE(KernelExpression):
     def sum_of_prods_form(self):
         new_children = []
         for child in (('left', self.left), ('right', self.right)):
-            sigmoid_parameters = (change_k_sigmoid_names[self.CP_or_CW][child[0]], self.parameters[self.CP_or_CW])
+            sigmoid_parameters = (change_k_sigmoid_names[self.CP_or_CW][child[0]], self.parameters[self.CP_or_CW][0])
             if isinstance(child[1], str):
                 leaf_params = [self.parameters[k][0] for k in self.parameters.keys() if isinstance(k, tuple) and k[0] == child[0]][0]
                 new_children.append(ProductKE([]).new_bases_with_parameters([(child[1], leaf_params), sigmoid_parameters]))

@@ -3,6 +3,25 @@ from KernelExpansion.kernelExpressionOperations import *
 from KernelExpansion.kernelInterpretation import *
 
 
+## Full interpretation
+
+# testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['C', 'PER'])]))
+# testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'WN', 'PER'), SumKE(['C', 'PER'])]))
+# testExpr = init_rand_params(ProductKE(['PER'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['LIN', 'PER'])]))
+testExpr = init_rand_params(ProductKE(['PER'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['SE', 'PER'])]))
+res = testExpr.sum_of_prods_form()
+print(res)
+# print(res.parameters)
+# print(res.composite_terms[0].parameters)
+print()
+
+print(res.composite_terms[0].parameters)
+res = base_factors_interpretation(res.composite_terms[0].parameters)
+print(res)
+
+
+## First term interpretation
+
 # # testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['C', 'PER'])]))
 # # testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'WN', 'PER'), SumKE(['C', 'PER'])]))
 # testExpr = init_rand_params(ProductKE(['PER'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['LIN', 'PER'])]))
@@ -18,6 +37,27 @@ from KernelExpansion.kernelInterpretation import *
 # res = first_term_interpretation(ordered_ps[0])
 # print(res)
 
+
+## Postmodifier interpretation
+
+# # testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['C', 'PER'])]))
+# # testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'WN', 'PER'), SumKE(['C', 'PER'])]))
+# # testExpr = init_rand_params(ProductKE(['PER'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['LIN', 'PER'])]))
+# testExpr = init_rand_params(ProductKE(['PER'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['SE', 'PER'])]))
+# res = testExpr.sum_of_prods_form()
+# print(res)
+# # print(res.parameters)
+# # print(res.composite_terms[0].parameters)
+# print()
+#
+# component_n = 3
+# del res.composite_terms[component_n].parameters['ProductKE']
+# ordered_ps = sorted(res.composite_terms[component_n].parameters.items(), key = lambda bps: base_kern_interp_order[bps[0]])
+# print(ordered_ps)
+#
+# res = postmodifier_interpretation(ordered_ps[1])
+# print(res)
+# print('Res: ^.^')
 
 
 ## Sigmoid overlaps
@@ -47,17 +87,28 @@ from KernelExpansion.kernelInterpretation import *
 # print(res_SIr)
 
 
-# # res = simplify_sigmoidal_intervals(('S', {'start': 2, 'start_slope': 2}), ('SI', {'start': 1, 'end': 4, 'start_slope': 1, 'end_slope': 3}))
-# # res = simplify_sigmoidal_intervals(('S', {'start': 2, 'start_slope': 2}), ('Sr', {'end': 4, 'end_slope': 0}))
-# # res = simplify_sigmoidal_intervals(('S', {'start': 2, 'start_slope': 2}), ('SIr', [{'end': -1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}]))
-# # res = simplify_sigmoidal_intervals(('S', {'start': 0.5, 'start_slope': 2}), ('SIr', [{'end': 1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}]))
+# res = simplify_sigmoidal_intervals(('S', {'start': 2, 'start_slope': 2}), ('SI', {'start': 1, 'end': 4, 'start_slope': 1, 'end_slope': 3}))
+# res = simplify_sigmoidal_intervals(('S', {'start': 2, 'start_slope': 2}), ('Sr', {'end': 4, 'end_slope': 0}))
+# res = simplify_sigmoidal_intervals(('S', {'start': 4, 'start_slope': 2}), ('Sr', {'end': 2, 'end_slope': 0}))
+# res = simplify_sigmoidal_intervals(('S', {'start': 2, 'start_slope': 2}), ('SIr', [{'end': -1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}]))
+# res = simplify_sigmoidal_intervals(('S', {'start': 0.5, 'start_slope': 2}), ('SIr', [{'end': 1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}]))
 #
-# # res = simplify_sigmoidal_intervals(('Sr', {'end': 1, 'end_slope': 0}), ('SI', {'start': 0.5, 'end': 0.75, 'start_slope': 1, 'end_slope': 2}))
-# # res = simplify_sigmoidal_intervals(('Sr', {'end': 0, 'end_slope': 0}), ('SIr', [{'end': -1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}]))
-# # res = simplify_sigmoidal_intervals(('Sr', {'end': 2, 'end_slope': 0}), ('SIr', [{'end': 1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}]))
+# res = simplify_sigmoidal_intervals(('Sr', {'end': 1, 'end_slope': 0}), ('SI', {'start': 0.5, 'end': 0.75, 'start_slope': 1, 'end_slope': 2}))
+# res = simplify_sigmoidal_intervals(('Sr', {'end': 0, 'end_slope': 0}), ('SIr', [{'end': -1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}]))
+# res = simplify_sigmoidal_intervals(('Sr', {'end': 2, 'end_slope': 0}), ('SIr', [{'end': 1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}]))
 #
-# # res = simplify_sigmoidal_intervals(('SI', {'start': 0.5, 'end': 0.75, 'start_slope': 1, 'end_slope': 2}), ('SIr', [{'end': -1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}]))
-# # res = simplify_sigmoidal_intervals(('SI', {'start': -1.5, 'end': 0.75, 'start_slope': 1, 'end_slope': 2}), ('SIr', [{'end': -1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}]))
+# res = simplify_sigmoidal_intervals(('SI', {'start': 0.5, 'end': 0.75, 'start_slope': 1, 'end_slope': 2}), ('SIr', [{'end': -1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}]))
+# res = simplify_sigmoidal_intervals(('SI', {'start': -1.5, 'end': 0.75, 'start_slope': 1, 'end_slope': 2}), ('SIr', [{'end': -1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}]))
 # res = simplify_sigmoidal_intervals(('SI', {'start': -1.5, 'end': 1.75, 'start_slope': 1, 'end_slope': 2}), ('SIr', [{'end': -1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}]))
+# print()
+# print(res)
+
+
+# interval_list = [('S', {'start': 1, 'start_slope': 2}),
+#                  ('Sr', {'end': 2.5, 'end_slope': 0}),
+#                  ('SI', {'start': 0.5, 'end': 3, 'start_slope': 1, 'end_slope': 3}),
+#                  # ('SIr', [{'end': -1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}])]
+#                  ('SIr', [{'end': 1.25, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}])]
+# res = simplify_sigmoidal_intervals(dict(interval_list))
 # print()
 # print(res)

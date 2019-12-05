@@ -1,23 +1,21 @@
 from copy import deepcopy
-from Util.genericUtil import interval_overlap, sortOutTypePair
 from functools import reduce
+from KernelExpansion.kernelOperations import base_sigmoids
 
 
-base_kern_interp_order = dict(zip(['PER', 'SE', 'C', 'WN', 'LIN', 'Sr', 'S', 'SIr', 'SI'], range(10)))
+base_kern_interp_order = dict(zip(['PER', 'SE', 'C', 'WN', 'LIN', 'Sr', 'S', 'SIr', 'SI', 'sigmoidal_intervals'], range(10)))
 def order_base_kerns(bs): return sorted(bs, key = lambda b: base_kern_interp_order[b])
 
 
 def base_factors_interpretation(bs_params):
-    bps_copy = deepcopy(bs_params)
+    bps_copy = sigmoids_to_intervals(deepcopy(bs_params))
     var = bps_copy['ProductKE'][0]['variance']
-    description_end = '. The overall variance of this component is ' + var
+    description_end = '; the overall variance of this component is {:.2f}'.format(var)
     del bps_copy['ProductKE']
 
     ordered_ps = sorted(bps_copy.items(), key = lambda bps: base_kern_interp_order[bps[0]])
-    description = first_term_interpretation(ordered_ps[0])
-    for bps in ordered_ps[1:]: description += ', ' + postmodifier_interpretation(bps)
-
-    return description + description_end
+    postmodifiers = [interpretation for bps in ordered_ps[1:] for interpretation in [postmodifier_interpretation(bps)] if interpretation != '']
+    return ', '.join([first_term_interpretation(ordered_ps[0])] + postmodifiers) + description_end
 
 
 def first_term_interpretation(bps):
@@ -57,37 +55,38 @@ def postmodifier_interpretation(bps):
             if len(ps) > 1: offsets[-1] = 'and ' + offsets[-1]
             res += ', '.join(offsets)
         else: res = 'with linearly varying amplitude with offset {:.2f}'.format(ps[0]['offset'])
-    # elif b == 'sigmoid_interval':
-    #     if isinstance(ps, list):
-    #
-    #     elif 'start' not in ps:
-    #
-    #     elif 'end' not in ps:
-    #
-    #     elif
-    elif b == 'Sr':
-        first_location = sorted(ps, key = lambda p: p['location'])[0]
-        res = 'which applies from {:.2f} (with change slope {:.f})'.format(first_location['location'], first_location['slope'])
-    elif b == 'S':
-        last_location = sorted(ps, key = lambda p: p['location'], reverse = True)[0]
-        res = 'which applies until {:.2f} (with change slope {:.f})'.format(last_location['location'], last_location['slope'])
-    elif b == 'SIr':
-        if len(ps) > 1:
-            interval = reduce(interval_overlap_step, ps[1:], (ps[0], ps[0]))
-            'which applies before {:.2f} and after {:.2f}'.format(last_location['location'], last_location['slope'])
-        else: res = 'which applies before {:.2f} and after {:.2f}'.format(ps[0]['location'] - ps[0]['width'] / 2, ps[0]['location'] + ps[0]['width'] / 2)
-    elif b == 'SI':
-        if len(ps) > 1:
-            reduce(interval_overlap, [])
-            'which applies before {:.2f} and after {:.2f}'.format(last_location['location'], last_location['slope'])
-        else: res = 'which applies between {:.2f} and {:.2f}'.format(ps[0]['location'] - ps[0]['width'] / 2, ps[0]['location'] + ps[0]['width'] / 2)
-    else: raise ValueError(f'An unexpected type of postmodifier term in a pure product has arisen: {b}')
+    elif b == 'sigmoidal_intervals':
+        if not isinstance(ps, list): ps = [ps]
+        interval_ress = []
+        for interval in ps:
+            if 'start' not in ps: interval_ress.append('which applies until {:.2f} (with change slope {:.2f})'.format(interval['end'], interval['end_slope']))
+            elif 'end' not in ps: interval_ress.append('which applies from {:.2f} (with change slope {:.2f})'.format(interval['start'], interval['start_slope']))
+            else:
+                interval_ress.append('which applies between {:.2f} and {:.2f}'.format(interval['start'], interval['end']))
+                if interval['start_slope'] == interval['end_slope']: interval_ress[-1] += ' (with same change slopes {:.2f})'.format(interval['start_slope'])
+                else: interval_ress[-1] += ' (with change slopes {:.2f} and {:.2f})'.format(interval['start_slope'], interval['end_slope'])
+        if len(interval_ress) > 1: interval_ress[-1] = 'and ' + interval_ress[-1]
+        res = ', '.join(interval_ress)
+    elif b not in base_sigmoids: raise ValueError(f'An unexpected type of postmodifier term in a pure product has arisen: {b}')
     return res
 
 
 
 
 # Sigmoid-to-interval functions
+
+def sigmoids_to_intervals(bpss):
+    sigmoidals = {}
+    for b in list(bpss.keys()):
+        if b == 'S': sigmoidals[b] = S_overlap([S_interval(p) for p in bpss[b]])
+        elif b == 'Sr': sigmoidals[b] = Sr_overlap([Sr_interval(p) for p in bpss[b]])
+        elif b == 'SI': sigmoidals[b] = SI_overlap([SI_interval(p) for p in bpss[b]])
+        elif b == 'SIr': sigmoidals[b] = SI_overlap([SIr_hole_interval(p) for p in bpss[b]])
+        # if b in sigmoidals: del bpss[b]
+    if len(sigmoidals) > 0:
+        res = simplify_sigmoidal_intervals(sigmoidals)
+        bpss['sigmoidal_intervals'] = res if isinstance(res, list) else [res]
+    return bpss
 
 def S_interval(S_p): return {'start': S_p['location'], 'start_slope': S_p['slope']}
 def Sr_interval(Sr_p): return {'end': Sr_p['location'], 'end_slope': Sr_p['slope']}
@@ -157,18 +156,23 @@ def intersect_semiline_hole(semiline, hole, res = []):
     return res
 
 
+# Full reduction of sigmoidals to intervals functions
+
+def simplify_sigmoidal_intervals(sigmoidals): return reduce(simplify_sigmoidal_intervals_step, sigmoidals.items())[1]
+
+def simplify_sigmoidal_intervals_step(acc, new):
+    if acc is None: return acc
+    step_res = simplify_sigmoidal_interval_pair(acc, new)
+    return None if step_res is None else identify_interval_type(step_res)
+
 # Intersect two DIFFERENT TYPES of sigmoid parameters (apply after reducing same type ones)
-def simplify_sigmoidal_intervals(b_ips1, b_ips2):
+def simplify_sigmoidal_interval_pair(b_ips1, b_ips2): # Arguments are tuples of (sigmoid_str, parameters)
     pair = {b_ips1[0]: [b_ips1[1], b_ips2[1]]} if b_ips1[0] == b_ips2[0] else dict([b_ips1, b_ips2])
     res = []
     if len(pair) == 2: # Always when called directly
         if 'SIr' in pair:
             for interval in pair['SIr']:
-                interval_type = None
-                if 'start' not in interval: interval_type = 'Sr'
-                elif 'end' not in interval: interval_type = 'S'
-                else: interval_type = 'SI'
-                new_interval = simplify_sigmoidal_intervals([(x, pair[x]) for x in pair if x != 'SIr'][0], (interval_type, interval))
+                new_interval = simplify_sigmoidal_interval_pair([(x, pair[x]) for x in pair if x != 'SIr'][0], identify_interval_type(interval))
                 if new_interval != []: res.append(new_interval)
         elif 'SI' in pair:
             new_interval = intersect_segment_semiline(pair['SI'], pair['S' if 'S' in pair else 'Sr'])
@@ -179,3 +183,11 @@ def simplify_sigmoidal_intervals(b_ips1, b_ips2):
         elif 'S' in pair: res = S_overlap(pair['S'])
         else: res = (Sr_overlap(pair['Sr']))
     return res[0] if isinstance(res, list) and len(res) == 1 else res
+
+
+def identify_interval_type(interval):
+    if isinstance(interval, list): interval_type = 'SIr'
+    elif 'start' not in interval: interval_type = 'Sr'
+    elif 'end' not in interval: interval_type = 'S'
+    else: interval_type = 'SI'
+    return (interval_type, interval)

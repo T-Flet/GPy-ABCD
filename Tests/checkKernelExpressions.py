@@ -198,7 +198,7 @@ from KernelExpansion.kernelExpressionOperations import *
 ## sum_of_prods_form
 
 # testExpr = init_rand_params(ChangeKE('CP', 'LIN', 'PER'))
-# testExpr = init_rand_params(ChangeKE('CW', 'LIN', 'PER'))
+testExpr = init_rand_params(ChangeKE('CW', 'LIN', 'PER'))
 
 # testExpr = init_rand_params(SumKE(['LIN', 'PER']))
 # testExpr = init_rand_params(SumKE(['SE'], [ChangeKE('CP', 'LIN', 'PER'), ProductKE(['LIN', 'PER'])]))
@@ -211,7 +211,7 @@ from KernelExpansion.kernelExpressionOperations import *
 # testExpr = init_rand_params(ProductKE(['C'])).new_bases_with_parameters(('WN', {'variance': 2}))
 
 # testExpr = init_rand_params(ProductKE(['LIN', 'PER']))
-testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['LIN', 'PER'])]))
+# testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['LIN', 'PER'])]))
 
 
 res = testExpr.sum_of_prods_form()
