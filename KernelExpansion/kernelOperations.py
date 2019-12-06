@@ -31,7 +31,7 @@ def fit_ker_to_kex_with_params(ker, kex, verbose = False):
     if verbose: print(kex)
     param_dict = get_param_dict(ker)
     if verbose: print(param_dict)
-    return kex.match_up_fit_parameters(param_dict, '')
+    return kex.match_up_fit_parameters(param_dict, 'GP_regression.')
 
 
 def init_rand_params(kex, verbose = True): # A testing function to initialise a kernel with random parameters

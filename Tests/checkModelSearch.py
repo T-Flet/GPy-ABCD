@@ -39,6 +39,7 @@ if __name__ == '__main__':
         print(bm.model.log_likelihood())
         print(bm.cached_utility_function)
         bm.model.plot()
+        print(bm.interpret())
 
     plt.show()
 

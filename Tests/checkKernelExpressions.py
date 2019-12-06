@@ -210,13 +210,15 @@ from KernelExpansion.kernelExpressionOperations import *
 # # testExpr = init_rand_params(ProductKE(['WN'])).new_bases_with_parameters(('C', {'variance': 2}))
 # # testExpr = init_rand_params(ProductKE(['C'])).new_bases_with_parameters(('WN', {'variance': 2}))
 #
-# testExpr = init_rand_params(ProductKE(['PER']))
+# # testExpr = init_rand_params(ProductKE(['PER']))
+# testExpr = init_rand_params(ProductKE(['SE'], [SumKE(['C', 'LIN'])]))
 # # testExpr = init_rand_params(ProductKE(['LIN', 'PER']))
 # # testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['LIN', 'PER'])]))
 #
 #
 # res = testExpr.sum_of_prods_form()
 # print(res)
+# print(res.base_terms)
 # print(res.parameters)
 # print(res.composite_terms[0].parameters)
 # # print(res.right.parameters)

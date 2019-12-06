@@ -254,7 +254,7 @@ class SumOrProductKE(KernelExpression): # Abstract
     # Methods for after fit
 
     def match_up_fit_parameters(self, param_dict, prefix = ''):
-        if self.is_root(): prefix = '' if self._is_singleton() else self.GPy_name + '.'
+        if self.is_root(): prefix += '' if self._is_singleton() else self.GPy_name + '.'
         elif prefix == '': raise ValueError('No prefix but not root node in match_up_fit_parameters')
         seen_terms = Counter([])
         for bt in list(self.base_terms.elements()):
@@ -392,13 +392,16 @@ class ProductKE(SumOrProductKE):
         return ProductKE([]).new_bases_with_parameters([(key, p) for kex in [k0] + ks for key, ps in list(kex.parameters.items()) for p in ps])
 
     def sum_of_prods_form(self):
-        if not self.composite_terms: return SumKE([], [ProductKE([])._new_parameters(self.parameters)]).set_parent(self.parent)._set_all_parents().set_root(self.root)
+        sops = SumKE([])
+        if not self.composite_terms:
+            sops.composite_terms.append(ProductKE([])._new_parameters(self.parameters)) # Avoid triggering simplify()
+            return sops.set_parent(self.parent)._set_all_parents().set_root(self.root)
         else:
             self.composite_terms = [ct.sum_of_prods_form() for ct in self.composite_terms]
             assert all([isinstance(ct, SumKE) for ct in self.composite_terms]), 'Some non-SumKE terms are coming from sum_of_prods_form calls within a ProductKE composite_terms'
             sets_of_factors = product(*[cts.composite_terms for cts in self.composite_terms]) # Cartesian product of all sums of products
-            expanded_composites_product = [self.multiply_pure_prods_with_params(self, list(factor_tuple)) for factor_tuple in sets_of_factors]
-            return SumKE([], expanded_composites_product).set_parent(self.parent)._set_all_parents().set_root(self.root)
+            sops.composite_terms = [self.multiply_pure_prods_with_params(self, list(factor_tuple)) for factor_tuple in sets_of_factors] # Avoid triggering simplify() on these expanded composites product
+            return sops.set_parent(self.parent)._set_all_parents().set_root(self.root)
 
 
 class ChangeKE(KernelExpression):
@@ -473,7 +476,7 @@ class ChangeKE(KernelExpression):
         assert True, 'to_kernel_with_params called on a ChangeKE; only SumKE and ProductKE terms should be left when calling it after sum_of_prods_form'
 
     def match_up_fit_parameters(self, param_dict, prefix = ''):
-        if self.is_root(): new_prefix = prefix = self.GPy_name + '.'
+        if self.is_root(): prefix += self.GPy_name + '.'
         elif prefix == '': raise ValueError('No prefix but not root node in match_up_fit_parameters')
         self.parameters[self.CP_or_CW].append({p: param_dict[prefix + p] for p in base_k_param_names[self.CP_or_CW]['parameters']})
         same_type_branches = type(self.left) == type(self.right) and\

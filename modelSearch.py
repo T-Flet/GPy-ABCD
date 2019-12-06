@@ -27,6 +27,9 @@ class GPModel():
             self.model.optimize_restarts(num_restarts = self.restarts, verbose = False)
         return self
 
+    def interpret(self): return fit_ker_to_kex_with_params(self.model.kern, self.kernel_expression).get_interpretation()
+
+
 
     # Model fit objective criteria & related values:
 
@@ -87,7 +90,3 @@ def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = prod
 
     if verbose: print(f'\nBest models overall: {print_k_list(sorted_models[:buffer])}\n')
     return sorted_models[:buffer], tested_models, tested_k_exprs
-
-
-def interpret_model(gpm): return fit_ker_to_kex_with_params(gpm.model.kern, gpm.kernel_expression).get_interpretation()
-def interpret_models(model_list): return [interpret_model(mod) for mod in model_list]
