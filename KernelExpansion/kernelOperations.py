@@ -14,7 +14,7 @@ base_k_param_names['CP'] = {'name': 'change_point', 'parameters': ['location', '
 base_k_param_names['CW'] = {'name': 'change_window', 'parameters': ['location', 'slope', 'width']} # Nothing, 'stop_location' or 'width' depending on the used class
 
 
-change_k_sigmoid_names = {'CP': {'left': 'Sr', 'right': 'S'}, 'CW': {'left': 'SIr', 'right': 'S'}}
+change_k_sigmoid_names = {'CP': {'left': 'Sr', 'right': 'S'}, 'CW': {'left': 'SIr', 'right': 'SI'}}
 
 
 def get_param_dict(fit_ker):
@@ -25,6 +25,13 @@ def get_param_dict(fit_ker):
 # ker = testExpr.to_kernel()
 # print(get_param_dict(ker))
 # print(ker)
+
+
+def fit_ker_to_kex_with_params(ker, kex, verbose = False):
+    if verbose: print(kex)
+    param_dict = get_param_dict(ker)
+    if verbose: print(param_dict)
+    return kex.match_up_fit_parameters(param_dict, '')
 
 
 def init_rand_params(kex, verbose = True): # A testing function to initialise a kernel with random parameters

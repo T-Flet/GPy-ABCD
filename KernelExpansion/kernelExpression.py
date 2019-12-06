@@ -142,6 +142,13 @@ class KernelExpression(ABC): # Abstract
     def sum_of_prods_form(self): # Return either a ProductKE or a SumKE whose composite_terms are only ProductKEs
         pass
 
+    def get_interpretation(self, sops = None):
+        if sops is None: sops = self.sum_of_prods_form()
+        assert sum(sops.base_terms.values()) == 0, f'Some base terms are left in the expanded sum of products form: {sops.base_terms.values()}'
+        description = f'The fit kernel consists of {len(sops.composite_terms)} components:'
+        for ct in sops.composite_terms: description += '\n\t' + base_factors_interpretation(ct.parameters)
+        return description
+
 
 class SumOrProductKE(KernelExpression): # Abstract
     def __init__(self, base_terms, composite_terms = [], root: KernelExpression = None, parent: KernelExpression = None, symbol = None, GPy_name = None):
@@ -385,11 +392,13 @@ class ProductKE(SumOrProductKE):
         return ProductKE([]).new_bases_with_parameters([(key, p) for kex in [k0] + ks for key, ps in list(kex.parameters.items()) for p in ps])
 
     def sum_of_prods_form(self):
-        self.composite_terms = [ct.sum_of_prods_form() for ct in self.composite_terms]
-        assert all([isinstance(ct, SumKE) for ct in self.composite_terms]), 'Some non-SumKE terms are coming from sum_of_prods_form calls within a ProductKE composite_terms'
-        sets_of_factors = product(*[cts.composite_terms for cts in self.composite_terms]) # Cartesian product of all sums of products
-        expanded_composites_product = [self.multiply_pure_prods_with_params(self, list(factor_tuple)) for factor_tuple in sets_of_factors]
-        return SumKE([], expanded_composites_product).set_parent(self.parent)._set_all_parents().set_root(self.root)
+        if not self.composite_terms: return SumKE([], [ProductKE([])._new_parameters(self.parameters)]).set_parent(self.parent)._set_all_parents().set_root(self.root)
+        else:
+            self.composite_terms = [ct.sum_of_prods_form() for ct in self.composite_terms]
+            assert all([isinstance(ct, SumKE) for ct in self.composite_terms]), 'Some non-SumKE terms are coming from sum_of_prods_form calls within a ProductKE composite_terms'
+            sets_of_factors = product(*[cts.composite_terms for cts in self.composite_terms]) # Cartesian product of all sums of products
+            expanded_composites_product = [self.multiply_pure_prods_with_params(self, list(factor_tuple)) for factor_tuple in sets_of_factors]
+            return SumKE([], expanded_composites_product).set_parent(self.parent)._set_all_parents().set_root(self.root)
 
 
 class ChangeKE(KernelExpression):

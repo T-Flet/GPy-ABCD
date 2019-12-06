@@ -5,19 +5,22 @@ from KernelExpansion.kernelInterpretation import *
 
 ## Full interpretation
 
-# testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['C', 'PER'])]))
-# testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'WN', 'PER'), SumKE(['C', 'PER'])]))
-# testExpr = init_rand_params(ProductKE(['PER'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['LIN', 'PER'])]))
-testExpr = init_rand_params(ProductKE(['PER'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['SE', 'PER'])]))
-res = testExpr.sum_of_prods_form()
-print(res)
+# testExpr = init_rand_params(ChangeKE('CW', 'LIN', 'PER'))
+# # testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['C', 'PER'])]))
+# # testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'LIN', 'SE'), SumKE(['C', 'WN'])]))
+# # testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'WN', 'PER'), SumKE(['C', 'PER'])]))
+# # testExpr = init_rand_params(ProductKE(['PER'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['LIN', 'PER'])]))
+# # testExpr = init_rand_params(ProductKE(['PER'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['SE', 'PER'])]))
+#
+# res = testExpr.sum_of_prods_form()
+# print(res)
 # print(res.parameters)
-# print(res.composite_terms[0].parameters)
-print()
-
-print(res.composite_terms[0].parameters)
-res = base_factors_interpretation(res.composite_terms[0].parameters)
-print(res)
+# print()
+#
+# component_n = 1
+# print(res.composite_terms[component_n].parameters)
+# res = base_factors_interpretation(res.composite_terms[component_n].parameters)
+# print(res)
 
 
 ## First term interpretation

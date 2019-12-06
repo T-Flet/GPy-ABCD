@@ -1,6 +1,7 @@
 from copy import deepcopy
 from functools import reduce
 from KernelExpansion.kernelOperations import base_sigmoids
+from operator import add
 
 
 base_kern_interp_order = dict(zip(['PER', 'SE', 'C', 'WN', 'LIN', 'Sr', 'S', 'SIr', 'SI', 'sigmoidal_intervals'], range(10)))
@@ -10,12 +11,15 @@ def order_base_kerns(bs): return sorted(bs, key = lambda b: base_kern_interp_ord
 def base_factors_interpretation(bs_params):
     bps_copy = sigmoids_to_intervals(deepcopy(bs_params))
     var = bps_copy['ProductKE'][0]['variance']
-    description_end = '; the overall variance of this component is {:.2f}'.format(var)
+    description_end = (', and it' if 'sigmoidal_intervals' in bps_copy else '; this component') + ' has overall variance {:.2f}'.format(var)
     del bps_copy['ProductKE']
 
     ordered_ps = sorted(bps_copy.items(), key = lambda bps: base_kern_interp_order[bps[0]])
-    postmodifiers = [interpretation for bps in ordered_ps[1:] for interpretation in [postmodifier_interpretation(bps)] if interpretation != '']
-    return ', '.join([first_term_interpretation(ordered_ps[0])] + postmodifiers) + description_end
+    postmodifiers = []
+    for bps in ordered_ps[1:]:
+        interpretation = postmodifier_interpretation(bps)
+        if interpretation != '': postmodifiers.append(('; this component applies ' if bps[0] == 'sigmoidal_intervals' else ', ') + interpretation)
+    return first_term_interpretation(ordered_ps[0]) + reduce(add, postmodifiers, '') + description_end
 
 
 def first_term_interpretation(bps):
@@ -59,10 +63,10 @@ def postmodifier_interpretation(bps):
         if not isinstance(ps, list): ps = [ps]
         interval_ress = []
         for interval in ps:
-            if 'start' not in ps: interval_ress.append('which applies until {:.2f} (with change slope {:.2f})'.format(interval['end'], interval['end_slope']))
-            elif 'end' not in ps: interval_ress.append('which applies from {:.2f} (with change slope {:.2f})'.format(interval['start'], interval['start_slope']))
+            if 'start' not in interval: interval_ress.append('until {:.2f} (with change slope {:.2f})'.format(interval['end'], interval['end_slope']))
+            elif 'end' not in interval: interval_ress.append('from {:.2f} (with change slope {:.2f})'.format(interval['start'], interval['start_slope']))
             else:
-                interval_ress.append('which applies between {:.2f} and {:.2f}'.format(interval['start'], interval['end']))
+                interval_ress.append('between {:.2f} and {:.2f}'.format(interval['start'], interval['end']))
                 if interval['start_slope'] == interval['end_slope']: interval_ress[-1] += ' (with same change slopes {:.2f})'.format(interval['start_slope'])
                 else: interval_ress[-1] += ' (with change slopes {:.2f} and {:.2f})'.format(interval['start_slope'], interval['end_slope'])
         if len(interval_ress) > 1: interval_ress[-1] = 'and ' + interval_ress[-1]
@@ -81,7 +85,7 @@ def sigmoids_to_intervals(bpss):
         if b == 'S': sigmoidals[b] = S_overlap([S_interval(p) for p in bpss[b]])
         elif b == 'Sr': sigmoidals[b] = Sr_overlap([Sr_interval(p) for p in bpss[b]])
         elif b == 'SI': sigmoidals[b] = SI_overlap([SI_interval(p) for p in bpss[b]])
-        elif b == 'SIr': sigmoidals[b] = SI_overlap([SIr_hole_interval(p) for p in bpss[b]])
+        elif b == 'SIr': sigmoidals[b] = SIr_overlap([SIr_hole_interval(p) for p in bpss[b]])
         # if b in sigmoidals: del bpss[b]
     if len(sigmoidals) > 0:
         res = simplify_sigmoidal_intervals(sigmoidals)

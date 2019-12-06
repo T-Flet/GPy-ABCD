@@ -197,25 +197,49 @@ from KernelExpansion.kernelExpressionOperations import *
 
 ## sum_of_prods_form
 
-# testExpr = init_rand_params(ChangeKE('CP', 'LIN', 'PER'))
-testExpr = init_rand_params(ChangeKE('CW', 'LIN', 'PER'))
+# # testExpr = init_rand_params(ChangeKE('CP', 'LIN', 'PER'))
+# # testExpr = init_rand_params(ChangeKE('CW', 'LIN', 'PER'))
+#
+# # testExpr = init_rand_params(SumKE(['LIN', 'PER']))
+# # testExpr = init_rand_params(SumKE(['SE'], [ChangeKE('CP', 'LIN', 'PER'), ProductKE(['LIN', 'PER'])]))
+#
+# # testExpr = init_rand_params(ProductKE(['PER'])).new_bases_with_parameters([('SE', {'variance': x, 'lengthscale': x}) for x in (2,3,5)])
+# # testExpr = init_rand_params(ProductKE(['PER'])).new_bases_with_parameters(('WN', {'variance': 2}))
+# # testExpr = init_rand_params(ProductKE(['C'])).new_bases_with_parameters(('C', {'variance': 2}))
+# # testExpr = init_rand_params(ProductKE(['SE'])).new_bases_with_parameters(('C', {'variance': 2}))
+# # testExpr = init_rand_params(ProductKE(['WN'])).new_bases_with_parameters(('C', {'variance': 2}))
+# # testExpr = init_rand_params(ProductKE(['C'])).new_bases_with_parameters(('WN', {'variance': 2}))
+#
+# testExpr = init_rand_params(ProductKE(['PER']))
+# # testExpr = init_rand_params(ProductKE(['LIN', 'PER']))
+# # testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['LIN', 'PER'])]))
+#
+#
+# res = testExpr.sum_of_prods_form()
+# print(res)
+# print(res.parameters)
+# print(res.composite_terms[0].parameters)
+# # print(res.right.parameters)
 
-# testExpr = init_rand_params(SumKE(['LIN', 'PER']))
-# testExpr = init_rand_params(SumKE(['SE'], [ChangeKE('CP', 'LIN', 'PER'), ProductKE(['LIN', 'PER'])]))
 
-# testExpr = init_rand_params(ProductKE(['PER'])).new_bases_with_parameters([('SE', {'variance': x, 'lengthscale': x}) for x in (2,3,5)])
-# testExpr = init_rand_params(ProductKE(['PER'])).new_bases_with_parameters(('WN', {'variance': 2}))
-# testExpr = init_rand_params(ProductKE(['C'])).new_bases_with_parameters(('C', {'variance': 2}))
-# testExpr = init_rand_params(ProductKE(['SE'])).new_bases_with_parameters(('C', {'variance': 2}))
-# testExpr = init_rand_params(ProductKE(['WN'])).new_bases_with_parameters(('C', {'variance': 2}))
-# testExpr = init_rand_params(ProductKE(['C'])).new_bases_with_parameters(('WN', {'variance': 2}))
+## Interpretation
 
-# testExpr = init_rand_params(ProductKE(['LIN', 'PER']))
+# # testExpr = init_rand_params(ChangeKE('CP', 'LIN', 'PER'))
+# # testExpr = init_rand_params(ChangeKE('CW', 'LIN', 'PER'))
+#
+# # testExpr = init_rand_params(SumKE(['LIN', 'PER']))
+# # testExpr = init_rand_params(SumKE(['SE'], [ChangeKE('CP', 'LIN', 'PER'), ProductKE(['LIN', 'PER'])]))
+#
+# # testExpr = init_rand_params(ProductKE(['PER'])).new_bases_with_parameters([('SE', {'variance': x, 'lengthscale': x}) for x in (2,3,5)])
+# # testExpr = init_rand_params(ProductKE(['PER'])).new_bases_with_parameters(('WN', {'variance': 2}))
+# # testExpr = init_rand_params(ProductKE(['C'])).new_bases_with_parameters(('C', {'variance': 2}))
+# # testExpr = init_rand_params(ProductKE(['SE'])).new_bases_with_parameters(('C', {'variance': 2}))
+# # testExpr = init_rand_params(ProductKE(['WN'])).new_bases_with_parameters(('C', {'variance': 2}))
+# # testExpr = init_rand_params(ProductKE(['C'])).new_bases_with_parameters(('WN', {'variance': 2}))
+#
+# # testExpr = init_rand_params(ProductKE(['PER']))
+# # testExpr = init_rand_params(ProductKE(['LIN', 'PER']))
 # testExpr = init_rand_params(ProductKE(['SE'], [ChangeKE('CP', 'LIN', 'PER'), SumKE(['LIN', 'PER'])]))
-
-
-res = testExpr.sum_of_prods_form()
-print(res)
-print(res.parameters)
-print(res.composite_terms[0].parameters)
-# print(res.right.parameters)
+#
+# res = testExpr.get_interpretation()
+# print(res)
