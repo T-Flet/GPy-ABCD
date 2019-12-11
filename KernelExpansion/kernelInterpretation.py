@@ -76,7 +76,6 @@ def postmodifier_interpretation(bps):
 
 
 
-
 # Sigmoid-to-interval functions
 
 def sigmoids_to_intervals(bpss):
@@ -101,6 +100,7 @@ def SIr_split_intervals(hole_interval): return [{'end': hole_interval['end'], 'e
 
 def SI_ps_left(SI_p): return SI_p['location'] - SI_p['width'] / 2
 def SI_ps_right(SI_p): return SI_p['location'] + SI_p['width'] / 2
+
 
 
 # Functions to apply to each single sigmoid type ps if multiple ones present
@@ -158,6 +158,7 @@ def intersect_semiline_hole(semiline, hole, res = []):
             res.append({'start': hole['start'], 'start_slope': hole['start_slope']})
         else: res.append(semiline)
     return res
+
 
 
 # Full reduction of sigmoidals to intervals functions

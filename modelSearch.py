@@ -66,6 +66,7 @@ def print_k_list(k_or_model_list):
 def fit_one_model(X, Y, kex, restarts): return GPModel(X, Y, kex).fit(restarts)
 def fit_model_list(X, Y, k_exprs, restarts = 5):
     with Pool() as pool: return pool.starmap_async(fit_one_model, [(X, Y, kex, restarts) for kex in k_exprs], int(len(k_exprs) / cpu_count()) + 1).get()
+    # return [fit_one_model(X, Y, kex, restarts) for kex in k_exprs]
 
 
 # start_kernels = [SumKE(['WN'])._initialise()] for the original ABCD

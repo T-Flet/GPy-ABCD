@@ -29,7 +29,7 @@ kernel = CW(LIN(), LIN() * LIN())
 #                     [2 + 3 * np.sin(x*2) for x in X[71:160]],
 #                     np.array([0])[:, None],
 #                     [np.array([2]) for x in X[161:]])) + np.random.randn(212, 1) * 0.3
-# kernel = CW(C, PER + C)
+# kernel = CW(C(), PER() + C())
 # # kernel = CW(PER + C, C)
 
 # Y = np.concatenate(([0.1 * x for x in X[:70]],
@@ -37,7 +37,7 @@ kernel = CW(LIN(), LIN() * LIN())
 #                     [1 + 3 * np.sin(x*2) for x in X[71:160]],
 #                     np.array([0])[:, None],
 #                     [0.1 * x for x in X[161:]])) + np.random.randn(212, 1) * 0.3
-# kernel = CW(LIN, PER + C)
+# kernel = CW(LIN(), PER() + C())
 # # kernel = CW(PER + C, LIN)
 
 
