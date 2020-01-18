@@ -21,8 +21,8 @@ def interval_overlap(a, b): # Two interval tuples
     return max(0, min(a[1], b[1]) - max(a[0], b[0]))
 
 
-# Update a dictionary's entries with those of another using a given function, e.g. appending
+# Update a dictionary's entries with those of another using a given function, e.g. appending (operator.add is ideal for this)
 # NOTE: This modifies d0, so might want to give it a deepcopy
-def update_dict_with(d0, d1, func):
-    for key, value in d1.items(): d0[key] = func(d0[key], value) if key in d0 else value
+def update_dict_with(d0, d1, f):
+    for k, v in d1.items(): d0[k] = f(d0[k], v) if k in d0 else v
     return d0

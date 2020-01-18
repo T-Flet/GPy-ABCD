@@ -169,7 +169,7 @@ class SumOrProductKE(KernelExpression): # Abstract
 
     def __repr__(self):
         res = type(self).__name__ + '([' + ', '.join(["'"+bt+"'" for bt in self.base_terms]) + ']'
-        cts = ', ' + ', '.join([ct.__repr__() for ct in self.composite_terms]) if self.composite_terms else ''
+        cts = ', [' + ', '.join([ct.__repr__() for ct in self.composite_terms]) + ']' if self.composite_terms else ''
         return res + cts + ')'
 
     def __eq__(self, other): ## NOTE: this is intended to check equality of data fields only, i.e. it does not check root or parent

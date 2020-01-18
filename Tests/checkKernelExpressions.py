@@ -13,6 +13,18 @@ from KernelExpansion.kernelExpressionOperations import *
 # print(aTest)
 
 
+## __repr__
+## I.e. whether the repr can be executed to get an equal object
+# # testExpr = SumKE(['LIN'])
+# # testExpr = SumKE(['LIN'], [ProductKE(['SE'])])
+# # testExpr = SumKE(['LIN'], [ChangeKE('CP', 'PER', ProductKE(['WN']))])
+# testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'C'])))
+#
+# print(testExpr)
+# print(testExpr.__repr__())
+# assert eval(testExpr.__repr__()) == testExpr
+
+
 ## Type and Printing
 
 # testExpr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'C'])))
@@ -222,6 +234,23 @@ from KernelExpansion.kernelExpressionOperations import *
 # print(res.parameters)
 # print(res.composite_terms[0].parameters)
 # # print(res.right.parameters)
+
+
+## add_sum_of_prods_terms (in ChangeKE)
+# a = SumKE([], [ProductKE(['SE', 'PER'])])
+# # a = SumKE(['LIN', 'LIN'], [ProductKE(['SE', 'PER'])])
+# a = init_rand_params(a)
+# print(a.parameters)
+# print()
+# b = ProductKE(['S'])
+# c = ChangeKE.add_sum_of_prods_terms(a,a)
+# print(c)
+# # print(c.parameters)
+# # print(c.composite_terms[0].parameters)
+# # print(c.composite_terms[1].parameters)
+# print(ChangeKE.add_sum_of_prods_terms(a,b))
+# print(ChangeKE.add_sum_of_prods_terms(b,a))
+# print(ChangeKE.add_sum_of_prods_terms(b,b))
 
 
 ## Interpretation
