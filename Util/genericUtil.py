@@ -20,3 +20,9 @@ def sortOutTypePair(k1, k2):
 def interval_overlap(a, b): # Two interval tuples
     return max(0, min(a[1], b[1]) - max(a[0], b[0]))
 
+
+# Update a dictionary's entries with those of another using a given function, e.g. appending
+# NOTE: This modifies d0, so might want to give it a deepcopy
+def update_dict_with(d0, d1, func):
+    for key, value in d1.items(): d0[key] = func(d0[key], value) if key in d0 else value
+    return d0

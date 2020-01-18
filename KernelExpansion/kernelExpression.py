@@ -8,7 +8,7 @@ import re
 import numpy as np
 from KernelExpansion.kernelOperations import *
 from KernelExpansion.kernelInterpretation import *
-from Util.genericUtil import sortOutTypePair
+from Util.genericUtil import sortOutTypePair, update_dict_with
 
 
 # IDEA:
@@ -54,6 +54,10 @@ class KernelExpression(ABC): # Abstract
 
     @abstractmethod
     def __str__(self):
+        pass
+
+    @abstractmethod
+    def __repr__(self):
         pass
 
     @abstractmethod
@@ -162,6 +166,11 @@ class SumOrProductKE(KernelExpression): # Abstract
 
     def __str__(self):
         return (' ' + self.symbol + ' ').join([self.bracket_if_needed(f) for f in order_base_kerns(list(self.base_terms.elements())) + self.composite_terms])
+
+    def __repr__(self):
+        res = type(self).__name__ + '([' + ', '.join(["'"+bt+"'" for bt in self.base_terms]) + ']'
+        cts = ', ' + ', '.join([ct.__repr__() for ct in self.composite_terms]) if self.composite_terms else ''
+        return res + cts + ')'
 
     def __eq__(self, other): ## NOTE: this is intended to check equality of data fields only, i.e. it does not check root or parent
         return type(self) == type(other) and self.base_terms == other.base_terms and lists_of_unhashables__eq(self.composite_terms, other.composite_terms)
@@ -417,6 +426,9 @@ class ChangeKE(KernelExpression):
     def __str__(self):
         return self.CP_or_CW + KernelExpression.bs(str(self.left) + ', ' + str(self.right))
 
+    def __repr__(self):
+        return f"{type(self).__name__}('{self.CP_or_CW}', {self.left.__repr__()}, {self.right.__repr__()})"
+
     def __eq__(self, other): ## NOTE: this is intended to check equality of data fields only, i.e. it does not check root or parent
         return type(self) == type(other) and self.CP_or_CW == other.CP_or_CW and self.left == other.left and self.right == other.right
 
@@ -493,7 +505,7 @@ class ChangeKE(KernelExpression):
         pair = sortOutTypePair(k1, k2)
         if len(pair) == 1:
             if isinstance(k1, ProductKE): res = SumKE([], [k1, k2])
-            else: res = SumKE(+k1.base_terms + k2.base_terms, k1.composite_terms + k2.composite_terms)._new_parameters(k1.parameters + k2.parameters)
+            else: res = SumKE(+k1.base_terms + k2.base_terms, k1.composite_terms + k2.composite_terms)._new_parameters(update_dict_with(deepcopy(k1.parameters), k2.parameters, operator.add))
         else:  # I.e. one SumKE and one ProductKE
             if isinstance(k1, ProductKE): res = SumKE(+k2.base_terms, [k1] + k2.composite_terms)._new_parameters(k2.parameters)
             else: res = SumKE(+k1.base_terms, k1.composite_terms + [k2])._new_parameters(k1.parameters)
