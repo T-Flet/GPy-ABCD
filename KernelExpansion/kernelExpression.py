@@ -8,7 +8,7 @@ import re
 import numpy as np
 from KernelExpansion.kernelOperations import *
 from KernelExpansion.kernelInterpretation import *
-from Util.genericUtil import sortOutTypePair, update_dict_with, partition
+from Util.genericUtil import sortOutTypePair, update_dict_with, partition, lists_of_unhashables__eq, lists_of_unhashables__diff
 
 
 # IDEA:
@@ -20,21 +20,6 @@ from Util.genericUtil import sortOutTypePair, update_dict_with, partition
 #       the mult/sum of sum/mult rules are applied to leaves FROM their parents; this covers the whole tree.
 #   - Both traverse and reduce ignore bare string leaves and assume the user handles them from their ChangeKE parent.
 #   - Methods with input arguments make deepcopies of them in order to prevent unintended modification (exceptions for methods used other methods which do)
-
-
-def lists_of_unhashables__eq(xs, ys):
-    cys = list(ys) # make a mutable copy
-    try:
-        for x in xs: cys.remove(x)
-    except ValueError: return False
-    return not cys
-
-def lists_of_unhashables__diff(xs, ys):
-    cxs = list(xs) # make a mutable copy
-    try:
-        for y in ys: cxs.remove(y)
-    except ValueError: pass
-    return cxs
 
 
 class KernelExpression(ABC): # Abstract
@@ -188,8 +173,7 @@ class SumOrProductKE(KernelExpression): # Abstract
         pass
 
     def absorb_singletons(self):
-        extracted_cts = [ct.extract_if_singleton() for ct in self.composite_terms]
-        (bts, self.composite_terms) = partition(lambda x: isinstance(x, str), extracted_cts)
+        (bts, self.composite_terms) = partition(lambda x: isinstance(x, str), [ct.extract_if_singleton() for ct in self.composite_terms])
         self.new_base(bts)
         return self
 
@@ -323,6 +307,7 @@ class SumKE(SumOrProductKE):
             if len(self.parameters[bt]) == 1: self.parameters.pop(bt)
             else: del self.parameters[bt][0]
         assert sum(self.base_terms.values()) == 0 and len(self.parameters) == 0, 'There are some remaining base_terms or parameters after trying to port them to composite ones'
+        self.base_terms = +self.base_terms  # Clear 0s for neatness
 
         assert all([isinstance(ct, ProductKE) for ct in self.composite_terms]), 'Some composite_terms of a SumKE after sum_of_prods_form are not-ProductKEs'
         return self
@@ -402,7 +387,7 @@ class ProductKE(SumOrProductKE):
     def sum_of_prods_form(self):
         sops = SumKE([])
         if not self.composite_terms:
-            sops.composite_terms.append(ProductKE([])._new_parameters(self.parameters)) # Avoid triggering simplify()
+            sops.composite_terms.append(ProductKE(self.base_terms)._new_parameters(self.parameters)) # Avoid triggering simplify()
             return sops.set_parent(self.parent)._set_all_parents().set_root(self.root)
         else:
             self.composite_terms = [ct.sum_of_prods_form() for ct in self.composite_terms]

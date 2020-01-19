@@ -18,6 +18,23 @@ def partition(p, xs): # Haskell's partition function: partition p xs == (filter 
     return reduce(select, xs, ([],[]))
 
 
+def lists_of_unhashables__eq(xs, ys):
+    cys = list(ys) # make a mutable copy
+    try:
+        for x in xs: cys.remove(x)
+    except ValueError: return False
+    return not cys
+
+def lists_of_unhashables__diff(xs, ys):
+    cxs = list(xs) # make a mutable copy
+    try:
+        for y in ys: cxs.remove(y)
+    except ValueError: pass
+    return cxs
+
+def diff(xs, ys): return list(set(xs) - set(ys))
+
+
 def sortOutTypePair(k1, k2):
     t1 = type(k1)
     t2 = type(k2)
