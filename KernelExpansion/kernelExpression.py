@@ -8,7 +8,7 @@ import re
 import numpy as np
 from KernelExpansion.kernelOperations import *
 from KernelExpansion.kernelInterpretation import *
-from Util.genericUtil import sortOutTypePair, update_dict_with
+from Util.genericUtil import sortOutTypePair, update_dict_with, partition
 
 
 # IDEA:
@@ -168,7 +168,7 @@ class SumOrProductKE(KernelExpression): # Abstract
         return (' ' + self.symbol + ' ').join([self.bracket_if_needed(f) for f in order_base_kerns(list(self.base_terms.elements())) + self.composite_terms])
 
     def __repr__(self):
-        res = type(self).__name__ + '([' + ', '.join(["'"+bt+"'" for bt in self.base_terms]) + ']'
+        res = type(self).__name__ + '([' + ', '.join(["'"+bt+"'" for bt in self.base_terms.elements()]) + ']'
         cts = ', [' + ', '.join([ct.__repr__() for ct in self.composite_terms]) + ']' if self.composite_terms else ''
         return res + cts + ')'
 
@@ -188,10 +188,9 @@ class SumOrProductKE(KernelExpression): # Abstract
         pass
 
     def absorb_singletons(self):
-        singletons = filter(lambda x: isinstance(x[1], str), [(ct, ct.extract_if_singleton()) for ct in self.composite_terms])
-        for s in singletons:
-            self.new_base(s[1])
-            self.composite_terms.remove(s[0])
+        extracted_cts = [ct.extract_if_singleton() for ct in self.composite_terms]
+        (bts, self.composite_terms) = partition(lambda x: isinstance(x, str), extracted_cts)
+        self.new_base(bts)
         return self
 
     def _is_singleton(self):
