@@ -1,4 +1,4 @@
-from modelSearch import *
+from Models.modelSearch import *
 import numpy as np
 
 
@@ -12,23 +12,25 @@ if __name__ == '__main__':
     Y = np.cos( (X - 5) / 2 )**2 * X * 2 + np.random.randn(101, 1) * 1 #- 100
     # Y = np.concatenate(([0.1 * x for x in X[:50]], np.array([0])[:, None], [2 + 3 * np.sin(x*3) for x in X[51:]])) + np.random.randn(101, 1) * 0.3
 
-    # from Util.util import doGPR
-    # doGPR(X, Y, PER + C, 10)
-
+    # from Util.kernelUtil import doGPR
+    # mod = doGPR(X, Y, LIN() * (PER() + C()), 10)
+    # predict_X = np.linspace(10, 15, 50)[:, None]
+    # (p_mean, p_var) = mod.predict(predict_X)
+    # print(predicted)
 
 
     # # Load testing for parallel computations
     # from timeit import timeit
     # def statement():
     #     best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernels=standard_start_kernels, p_rules=production_rules_all,
-    #                                                      restarts=2, utility_function='BIC', rounds=2, buffer=3, verbose=True)
+    #                                                      restarts=2, utility_function='BIC', rounds=2, buffer=3, verbose=True, parallel=True)
     # print(timeit(statement, number = 3))
 
 
 
     # best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernels = [SumKE(['WN'])._initialise()], p_rules = production_rules_all,
     best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all,
-                                                     restarts = 2, utility_function = 'BIC', rounds = 2, buffer = 3, verbose= True)
+                                                     restarts = 2, utility_function = 'BIC', rounds = 2, buffer = 3, verbose = True, parallel = True)
 
     for mod_depth in all_mods: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]) + f'\n{len(mod_depth)}')
 
@@ -40,6 +42,11 @@ if __name__ == '__main__':
         print(bm.cached_utility_function)
         bm.model.plot()
         print(bm.interpret())
+
+
+    predict_X = np.linspace(10, 15, 50)[:, None]
+    preds = best_mods[0].predict(predict_X)
+    print(preds)
 
     plt.show()
 

@@ -29,6 +29,11 @@ class GPModel():
 
     def interpret(self): return fit_ker_to_kex_with_params(self.model.kern, self.kernel_expression).get_interpretation()
 
+    def predict(self, X, quantiles = (2.5, 97.5), full_cov = False, Y_metadata = None, kern = None, likelihood = None, include_likelihood = True):
+        mean, cov = self.model.predict(X, full_cov, Y_metadata, kern, likelihood, include_likelihood)
+        qs = self.model.predict_quantiles(X, quantiles, Y_metadata, kern, likelihood)
+        return {'mean': mean, 'covariance': cov, 'low_quantile': qs[0], 'high_quantile': qs[1]}
+
 
 
     # Model fit objective criteria & related values:
@@ -64,15 +69,17 @@ def print_k_list(k_or_model_list):
 #       preamble in order to work on Windows. Note that this includes find_best_model, and hence any call to this project.
 
 def fit_one_model(X, Y, kex, restarts): return GPModel(X, Y, kex).fit(restarts)
-def fit_model_list(X, Y, k_exprs, restarts = 5):
+def fit_model_list_not_parallel(X, Y, k_exprs, restarts = 5):
+    return [fit_one_model(X, Y, kex, restarts) for kex in k_exprs]
+def fit_model_list_parallel(X, Y, k_exprs, restarts = 5):
     with Pool() as pool: return pool.starmap_async(fit_one_model, [(X, Y, kex, restarts) for kex in k_exprs], int(len(k_exprs) / cpu_count()) + 1).get()
-    # return [fit_one_model(X, Y, kex, restarts) for kex in k_exprs]
 
 
 # start_kernels = [SumKE(['WN'])._initialise()] for the original ABCD
 def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all, restarts = 5,
-                    utility_function = 'BIC', rounds = 2, buffer = 4, verbose = False):
+                    utility_function = 'BIC', rounds = 2, buffer = 4, verbose = False, parallel = True):
     if verbose: print(f'Testing {rounds} layers of model expansion starting from: {print_k_list(start_kernels)}\nModels are fitted with {restarts} random restarts and scored by {utility_function}\n\nOnly the {buffer} best not-already-expanded models proceed to each subsequent layer of expansion')
+    fit_model_list = fit_model_list_parallel if parallel else fit_model_list_not_parallel
 
     tested_models = [sorted(fit_model_list(X, Y, start_kernels, restarts), key = methodcaller(utility_function))]
     sorted_models = not_expanded = tested_models[0]

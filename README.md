@@ -1,2 +1,0 @@
-# GPy-ABCD
-Basic implementation with GPy of an Automatic Bayesian Covariance Discovery (ABCD) system (as in Lloyd, James Robert; Duvenaud, David Kristjanson; Grosse, Roger Baker; Tenenbaum, Joshua B.; Ghahramani, Zoubin (2014): Automatic construction and natural-language description of nonparametric regression models. In. National Conference on Artificial Intelligence, 7/27/2014, pp. 1242–1250. Available online at https://academic.microsoft.com/paper/1950803081.)

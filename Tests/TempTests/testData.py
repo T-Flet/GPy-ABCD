@@ -11,7 +11,7 @@ if __name__ == '__main__':
 
     # np.seterr(all='raise') # Raise exceptions instead of RuntimeWarnings. The exceptions can then be caught by the debugger
 
-    data = sio.loadmat('..\\Data\\02-solar.mat')
+    data = sio.loadmat('./Data/02-solar.mat')
     # print(data.keys())
 
     X = data['X']
