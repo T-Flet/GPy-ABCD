@@ -1,14 +1,12 @@
 from abc import ABC, abstractmethod
 from collections import Counter, defaultdict
 from itertools import chain, product
-from functools import reduce
 import operator
-from copy import deepcopy
 import re
 import numpy as np
-from KernelExpansion.kernelOperations import *
-from KernelExpansion.kernelInterpretation import *
-from Util.genericUtil import sortOutTypePair, update_dict_with, partition, lists_of_unhashables__eq, lists_of_unhashables__diff
+from GPy_ABCD.KernelExpansion.kernelOperations import *
+from GPy_ABCD.KernelExpansion.kernelInterpretation import *
+from GPy_ABCD.Util.genericUtil import sortOutTypePair, update_dict_with, partition, lists_of_unhashables__eq
 
 
 # IDEA:

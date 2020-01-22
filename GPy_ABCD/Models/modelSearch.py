@@ -1,7 +1,7 @@
 from operator import methodcaller, attrgetter
 import warnings
 from GPy.models import GPRegression
-from KernelExpansion.grammar import *
+from GPy_ABCD.KernelExpansion.grammar import *
 from multiprocessing import Pool, cpu_count
 
 

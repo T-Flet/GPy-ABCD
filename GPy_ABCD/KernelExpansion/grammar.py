@@ -1,5 +1,5 @@
-from KernelExpansion.kernelExpressionOperations import *
-from Util.genericUtil import *
+from GPy_ABCD.KernelExpansion.kernelExpressionOperations import *
+from GPy_ABCD.Util.genericUtil import *
 
 
 # base_kerns is already in scope

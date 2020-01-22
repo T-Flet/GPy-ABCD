@@ -1,6 +1,6 @@
 from copy import deepcopy
 from functools import reduce
-from KernelExpansion.kernelOperations import base_sigmoids
+from GPy_ABCD.KernelExpansion.kernelOperations import base_sigmoids
 from operator import add
 
 

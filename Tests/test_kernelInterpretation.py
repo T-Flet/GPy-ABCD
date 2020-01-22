@@ -1,7 +1,7 @@
+from GPy_ABCD.KernelExpansion.kernelExpression import *
+from GPy_ABCD.KernelExpansion.kernelExpressionOperations import *
+from GPy_ABCD.KernelExpansion.kernelInterpretation import *
 import pytest
-from KernelExpansion.kernelExpression import *
-from KernelExpansion.kernelExpressionOperations import *
-from KernelExpansion.kernelInterpretation import *
 
 
 @pytest.mark.parametrize('s_type, ss, res', [

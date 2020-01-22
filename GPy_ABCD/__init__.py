@@ -3,3 +3,6 @@
 __version__ = '0.1.0'
 __author__ = 'Thomas Fletcher <T-Fletcher@outlook.com>'
 __all__ = []
+
+
+from GPy_ABCD.Models.modelSearch import find_best_model

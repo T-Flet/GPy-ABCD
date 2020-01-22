@@ -1,5 +1,5 @@
-from Kernels.baseKernels import *
-from Util.kernelUtil import sampleCurves
+from GPy_ABCD.Kernels.baseKernels import *
+from GPy_ABCD.Util.kernelUtil import sampleCurves
 from matplotlib import pyplot as plt
 
 ## Pure Kernels

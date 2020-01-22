@@ -1,6 +1,6 @@
+from GPy_ABCD.KernelExpansion.kernelExpressionOperations import *
+from GPy_ABCD.Util.genericUtil import diff
 import pytest
-from KernelExpansion.kernelExpressionOperations import *
-from Util.genericUtil import diff
 
 
 # No point in making this a fixture since it will be modified each time and is also needed in parametrisations

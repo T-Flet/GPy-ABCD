@@ -1,6 +1,6 @@
+from GPy_ABCD.Util.kernelUtil import doGPR
+from GPy_ABCD.Kernels.baseKernels import *
 import numpy as np
-from Util.kernelUtil import doGPR
-from Kernels.baseKernels import *
 
 # np.seterr(all='raise') # Raise exceptions instead of RuntimeWarnings. The exceptions can then be caught by the debugger
 

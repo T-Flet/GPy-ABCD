@@ -1,4 +1,4 @@
-from Kernels.sigmoidalKernels import *
+from GPy_ABCD.Kernels.sigmoidalKernels import *
 
 
 # NOTE: This is all because tie_to is documented but not implemented in GPy yet

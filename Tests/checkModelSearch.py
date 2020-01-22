@@ -1,4 +1,4 @@
-from Models.modelSearch import *
+from GPy_ABCD.Models.modelSearch import *
 import numpy as np
 
 

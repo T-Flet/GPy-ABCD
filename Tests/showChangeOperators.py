@@ -1,6 +1,6 @@
+from GPy_ABCD.Util.kernelUtil import sampleCurves
+from GPy_ABCD.Kernels.baseKernels import *
 from matplotlib import pyplot as plt
-from Util.kernelUtil import sampleCurves
-from Kernels.baseKernels import *
 
 
 ## Direct Sigmoidal effects on a given kernel

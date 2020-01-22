@@ -1,4 +1,4 @@
-from Kernels.sigmoidalKernels import SigmoidalKernel, SigmoidalIndicatorKernel
+from GPy_ABCD.Kernels.sigmoidalKernels import SigmoidalKernel, SigmoidalIndicatorKernel
 from paramz.caching import Cache_this
 from GPy.kern.src.kern import CombinationKernel
 from GPy.core.parameterization import Param

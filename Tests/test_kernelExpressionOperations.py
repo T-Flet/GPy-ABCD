@@ -1,6 +1,6 @@
+from GPy_ABCD.KernelExpansion.kernelExpression import *
+from GPy_ABCD.KernelExpansion.kernelExpressionOperations import *
 import pytest
-from KernelExpansion.kernelExpression import *
-from KernelExpansion.kernelExpressionOperations import *
 
 
 @pytest.mark.parametrize('a, b, op, res', [
