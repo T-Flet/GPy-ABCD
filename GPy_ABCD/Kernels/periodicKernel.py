@@ -1,10 +1,9 @@
+import numpy as np
+from scipy.special import i0, i1
 from GPy.kern.src.kern import Kern
 from GPy.core.parameterization import Param
 from paramz.transformations import Logexp
 from paramz.caching import Cache_this
-
-import numpy as np
-from scipy.special import i0, i1
 
 
 # Based on StdPeriodic and gaussianprocess.org/gpml/code/matlab/cov/covPeriodicNoDC.m

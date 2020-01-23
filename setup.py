@@ -2,8 +2,7 @@ import io
 import os
 import re
 
-from setuptools import find_packages
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
 def read(filename):
@@ -15,7 +14,7 @@ def read(filename):
 
 setup(
     name="GPy-ABCD",
-    version="0.1.2",
+    version="0.1.3",
     url="https://github.com/T-Flet/GPy-ABCD",
     license='BSD 3-Clause',
 

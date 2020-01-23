@@ -1,9 +1,9 @@
 import numpy as np
+from abc import abstractmethod
 from GPy.kern.src.basis_funcs import BasisFuncKernel
 from GPy.core.parameterization import Param
 from paramz.transformations import Logexp
 from paramz.caching import Cache_this
-from abc import abstractmethod
 
 
 

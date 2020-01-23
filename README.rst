@@ -51,6 +51,8 @@ Usage
 
     plt.show()
 
+Note: if the :code:`parallel` argument is :code:`True` then the function should be
+called from within a :code:`if __name__ == '__main__':`
 
 Installation
 ------------

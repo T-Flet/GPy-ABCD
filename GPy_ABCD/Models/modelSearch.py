@@ -1,8 +1,9 @@
-from operator import methodcaller, attrgetter
 import warnings
-from GPy.models import GPRegression
-from GPy_ABCD.KernelExpansion.grammar import *
+from operator import methodcaller, attrgetter
 from multiprocessing import Pool, cpu_count
+from GPy.models import GPRegression
+
+from GPy_ABCD.KernelExpansion.grammar import *
 
 
 ## Model class

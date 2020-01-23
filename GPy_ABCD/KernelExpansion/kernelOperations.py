@@ -1,4 +1,4 @@
-from GPy_ABCD.Kernels.baseKernels import *
+from GPy_ABCD.Kernels import *
 
 
 base_kerns = frozenset(['WN', 'C', 'LIN', 'SE', 'PER'])

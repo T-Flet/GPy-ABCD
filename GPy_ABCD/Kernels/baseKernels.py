@@ -1,6 +1,6 @@
 import GPy.kern as _Gk
-from GPy_ABCD.Kernels import linearOffsetKernel as _Lk, changeOperators as _Cs, periodicKernel as _Pk, \
-    sigmoidalKernels as _Sk
+
+from GPy_ABCD.Kernels import linearOffsetKernel as _Lk, changeOperators as _Cs, periodicKernel as _Pk, sigmoidalKernels as _Sk
 
 
 # WN = _Gk.White(1)

@@ -5,4 +5,4 @@ __author__ = 'Thomas Fletcher <T-Fletcher@outlook.com>'
 __all__ = []
 
 
-from GPy_ABCD.Models.modelSearch import find_best_model
+from GPy_ABCD.Models import find_best_model

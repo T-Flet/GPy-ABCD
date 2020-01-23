@@ -1,7 +1,8 @@
 from copy import deepcopy
 from functools import reduce
-from GPy_ABCD.KernelExpansion.kernelOperations import base_sigmoids
 from operator import add
+
+from GPy_ABCD.KernelExpansion.kernelOperations import base_sigmoids
 
 
 base_kern_interp_order = dict(zip(['PER', 'SE', 'C', 'WN', 'LIN', 'Sr', 'S', 'SIr', 'SI', 'sigmoidal_intervals'], range(10)))

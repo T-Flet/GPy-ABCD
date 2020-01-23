@@ -1,8 +1,9 @@
-from GPy_ABCD.Kernels.sigmoidalKernels import SigmoidalKernel, SigmoidalIndicatorKernel
 from paramz.caching import Cache_this
+from paramz.transformations import Logexp
 from GPy.kern.src.kern import CombinationKernel
 from GPy.core.parameterization import Param
-from paramz.transformations import Logexp
+
+from GPy_ABCD.Kernels.sigmoidalKernels import SigmoidalKernel, SigmoidalIndicatorKernel
 
 
 class ChangeKernelBase(CombinationKernel):
