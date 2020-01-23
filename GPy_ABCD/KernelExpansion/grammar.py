@@ -15,7 +15,8 @@ base_order = {'PER': 1, 'WN': 2, 'SE': 3, 'C': 4, 'LIN': 5}
 
 
 standard_start_kernels = [k._initialise() for k in
-                          [SumKE([B]) for B in base_kerns - {'PER'}] + [SumKE(['PER', 'C'])] + # Base Kernels
+                          [SumKE([B]) for B in base_kerns - {'PER'}] + # Base Kernels without PER
+                          [SumKE(['PER', 'C'])] + # PER + C
                           both_changes('LIN')] # To catch a possible changepoint or changewindow with simple enough shapes
 extended_start_kernels = [k._initialise() for k in
                           [SumKE([B]) for B in base_kerns] + # Base Kernels

@@ -1,9 +1,31 @@
 import numpy as np
-import pylab as pb
+# import pylab as pb
 from matplotlib import pyplot as plt
 import pandas as pd
 from plotnine import ggplot, geom_line, aes
+
 from GPy.models import GPRegression
+
+
+def doGPR(X, Y, kernel, restarts):
+    if len(np.shape(X)) == 1: X = np.array(X)[:, None]
+    if len(np.shape(Y)) == 1: Y = np.array(Y)[:, None]
+
+    m = GPRegression(X, Y, kernel)
+
+    # One fit
+    # m.optimize(messages=True)
+
+    # Best out of restarts fits
+    m.optimize_restarts(num_restarts = restarts)
+
+    m.plot()
+    print(m.kern)
+    print(m.log_likelihood())
+
+    plt.show()
+
+    return m
 
 
 def sampleCurves(k):
@@ -22,39 +44,17 @@ def sampleCurves(k):
             geom_line(aes('X', 'value', color='variable')))
 
 
-def sampleCurvesNonGG(k):
-    """
-    Plot sample curves from a given kernel
-    """
-    X = np.linspace(-3., 3., 500)  # 500 points evenly spaced over [-3,3]
-    X = X[:, None]   # reshape X to make it n*D
-    mu = np.zeros(500)  # vector of the means
-    C = k.K(X, X)    # covariance matrix
-    # Generate 20 sample path with mean mu and covariance C
-    Z = np.random.multivariate_normal(mu, C, 20)
-
-    pb.figure() # open new plotting window
-    for i in range(20): pb.plot(X[:], Z[i, :])
-    plt.show()
-
-
-def doGPR(X, Y, kernel, restarts):
-    m = GPRegression(X, Y, kernel)
-
-    # One fit
-    # m.optimize(messages=True)
-
-    # Best out of restarts fits
-    m.optimize_restarts(num_restarts = restarts)
-
-    m.plot()
-    print(m.kern)
-    print(m.log_likelihood())
-
-    plt.show()
-
-    return m
-
-
-# TODO:
-#   Add two functions to quickly generate changepoint and changewindow data from two given formulae
+# def sampleCurvesNonGG(k):
+#     """
+#     Plot sample curves from a given kernel
+#     """
+#     X = np.linspace(-3., 3., 500)  # 500 points evenly spaced over [-3,3]
+#     X = X[:, None]   # reshape X to make it n*D
+#     mu = np.zeros(500)  # vector of the means
+#     C = k.K(X, X)    # covariance matrix
+#     # Generate 20 sample path with mean mu and covariance C
+#     Z = np.random.multivariate_normal(mu, C, 20)
+#
+#     pb.figure() # open new plotting window
+#     for i in range(20): pb.plot(X[:], Z[i, :])
+#     plt.show()

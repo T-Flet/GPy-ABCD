@@ -1,18 +1,20 @@
-from GPy_ABCD.Models.modelSearch import *
 import numpy as np
+from GPy_ABCD.Models.modelSearch import *
+from GPy_ABCD.Util.dataAndPlottingUtil import *
 
 
 if __name__ == '__main__':
 
     # np.seterr(all='raise') # Raise exceptions instead of RuntimeWarnings. The exceptions can then be caught by the debugger
 
+    # X, Y = generate_data(lambda x: x * np.cos( (x - 5) / 2 )**2, np.linspace(-10, 10, 101), 2, 1)
+    # X, Y = generate_changepoint_data(np.linspace(-10, 10, 101), lambda x: 0.1 * x, lambda x: 2 + 3 * np.sin(x*3), 0, 1, 0.3)
+    X, Y = generate_changewindow_data(np.linspace(-10, 10, 101), lambda x: 0.1 * x, lambda x: 3 * np.sin(x*3), -3, 3, 1, 0.3, True)
 
-    X = np.linspace(-10, 10, 101)[:, None]
+    # print(gg_plot(X, Y))
 
-    Y = np.cos( (X - 5) / 2 )**2 * X * 2 + np.random.randn(101, 1) * 1 #- 100
-    # Y = np.concatenate(([0.1 * x for x in X[:50]], np.array([0])[:, None], [2 + 3 * np.sin(x*3) for x in X[51:]])) + np.random.randn(101, 1) * 0.3
 
-    # from Util.kernelUtil import doGPR
+    # from GPy_ABCD.Util.kernelUtil import doGPR
     # mod = doGPR(X, Y, LIN() * (PER() + C()), 10)
     # predict_X = np.linspace(10, 15, 50)[:, None]
     # (p_mean, p_var) = mod.predict(predict_X)

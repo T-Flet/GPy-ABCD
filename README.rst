@@ -2,16 +2,20 @@ GPy-ABCD
 ========
 
 .. image:: https://img.shields.io/pypi/v/GPy-ABCD.svg
-    :target: https://pypi.python.org/pypi/GPy-ABCD
+    :target: https://pypi.python.org/pypi/GPy-ABCD/
     :alt: Latest PyPI version
 
 .. image:: https://img.shields.io/pypi/pyversions/GPy-ABCD.svg
-   :target: https://pypi.python.org/pypi/GPy-ABCD/
-   :alt: Python Versions
+    :target: https://pypi.python.org/pypi/GPy-ABCD/
+    :alt: Python Versions
 
 .. image:: https://img.shields.io/pypi/l/GPy-ABCD.svg
-   :target: https://pypi.python.org/pypi/GPy-ABCD/
-   :alt: License
+    :target: https://github.com/T-Flet/GPy-ABCD/blob/master/LICENSE
+    :alt: License
+
+.. image:: https://github.com/T-Flet/GPy-ABCD/workflows/Python%20package/badge.svg
+    :target: https://github.com/T-Flet/GPy-ABCD/actions?query=workflow%3A%22Python+package%22
+    :alt: Build
 
 Basic implementation with GPy of an Automatic Bayesian Covariance Discovery (ABCD) system
 
@@ -24,32 +28,36 @@ Usage
 -----
 ::
 
+    import numpy as np
     import GPy_ABCD
 
-    best_mods, all_mods, all_exprs = GPy_ABCD.find_best_model(X, Y,
-        start_kernels = standard_start_kernels, p_rules = production_rules_all,
-        restarts = 5, utility_function = 'BIC', rounds = 2, buffer = 4,
-        verbose = False, parallel = True)
+    if __name__ == '__main__':
+        X = np.linspace(-10, 10, 101)[:, None]
+        Y = np.cos( (X - 5) / 2 )**2 * X * 2 + np.random.randn(101, 1)
 
+        best_mods, all_mods, all_exprs = GPy_ABCD.find_best_model(X, Y,
+            start_kernels = standard_start_kernels, p_rules = production_rules_all,
+            restarts = 5, utility_function = 'BIC', rounds = 2, buffer = 4,
+            verbose = False, parallel = True)
 
-    # Typical output printout
+        # Typical output printout
 
-    for mod_depth in all_mods: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]) + f'\n{len(mod_depth)}')
+        for mod_depth in all_mods: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]) + f'\n{len(mod_depth)}')
 
-    from matplotlib import pyplot as plt
-    for bm in best_mods:
-        print(bm.kernel_expression)
-        print(bm.model.kern)
-        print(bm.model.log_likelihood())
-        print(bm.cached_utility_function)
-        bm.model.plot()
-        print(bm.interpret())
+        from matplotlib import pyplot as plt
+        for bm in best_mods:
+            print(bm.kernel_expression)
+            print(bm.model.kern)
+            print(bm.model.log_likelihood())
+            print(bm.cached_utility_function)
+            bm.model.plot()
+            print(bm.interpret())
 
-    predict_X = np.linspace(FROM, TO, BY)[:, None]
-    preds = best_mods[0].predict(predict_X)
-    print(preds)
+        predict_X = np.linspace(10, 15, 50)[:, None]
+        preds = best_mods[0].predict(predict_X)
+        print(preds)
 
-    plt.show()
+        plt.show()
 
 Note: if the :code:`parallel` argument is :code:`True` then the function should be
 called from within a :code:`if __name__ == '__main__':`
@@ -58,7 +66,7 @@ Installation
 ------------
 ::
 
-    pip install gpy_abcd
+    pip install GPy_ABCD
 
 Requirements
 ^^^^^^^^^^^^

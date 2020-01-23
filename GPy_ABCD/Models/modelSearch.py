@@ -79,6 +79,9 @@ def fit_model_list_parallel(X, Y, k_exprs, restarts = 5):
 # start_kernels = [SumKE(['WN'])._initialise()] for the original ABCD
 def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all, restarts = 5,
                     utility_function = 'BIC', rounds = 2, buffer = 4, verbose = False, parallel = True):
+    if len(np.shape(X)) == 1: X = np.array(X)[:, None]
+    if len(np.shape(Y)) == 1: Y = np.array(Y)[:, None]
+
     if verbose: print(f'Testing {rounds} layers of model expansion starting from: {print_k_list(start_kernels)}\nModels are fitted with {restarts} random restarts and scored by {utility_function}\n\nOnly the {buffer} best not-already-expanded models proceed to each subsequent layer of expansion')
     fit_model_list = fit_model_list_parallel if parallel else fit_model_list_not_parallel
 
