@@ -8,8 +8,8 @@ if __name__ == '__main__':
 
     # np.seterr(all='raise') # Raise exceptions instead of RuntimeWarnings. The exceptions can then be caught by the debugger
 
-    X, Y = generate_data(lambda x: x * np.cos( (x - 5) / 2 )**2, np.linspace(-10, 10, 101), 2, 1)
-    # X, Y = generate_changepoint_data(np.linspace(-10, 10, 101), lambda x: 0.1 * x, lambda x: 2 + 3 * np.sin(x*3), 0, 1, 0.3)
+    # X, Y = generate_data(lambda x: x * np.cos( (x - 5) / 2 )**2, np.linspace(-10, 10, 101), 2, 1)
+    X, Y = generate_changepoint_data(np.linspace(-10, 10, 101), lambda x: 0.1 * x, lambda x: 2 + 3 * np.sin(x*3), 0, 1, 0.3)
     # X, Y = generate_changewindow_data(np.linspace(-10, 10, 101), lambda x: 0.1 * x, lambda x: 3 * np.sin(x*3), -3, 3, 1, 0.3, True)
 
     # print(gg_plot(X, Y))

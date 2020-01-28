@@ -15,21 +15,21 @@ X = np.linspace(-50, 50, 101)[:, None]
 
 ## Sigmoidal
 
-# YS = tanhSigmoid((X - 5) / 10) * 5 + np.random.randn(101, 1) * 0.5 #- 100
-# doGPR(X, YS, S, 5)
-# doGPR(X, YS, Sr, 5)
+YS = tanhSigmoid((X - 5) / 10) * 5 + np.random.randn(101, 1) * 0.5 #- 100
+doGPR(X, YS, S(), 5)
+# doGPR(X, YS, Sr(), 5)
 # doGPR(X, YS, S + C, 5)
 # YS = -YS
-# doGPR(X, YS, S, 5)
-# doGPR(X, YS, Sr, 5)
+# doGPR(X, YS, S(), 5)
+# doGPR(X, YS, Sr(), 5)
 # doGPR(X, YS, S + C, 5)
 # YS = tanhSigmoid((X - 5) / (-10)) * 5 + np.random.randn(101, 1) * 0.5 #- 100
-# doGPR(X, YS, S, 5)
-# doGPR(X, YS, Sr, 5)
+# doGPR(X, YS, S(), 5)
+# doGPR(X, YS, Sr(), 5)
 # doGPR(X, YS, S + C, 5)
 # YS = -YS
-# doGPR(X, YS, S, 5)
-# doGPR(X, YS, Sr, 5)
+# doGPR(X, YS, S(), 5)
+# doGPR(X, YS, Sr(), 5)
 # doGPR(X, YS, S + C, 5)
 
 # I.e: S only fits functions moving from 0 to +ve or -ve values; Sr ones going TO 0
@@ -40,20 +40,20 @@ X = np.linspace(-50, 50, 101)[:, None]
 ## Sigmoidal Indicator with Width
 
 # YSI = ((tanhSigmoid((X + 8) / 10) + tanhSigmoid((X - 5) / (-10)) - 1) / tanhSigTwoLocIndicatorHeight(-8, 5, 10)) * 5 + np.random.randn(101, 1) * 0.4 #- 100
-# doGPR(X, YSI, SI, 5)
-# doGPR(X, YSI, SIr, 5)
+# doGPR(X, YSI, SI(), 5)
+# doGPR(X, YSI, SIr(), 5)
 # doGPR(X, YSI, SI + C, 5)
 # YSI = -YSI
-# doGPR(X, YSI, SI, 5)
-# doGPR(X, YSI, SIr, 5)
+# doGPR(X, YSI, SI(), 5)
+# doGPR(X, YSI, SIr(), 5)
 # doGPR(X, YSI, SI + C, 5)
 # YSI = (1 - ((tanhSigmoid((X + 8) / 10) + tanhSigmoid((X - 5) / (-10)) - 1) / tanhSigTwoLocIndicatorHeight(-8, 5, 10))) * 5 + np.random.randn(101, 1) * 0.4 #- 100
-# doGPR(X, YSI, SI, 5)
-# doGPR(X, YSI, SIr, 5)
+# doGPR(X, YSI, SI(), 5)
+# doGPR(X, YSI, SIr(), 5)
 # doGPR(X, YSI, SI + C, 5)
 # YSI = -YSI
-# doGPR(X, YSI, SI, 5)
-# doGPR(X, YSI, SIr, 5)
+# doGPR(X, YSI, SI(), 5)
+# doGPR(X, YSI, SIr(), 5)
 # doGPR(X, YSI, SI + C, 5)
 
 # I.e: Same concept as for S, SIT and SIO etc.: SI only fits functions moving from 0 to +ve or -ve values and then going back to 0; SIr ones going temporarily TO 0

@@ -5,10 +5,10 @@ from GPy_ABCD.Kernels import linearKernel as _Lk, linearOffsetKernel as _LOk, ch
 
 
 #### CORE CONFIGURATION OF BASE KERNELS ####
-__INCLUDE_SE_KERNEL = False
+__INCLUDE_SE_KERNEL = True
 __USE_LIN_KERNEL_HORIZONTAL_OFFSET = False
 __USE_NON_PURELY_PERIODIC_PER_KERNEL = False
-# __USE_SIGMOIDAL_KERNELS_SLOPE = True
+__FIX_SIGMOIDAL_KERNELS_SLOPE = True
 #### CORE CONFIGURATION OF BASE KERNELS ####
 
 
@@ -58,33 +58,35 @@ if __USE_NON_PURELY_PERIODIC_PER_KERNEL: # Not the same as ABCD's
 ## Sigmoidal Kernels
 
 # S = _Sk.SigmoidalKernel(1, False)
-def S(): return _Sk.SigmoidalKernel(1, False)
+def S(): return _Sk.SigmoidalKernel(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 # Sr = _Sk.SigmoidalKernel(1, True)
-def Sr(): return _Sk.SigmoidalKernel(1, True)
+def Sr(): return _Sk.SigmoidalKernel(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
 
 # SIW = _Sk.SigmoidalIndicatorKernelWithWidth(1, False)
-def SI(): return _Sk.SigmoidalIndicatorKernelWithWidth(1, False)
+def SI(): return _Sk.SigmoidalIndicatorKernelWithWidth(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 # SIWr = _Sk.SigmoidalIndicatorKernelWithWidth(1, True)
-def SIr(): return _Sk.SigmoidalIndicatorKernelWithWidth(1, True)
+def SIr(): return _Sk.SigmoidalIndicatorKernelWithWidth(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
 # SI = _Sk.SigmoidalIndicatorKernel(1, False)
-def SIT(): return _Sk.SigmoidalIndicatorKernel(1, False)
+def SIT(): return _Sk.SigmoidalIndicatorKernel(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 # SIr = _Sk.SigmoidalIndicatorKernel(1, True)
-def SITr(): return _Sk.SigmoidalIndicatorKernel(1, True)
+def SITr(): return _Sk.SigmoidalIndicatorKernel(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
 # SIO = _Sk.SigmoidalIndicatorKernelOneLocation(1, False)
-def SIO(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, False)
+def SIO(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 # SIOr = _Sk.SigmoidalIndicatorKernelOneLocation(1, True)
-def SIOr(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, True)
+def SIOr(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
 
 # Change-Operator Kernels
 
 CP = _Cs.ChangePointKernel
+def CP(left, right): return _Cs.ChangePointKernel(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 # CW = _Cs.ChangeWindowKernel
 # CW = _Cs.ChangeWindowKernelOneLocation
 CW = _Cs.ChangeWindowKernelWithWidth
+def CW(left, right): return _Cs.ChangeWindowKernelWithWidth(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
 # CP = _CFs.kCP
 # # CW = _CFs.kCW

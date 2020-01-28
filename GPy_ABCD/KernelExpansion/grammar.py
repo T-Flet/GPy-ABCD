@@ -67,20 +67,20 @@ def make_simple_kexs(pseudo_kexs): return [pseudo_to_real_kex(pkex)._initialise(
 
 
 # TODO: SumKE(['LIN', 'C']) instead of 'LIN'? Only for non-horizontal-offset-including version?
-standard_start_kernels = make_simple_kexs(list(base_kerns - {'LIN', 'SE', 'PER'}) + # Base Kernels without LIN, SE and PER
+standard_start_kernels = make_simple_kexs(list(base_kerns - {'SE'}) + # Base Kernels without SE
                                           [SumKE(['LIN', 'C']), SumKE(['PER', 'C'])] + # More generic LIN and PER
                                           # both_changes('LIN')) # To catch a possible changepoint or changewindow with simple enough shapes
-                                          both_changes(SumKE(['LIN', 'C']))) # To catch a possible changepoint or changewindow with simple enough shapes
+                                          [SumKE(['C'], [ck]) for ck in both_changes('LIN')]) # To catch a possible changepoint or changewindow with simple enough shapes
 
-extended_start_kernels = make_simple_kexs(list(base_kerns - {'LIN', 'PER'}) + # Base Kernels without LIN and PER
+extended_start_kernels = make_simple_kexs(list(base_kerns) + # Base Kernels
                                           [SumKE(['LIN', 'C']), SumKE(['PER', 'C'])] + # More generic LIN and PER
                                           # both_changes(ProductKE(['LIN', 'LIN']))) # To catch a possible changepoint or changewindow with simple enough shapes
                                           both_changes(ProductKE([], [SumKE(['LIN', 'C']), SumKE(['LIN', 'C'])]))) # To catch a possible changepoint or changewindow with simple enough shapes
 
-test_start_kernels = make_simple_kexs(list(base_kerns - {'LIN', 'PER'}) + # Base Kernels without LIN and PER
-                                          [SumKE(['LIN', 'C']), SumKE(['PER', 'C'])] + # More generic LIN and PER
-                                          # both_changes('LIN')) # To catch a possible changepoint or changewindow with simple enough shapes
-                                          both_changes(SumKE(['LIN', 'C']))) # To catch a possible changepoint or changewindow with simple enough shapes
+test_start_kernels = make_simple_kexs(list(base_kerns - {'SE'}) + # Base Kernels without SE and PER
+                                          [SumKE(['PER', 'C'])] + # More generic LIN and PER
+                                          both_changes('LIN')) # To catch a possible changepoint or changewindow with simple enough shapes
+                                          # both_changes(SumKE(['LIN', 'C']))) # To catch a possible changepoint or changewindow with simple enough shapes
 
 
 # Production Rules

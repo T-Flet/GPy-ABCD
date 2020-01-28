@@ -2,7 +2,7 @@ from copy import deepcopy
 from functools import reduce
 from operator import add
 
-from GPy_ABCD.Kernels.baseKernels import __USE_LIN_KERNEL_HORIZONTAL_OFFSET
+from GPy_ABCD.Kernels.baseKernels import __USE_LIN_KERNEL_HORIZONTAL_OFFSET, __FIX_SIGMOIDAL_KERNELS_SLOPE
 from GPy_ABCD.KernelExpansion.kernelOperations import base_sigmoids
 
 
@@ -73,12 +73,17 @@ def postmodifier_interpretation(bps):
         if not isinstance(ps, list): ps = [ps]
         interval_ress = []
         for interval in ps:
-            if 'start' not in interval: interval_ress.append('until {:.2f} (with change slope {:.2f})'.format(interval['end'], interval['end_slope']))
-            elif 'end' not in interval: interval_ress.append('from {:.2f} (with change slope {:.2f})'.format(interval['start'], interval['start_slope']))
+            if 'start' not in interval:
+                if __FIX_SIGMOIDAL_KERNELS_SLOPE: interval_ress.append('until {:.2f}'.format(interval['end']))
+                else: interval_ress.append('until {:.2f} (with change slope {:.2f})'.format(interval['end'], interval['end_slope']))
+            elif 'end' not in interval:
+                if __FIX_SIGMOIDAL_KERNELS_SLOPE: interval_ress.append('from {:.2f}'.format(interval['start']))
+                else: interval_ress.append('from {:.2f} (with change slope {:.2f})'.format(interval['start'], interval['start_slope']))
             else:
                 interval_ress.append('between {:.2f} and {:.2f}'.format(interval['start'], interval['end']))
-                if interval['start_slope'] == interval['end_slope']: interval_ress[-1] += ' (with same change slopes {:.2f})'.format(interval['start_slope'])
-                else: interval_ress[-1] += ' (with change slopes {:.2f} and {:.2f})'.format(interval['start_slope'], interval['end_slope'])
+                if __FIX_SIGMOIDAL_KERNELS_SLOPE:
+                    if interval['start_slope'] == interval['end_slope']: interval_ress[-1] += ' (with same change slopes {:.2f})'.format(interval['start_slope'])
+                    else: interval_ress[-1] += ' (with change slopes {:.2f} and {:.2f})'.format(interval['start_slope'], interval['end_slope'])
         if len(interval_ress) > 1: interval_ress[-1] = 'and ' + interval_ress[-1]
         res = ', '.join(interval_ress)
     elif b not in base_sigmoids: raise ValueError(f'An unexpected type of postmodifier term in a pure product has arisen: {b}')
@@ -89,12 +94,13 @@ def postmodifier_interpretation(bps):
 # Sigmoid-to-interval functions
 
 def sigmoids_to_intervals(bpss):
+    def check_slope(ps): return [{**p, 'slope': 1.} for p in bpss[b]] if __FIX_SIGMOIDAL_KERNELS_SLOPE else bpss[b]
     sigmoidals = {}
     for b in list(bpss.keys()):
-        if b == 'S': sigmoidals[b] = S_overlap([S_interval(p) for p in bpss[b]])
-        elif b == 'Sr': sigmoidals[b] = Sr_overlap([Sr_interval(p) for p in bpss[b]])
-        elif b == 'SI': sigmoidals[b] = SI_overlap([SI_interval(p) for p in bpss[b]])
-        elif b == 'SIr': sigmoidals[b] = SIr_overlap([SIr_hole_interval(p) for p in bpss[b]])
+        if b == 'S': sigmoidals[b] = S_overlap([S_interval(p) for p in check_slope(bpss[b])])
+        elif b == 'Sr': sigmoidals[b] = Sr_overlap([Sr_interval(p) for p in check_slope(bpss[b])])
+        elif b == 'SI': sigmoidals[b] = SI_overlap([SI_interval(p) for p in check_slope(bpss[b])])
+        elif b == 'SIr': sigmoidals[b] = SIr_overlap([SIr_hole_interval(p) for p in check_slope(bpss[b])])
         # if b in sigmoidals: del bpss[b]
     if len(sigmoidals) > 0:
         res = simplify_sigmoidal_intervals(sigmoidals)

@@ -76,7 +76,7 @@ def fit_model_list_parallel(X, Y, k_exprs, restarts = 5):
     with Pool() as pool: return pool.starmap_async(fit_one_model, [(X, Y, kex, restarts) for kex in k_exprs], int(len(k_exprs) / cpu_count()) + 1).get()
 
 
-# start_kernels = [SumKE(['WN'])._initialise()] for the original ABCD
+# start_kernels = make_simple_kexs(['WN']) #for the original ABCD
 def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all, restarts = 5,
                     utility_function = 'BIC', rounds = 2, buffer = 4, verbose = False, parallel = True):
     if len(np.shape(X)) == 1: X = np.array(X)[:, None]
@@ -104,3 +104,5 @@ def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = prod
 
     if verbose: print(f'\nBest models overall: {print_k_list(sorted_models[:buffer])}\n')
     return sorted_models, tested_models, tested_k_exprs
+
+# TODO: increase the number of expanded models in the 1st round and decrease it as rounds increase

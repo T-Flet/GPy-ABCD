@@ -1,4 +1,5 @@
 from GPy_ABCD.Kernels import *
+from GPy_ABCD.Kernels.baseKernels import __FIX_SIGMOIDAL_KERNELS_SLOPE
 
 
 # More efficient than eval(str) in the compositional evaluation (the other way if doing it one-off)
@@ -7,8 +8,9 @@ def base_str_to_ker(base_ker_str): return base_str_to_ker_func[base_ker_str]()
 
 
 base_k_param_names = {k: {'name': v.name, 'parameters': v.parameter_names()} for k, v in {B: base_str_to_ker(B) for B in base_kerns}.items()}
-base_k_param_names['CP'] = {'name': 'change_point', 'parameters': ['location', 'slope']}
-base_k_param_names['CW'] = {'name': 'change_window', 'parameters': ['location', 'slope', 'width']} # Nothing, 'stop_location' or 'width' depending on the used class
+base_k_param_names['CP'] = {'name': 'change_point', 'parameters': ['location']} if __FIX_SIGMOIDAL_KERNELS_SLOPE else {'name': 'change_point', 'parameters': ['location', 'slope']}
+base_k_param_names['CW'] = {'name': 'change_window', 'parameters': ['location', 'width']} if __FIX_SIGMOIDAL_KERNELS_SLOPE else {'name': 'change_window', 'parameters': ['location', 'slope', 'width']}
+    # Nothing, 'stop_location' or 'width' depending on the used class
 
 
 change_k_sigmoid_names = {'CP': {'left': 'Sr', 'right': 'S'}, 'CW': {'left': 'SIr', 'right': 'SI'}}

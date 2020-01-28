@@ -1,6 +1,8 @@
+import pytest
+
 from GPy_ABCD.KernelExpansion.kernelExpressionOperations import *
 from GPy_ABCD.Util.genericUtil import diff
-import pytest
+from GPy_ABCD.Kernels.baseKernels import __USE_LIN_KERNEL_HORIZONTAL_OFFSET
 
 
 # No point in making this a fixture since it will be modified each time and is also needed in parametrisations
@@ -100,7 +102,7 @@ def test_to_kernel():
     test_expr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), SumKE([], [ProductKE(['SE', 'LIN'])]))._initialise()
     ker_by_parts = test_expr.to_kernel()
     ker_by_eval = test_expr.to_kernel_unrefined()
-    assert diff(ker_by_eval.parameter_names(), ker_by_parts.parameter_names()) == ['mul_1.linear_with_offset.variance']
+    assert diff(ker_by_eval.parameter_names(), ker_by_parts.parameter_names()) == (['mul_1.linear_with_offset.variance'] if __USE_LIN_KERNEL_HORIZONTAL_OFFSET else ['mul_1.linear.variance'])
 
 
 def test_deepcopy_root(): # Not really a test of this library's functionality; really just of deepcopy to make sure

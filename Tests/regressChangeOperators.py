@@ -9,7 +9,7 @@ X, Y = generate_changepoint_data(np.linspace(-20, 20, 201), lambda x: 0.1 * x, l
 kernel = CP(LIN(), PER() + C())
 
 
-# X, Y = generate_changewindow_data(np.linspace(-10, 20, 212), lambda x: 0.05 * x, lambda x: 0.05 * x * (x - 14), 0, 15, 1, 0.3, False)
+# X, Y = generate_changewindow_data(np.linspace(-10, 30, 212), lambda x: 0.05 * x, lambda x: 0.05 * x * (x - 14), 0, 15, 1, 0.3, False)
 # kernel = CW(LIN(), LIN() * LIN())
 # # kernel = CW(LIN() * LIN(), LIN())
 
