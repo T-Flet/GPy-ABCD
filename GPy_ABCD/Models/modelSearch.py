@@ -82,14 +82,16 @@ def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = prod
     if len(np.shape(X)) == 1: X = np.array(X)[:, None]
     if len(np.shape(Y)) == 1: Y = np.array(Y)[:, None]
 
-    if verbose: print(f'Testing {rounds} layers of model expansion starting from: {print_k_list(start_kernels)}\nModels are fitted with {restarts} random restarts and scored by {utility_function}\n\nOnly the {buffer} best not-already-expanded models proceed to each subsequent layer of expansion')
+    start_kexs = make_simple_kexs(start_kernels)
+
+    if verbose: print(f'Testing {rounds} layers of model expansion starting from: {print_k_list(start_kexs)}\nModels are fitted with {restarts} random restarts and scored by {utility_function}\n\nOnly the {buffer} best not-already-expanded models proceed to each subsequent layer of expansion')
     fit_model_list = fit_model_list_parallel if parallel else fit_model_list_not_parallel
 
-    tested_models = [sorted(fit_model_list(X, Y, start_kernels, restarts), key = methodcaller(utility_function))]
+    tested_models = [sorted(fit_model_list(X, Y, start_kexs, restarts), key = methodcaller(utility_function))]
     sorted_models = not_expanded = tested_models[0]
     expanded = []
-    tested_k_exprs = deepcopy(start_kernels)
-    if verbose: print(f'(All models are listed in descending order)\n\nBest round-{0} models: {print_k_list(not_expanded[:buffer])}')
+    tested_k_exprs = deepcopy(start_kexs)
+    if verbose: print(f'(All models are listed by descending {utility_function})\n\nBest round-{0} models: {print_k_list(not_expanded[:buffer])}')
 
     for d in range(1, rounds + 1):
         new_k_exprs = [kex for kex in unique(flatten([expand(mod.kernel_expression, p_rules) for mod in not_expanded[:buffer]])) if kex not in tested_k_exprs]
@@ -101,4 +103,4 @@ def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = prod
         if verbose: print(f'Round-{d} models:\n\tBest new: {print_k_list(tested_models[d][:buffer])}\n\tBest so far: {print_k_list(sorted_models[:buffer])}\n\tBest not-already-expanded: {print_k_list(not_expanded[:buffer])}')
 
     if verbose: print(f'\nBest models overall: {print_k_list(sorted_models[:buffer])}\n')
-    return sorted_models[:buffer], tested_models, tested_k_exprs
+    return sorted_models, tested_models, tested_k_exprs

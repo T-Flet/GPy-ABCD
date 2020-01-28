@@ -40,12 +40,12 @@ Usage
             restarts = 5, utility_function = 'BIC', rounds = 2, buffer = 4,
             verbose = False, parallel = True)
 
-        # Typical output printout
+        # Typical full output printout
 
         for mod_depth in all_mods: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]) + f'\n{len(mod_depth)}')
 
         from matplotlib import pyplot as plt
-        for bm in best_mods:
+        for bm in best_mods[:3]:
             print(bm.kernel_expression)
             print(bm.model.kern)
             print(bm.model.log_likelihood())

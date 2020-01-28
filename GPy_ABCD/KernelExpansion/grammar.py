@@ -2,28 +2,6 @@ from GPy_ABCD.KernelExpansion.kernelExpressionOperations import *
 from GPy_ABCD.Util.genericUtil import *
 
 
-# base_kerns is already in scope
-stationary_kerns = frozenset(['WN', 'C', 'SE', 'PER'])
-# addition_idempotent_kerns = frozenset(['WN', 'C'])
-# multiplication_idempotent_kerns = frozenset(['WN', 'C', 'SE'])
-# multiplication_zero_kerns = frozenset(['WN']) # UNLESS LIN!!!!!!! I.E. ZERO ONLY FOR STATIONARY KERNELS
-# multiplication_identity_kerns = frozenset(['C'])
-
-base_order = {'PER': 1, 'WN': 2, 'SE': 3, 'C': 4, 'LIN': 5}
-    # Then sort by: sorted(LIST, key=lambda SYM: baseOrder[SYM])
-
-
-
-standard_start_kernels = [k._initialise() for k in
-                          [SumKE([B]) for B in base_kerns - {'PER'}] + # Base Kernels without PER
-                          [SumKE(['PER', 'C'])] + # PER + C
-                          both_changes('LIN')] # To catch a possible changepoint or changewindow with simple enough shapes
-extended_start_kernels = [k._initialise() for k in
-                          [SumKE([B]) for B in base_kerns] + # Base Kernels
-                          [SumKE(['PER', 'SE'])] + # A catch-all-shapes periodic kernel
-                          both_changes('LIN')] # To catch a possible changepoint or changewindow with simple enough shapes
-
-
 ## Expansion functions
 
 def standardise_singleton_root(k_expr_root): # Standardise a root if singleton: to SumKE of a base kernel or to the single composite term, making it the root
@@ -75,10 +53,38 @@ production_rules_by_type = {
     }
 }
 
+
+
+## Reasonable Start Kernels & Production Rules
+
+# Kernels
+
+def pseudo_to_real_kex(pkex):
+    if isinstance(pkex, KernelExpression): return pkex
+    elif pkex in base_kerns: return SumKE([pkex])
+    else: raise ValueError(f'Given pseudo-kernel-expression value could not be parsed: {pkex}')
+def make_simple_kexs(pseudo_kexs): return [pseudo_to_real_kex(pkex)._initialise() for pkex in pseudo_kexs]
+
+
+# TODO: SumKE(['LIN', 'C']) instead of 'LIN'? Only for non-horizontal-offset-including version?
+standard_start_kernels = make_simple_kexs(list(base_kerns - {'LIN', 'SE', 'PER'}) + # Base Kernels without LIN, SE and PER
+                                          [SumKE(['LIN', 'C']), SumKE(['PER', 'C'])] + # More generic LIN and PER
+                                          # both_changes('LIN')) # To catch a possible changepoint or changewindow with simple enough shapes
+                                          both_changes(SumKE(['LIN', 'C']))) # To catch a possible changepoint or changewindow with simple enough shapes
+
+extended_start_kernels = make_simple_kexs(list(base_kerns - {'LIN', 'PER'}) + # Base Kernels without LIN and PER
+                                          [SumKE(['LIN', 'C']), SumKE(['PER', 'C'])] + # More generic LIN and PER
+                                          # both_changes(ProductKE(['LIN', 'LIN']))) # To catch a possible changepoint or changewindow with simple enough shapes
+                                          both_changes(ProductKE([], [SumKE(['LIN', 'C']), SumKE(['LIN', 'C'])]))) # To catch a possible changepoint or changewindow with simple enough shapes
+
+test_start_kernels = make_simple_kexs(list(base_kerns - {'LIN', 'PER'}) + # Base Kernels without LIN and PER
+                                          [SumKE(['LIN', 'C']), SumKE(['PER', 'C'])] + # More generic LIN and PER
+                                          # both_changes('LIN')) # To catch a possible changepoint or changewindow with simple enough shapes
+                                          both_changes(SumKE(['LIN', 'C']))) # To catch a possible changepoint or changewindow with simple enough shapes
+
+
+# Production Rules
+
 production_rules_all = flatten([list(x.values()) for x in production_rules_by_type.values()])
 # production_rules_start = [plus_base, times_base, replace_base, change_new_base]
 # production_rules_start = list(production_rules_by_type['basic'].values()) + [change_same]
-
-
-# TODO:
-#   Test having PER + C instead of PER in some other rules, e.g. replace_with_singleton, since it seems that PER is often abandoned quickly

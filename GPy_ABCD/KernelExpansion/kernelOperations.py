@@ -1,9 +1,6 @@
 from GPy_ABCD.Kernels import *
 
 
-base_kerns = frozenset(['WN', 'C', 'LIN', 'SE', 'PER'])
-base_sigmoids = frozenset(['S', 'Sr', 'SI', 'SIr'])
-
 # More efficient than eval(str) in the compositional evaluation (the other way if doing it one-off)
 base_str_to_ker_func = {'PER': PER, 'WN': WN, 'SE': SE, 'C': C, 'LIN': LIN, 'CP': CP, 'CW': CW}
 def base_str_to_ker(base_ker_str): return base_str_to_ker_func[base_ker_str]()
