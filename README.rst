@@ -37,8 +37,8 @@ Usage
 
         best_mods, all_mods, all_exprs = GPy_ABCD.find_best_model(X, Y,
             start_kernels = standard_start_kernels, p_rules = production_rules_all,
-            restarts = 5, utility_function = 'BIC', rounds = 2, buffer = 4,
-            verbose = False, parallel = True)
+            restarts = 5, utility_function = 'BIC', rounds = 2, buffer = 3,
+            dynamic_buffer = True, verbose = False, parallel = True)
 
         # Typical full output printout
 

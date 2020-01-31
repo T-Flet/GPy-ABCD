@@ -7,7 +7,20 @@ from plotnine import ggplot, geom_line, aes
 from GPy.models import GPRegression
 
 
-def doGPR(X, Y, kernel, restarts):
+## GPy Model Scoring
+
+def score_ps(m):
+    ll = m.log_likelihood()
+    n = len(m.X) # number of data points
+    k = m._size_transformed() # number of estimated parameters, i.e. model degrees of freedom
+    return ll, n, k
+
+def BIC(ll, n, k): return -2 * ll + k * np.log(n)
+def AIC(ll, n, k): return 2 * (-ll + k)
+def AICc(ll, n, k): return 2 * (-ll + k + (k**2 + k) / (n - k - 1))
+
+
+def doGPR(X, Y, kernel, restarts, score = BIC):
     if len(np.shape(X)) == 1: X = np.array(X)[:, None]
     if len(np.shape(Y)) == 1: Y = np.array(Y)[:, None]
 
@@ -21,7 +34,8 @@ def doGPR(X, Y, kernel, restarts):
 
     m.plot()
     print(m.kern)
-    print(m.log_likelihood())
+    print(f'Log-Likelihood: {m.log_likelihood()}')
+    print(f'{score.__name__}: {score(*score_ps(m))}')
 
     plt.show()
 

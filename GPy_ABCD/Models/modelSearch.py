@@ -4,6 +4,7 @@ from multiprocessing import Pool, cpu_count
 from GPy.models import GPRegression
 
 from GPy_ABCD.KernelExpansion.grammar import *
+from GPy_ABCD.Util.kernelUtil import score_ps, AIC, AICc, BIC
 
 
 ## Model class
@@ -44,17 +45,17 @@ class GPModel():
     def _k(self): return self.model._size_transformed() # number of estimated parameters, i.e. model degrees of freedom
 
     def AIC(self):
-        self.cached_utility_function = 2 * (-self._ll() + self._k())
+        self.cached_utility_function = AIC(*score_ps(self.model))
         self.cached_utility_function_type = 'AIC'
         return self.cached_utility_function
 
     def AICc(self): # Assumes univariate model linear in its parameters and with normally-distributed residuals conditional upon regressors
-        self.cached_utility_function = 2 * (-self._ll() + self._k() + (self._k()**2 + self._k()) / (self._n() - self._k() - 1))
+        self.cached_utility_function = AICc(*score_ps(self.model))
         self.cached_utility_function_type = 'AICc'
         return self.cached_utility_function
 
     def BIC(self):
-        self.cached_utility_function = -2 * self._ll() + self._k() * np.log(self._n())
+        self.cached_utility_function = BIC(*score_ps(self.model))
         self.cached_utility_function_type = 'BIC'
         return self.cached_utility_function
 
@@ -78,31 +79,40 @@ def fit_model_list_parallel(X, Y, k_exprs, restarts = 5):
 
 # start_kernels = make_simple_kexs(['WN']) #for the original ABCD
 def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all, restarts = 5,
-                    utility_function = 'BIC', rounds = 2, buffer = 4, verbose = False, parallel = True):
+                    utility_function = 'BIC', rounds = 2, buffer = 4, dynamic_buffer = True, verbose = False, parallel = True):
     if len(np.shape(X)) == 1: X = np.array(X)[:, None]
     if len(np.shape(Y)) == 1: Y = np.array(Y)[:, None]
 
     start_kexs = make_simple_kexs(start_kernels)
 
-    if verbose: print(f'Testing {rounds} layers of model expansion starting from: {print_k_list(start_kexs)}\nModels are fitted with {restarts} random restarts and scored by {utility_function}\n\nOnly the {buffer} best not-already-expanded models proceed to each subsequent layer of expansion')
+    if verbose: print(f'Testing {rounds} layers of model expansion starting from: {print_k_list(start_kexs)}\nModels are fitted with {restarts} random restarts and scored by {utility_function}')
     fit_model_list = fit_model_list_parallel if parallel else fit_model_list_not_parallel
 
     tested_models = [sorted(fit_model_list(X, Y, start_kexs, restarts), key = methodcaller(utility_function))]
     sorted_models = not_expanded = tested_models[0]
     expanded = []
     tested_k_exprs = deepcopy(start_kexs)
-    if verbose: print(f'(All models are listed by descending {utility_function})\n\nBest round-{0} models: {print_k_list(not_expanded[:buffer])}')
+
+    original_buffer = buffer
+    if dynamic_buffer: buffer += 2 # Higher for the 1st round
+    if verbose: print(f'(All models are listed by descending {utility_function})\n\nBest round-{0} models [{buffer} moving forward]: {print_k_list(not_expanded[:buffer])}')
 
     for d in range(1, rounds + 1):
         new_k_exprs = [kex for kex in unique(flatten([expand(mod.kernel_expression, p_rules) for mod in not_expanded[:buffer]])) if kex not in tested_k_exprs]
         tested_models.append(sorted(fit_model_list(X, Y, new_k_exprs, restarts), key = methodcaller(utility_function))) # tested_models[d]
+
         sorted_models = sorted(flatten(tested_models), key = attrgetter('cached_utility_function')) # Merge-sort would be applicable
         expanded += not_expanded[:buffer]
         not_expanded = lists_of_unhashables__diff(sorted_models, expanded) # More efficient than sorting another whole list
         tested_k_exprs += new_k_exprs
-        if verbose: print(f'Round-{d} models:\n\tBest new: {print_k_list(tested_models[d][:buffer])}\n\tBest so far: {print_k_list(sorted_models[:buffer])}\n\tBest not-already-expanded: {print_k_list(not_expanded[:buffer])}')
 
-    if verbose: print(f'\nBest models overall: {print_k_list(sorted_models[:buffer])}\n')
+        buffer -= 1 if dynamic_buffer and (d <= 2 or d in range(rounds - 1, rounds + 1)) else 0
+        if verbose: print(f'Round-{d} models [{buffer} moving forward]:\n\tBest new: {print_k_list(tested_models[d][:original_buffer])}\n\tBest so far: {print_k_list(sorted_models[:original_buffer])}\n\tBest not-already-expanded: {print_k_list(not_expanded[:buffer])}')
+
+    if verbose: print(f'\nBest models overall: {print_k_list(sorted_models[:original_buffer])}\n')
     return sorted_models, tested_models, tested_k_exprs
 
-# TODO: increase the number of expanded models in the 1st round and decrease it as rounds increase
+
+# TODO:
+#   - make the dynamic buffer configurable
+#   - make a function to pick-up the modelling from a given selection of tested models
