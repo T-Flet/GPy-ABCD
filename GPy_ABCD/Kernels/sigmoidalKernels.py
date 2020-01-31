@@ -68,7 +68,7 @@ class SigmoidalKernel(SigmoidalKernelBase):
 
     def __init__(self, input_dim: int, reverse: bool = False, variance: float = 1., location: float = 0., slope: float = 0.5,
                  active_dims: int = None, name: str = 'sigmoidal', fixed_slope = False) -> None:
-        super(SigmoidalKernel, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name)
+        super(SigmoidalKernel, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name, fixed_slope)
 
     def is_reversed(self):
         return (self.slope < 0) ^ self.reverse
@@ -122,7 +122,7 @@ class SigmoidalIndicatorKernelOneLocation(SigmoidalKernelBase):
 
     def __init__(self, input_dim: int, reverse: bool = False, variance: float = 1., location: float = 0., slope: float = 0.5,
                  active_dims: int = None, name: str = 'sigmoidal_indicator', fixed_slope = False) -> None:
-        super(SigmoidalIndicatorKernelOneLocation, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name)
+        super(SigmoidalIndicatorKernelOneLocation, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name, fixed_slope)
 
     @staticmethod
     def _tanhSigOneLocIndicatorHalfWidth(s, y = 0.01): # Distance from peak of 1-location indicator kernel to when y is reached
@@ -191,7 +191,7 @@ class SigmoidalIndicatorKernel(SigmoidalKernelBase):
 
     def __init__(self, input_dim: int, reverse: bool = False, variance: float = 1., location: float = 0., stop_location: float = 1., slope: float = 0.5,
                  active_dims: int = None, name: str = 'sigmoidal_indicator', fixed_slope = False) -> None:
-        super(SigmoidalIndicatorKernel, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name)
+        super(SigmoidalIndicatorKernel, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name, fixed_slope)
         self.stop_location = Param('stop_location', stop_location)
         self.link_parameters(self.stop_location)
 
@@ -266,7 +266,7 @@ class SigmoidalIndicatorKernelWithWidth(SigmoidalKernelBase):
 
     def __init__(self, input_dim: int, reverse: bool = False, variance: float = 1., location: float = 0., slope: float = 0.5, width: float = 1.,
                  active_dims: int = None, name: str = 'sigmoidal_indicator', fixed_slope = False) -> None:
-        super(SigmoidalIndicatorKernelWithWidth, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name)
+        super(SigmoidalIndicatorKernelWithWidth, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name, fixed_slope)
         self.width = Param('width', width, Logexp())
         self.link_parameters(self.width)
 

@@ -3,7 +3,7 @@ from paramz.transformations import Logexp
 from GPy.kern.src.kern import CombinationKernel
 from GPy.core.parameterization import Param
 
-from GPy_ABCD.Kernels.sigmoidalKernels import SigmoidalKernel, SigmoidalIndicatorKernel
+from GPy_ABCD.Kernels.sigmoidalKernels import SigmoidalKernel, SigmoidalIndicatorKernel, SigmoidalIndicatorKernelWithWidth
 
 
 class ChangeKernelBase(CombinationKernel):
@@ -100,7 +100,7 @@ class ChangeWindowKernel(ChangeKernelBase):
 class ChangeWindowKernelWithWidth(ChangeKernelBase):
     """Composite kernel changing from left to right subkernels at a limited location"""
     def __init__(self, left, right, location: float = 0., slope: float = 0.5, width: float = 1., name='change_window', fixed_slope = False):
-        super(ChangeWindowKernelWithWidth, self).__init__(left, right, SigmoidalIndicatorKernel, location, slope, name, fixed_slope)
+        super(ChangeWindowKernelWithWidth, self).__init__(left, right, SigmoidalIndicatorKernelWithWidth, location, slope, name, fixed_slope)
         self.width = Param('width', width, Logexp())
         self.link_parameter(self.width)
 
