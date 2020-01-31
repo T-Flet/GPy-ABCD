@@ -1,6 +1,6 @@
 from GPy_ABCD.KernelExpansion.kernelExpressionOperations import *
 from GPy_ABCD.Util.genericUtil import *
-from GPy_ABCD.Kernels.baseKernels import __USE_LIN_KERNEL_HORIZONTAL_OFFSET
+from GPy_ABCD.Kernels.baseKernels import __INCLUDE_SE_KERNEL, __USE_LIN_KERNEL_HORIZONTAL_OFFSET
 
 
 ## Expansion functions
@@ -26,15 +26,17 @@ def deep_apply(operator, S, *args): # Deepcopy the tree and connect the new node
 
 ## Production Rules
 
-def plus_base(S): return [deep_apply(add, S, B) for B in base_kerns]
-def times_base(S): return [deep_apply(multiply, S, B) for B in base_kerns - {'C'}]
-def replace_base(S): return [deep_apply(swap_base, S, B) for B in base_kerns]
-def change_new_base(S): return [deep_apply(both_changes, S, B) for B in base_kerns - {'C'}] # Not in original ABCD
+base_kerns_for_prod = base_kerns if __INCLUDE_SE_KERNEL else base_kerns - {'SE'}
+
+def plus_base(S): return [deep_apply(add, S, B) for B in base_kerns_for_prod]
+def times_base(S): return [deep_apply(multiply, S, B) for B in base_kerns_for_prod - {'C'}]
+def replace_base(S): return [deep_apply(swap_base, S, B) for B in base_kerns_for_prod]
+def change_new_base(S): return [deep_apply(both_changes, S, B) for B in base_kerns_for_prod - {'C'}] # Not in original ABCD
 def change_same(S): return [deep_apply(both_changes, S)]
 def change_window_constant(S): return [deep_apply(one_change, S, 'CW', 'C')]
 def change_point_linear(S): return [deep_apply(one_change, S, 'CP', 'LIN')] # Not in original ABCD
-def times_shifted_base(S): return [deep_apply(multiply, S, SumKE([B, 'C'])) for B in base_kerns - {'C'}]
-def replace_with_singleton(S): return [deep_apply(replace_node, S, SumKE([B])) for B in base_kerns]
+def times_shifted_base(S): return [deep_apply(multiply, S, SumKE([B, 'C'])) for B in base_kerns_for_prod - {'C'}]
+def replace_with_singleton(S): return [deep_apply(replace_node, S, SumKE([B])) for B in base_kerns_for_prod]
 def remove_some_term(S): return [deep_apply(remove_a_term, S)]
 def try_higher_curves(S): return [deep_apply(higher_curves, S)] # Not in original ABCD
 
@@ -70,7 +72,6 @@ def pseudo_to_real_kex(pkex):
 def make_simple_kexs(pseudo_kexs): return [pseudo_to_real_kex(pkex)._initialise() for pkex in pseudo_kexs]
 
 
-# TODO: SumKE(['LIN', 'C']) instead of 'LIN'? Only for non-horizontal-offset-including version?
 standard_start_kernels = make_simple_kexs(list(base_kerns - {'SE'}) + # Base Kernels without SE
                                           [ProductKE(['LIN', 'LIN']), ProductKE(['LIN', 'LIN', 'LIN']), SumKE(['PER', 'C'])] + # More generic LIN and PER
                                           both_changes('LIN')) # To catch a possible changepoint or changewindow with simple enough shapes
@@ -79,7 +80,7 @@ extended_start_kernels = make_simple_kexs(list(base_kerns - {'SE'}) + # Base Ker
                                           [ProductKE(['LIN', 'LIN']), ProductKE(['LIN', 'LIN', 'LIN']), SumKE(['PER', 'C'])] + # More generic LIN and PER
                                           [SumKE(['C'], [ck]) for ck in both_changes('LIN')]) # To catch a possible changepoint or changewindow with simple enough shapes
 
-test_start_kernels = make_simple_kexs(list(base_kerns) + # Base Kernels
+test_start_kernels = make_simple_kexs(list(base_kerns - {'SE'}) + # Base Kernels without SE
                                           [ProductKE(['LIN', 'LIN']), ProductKE(['LIN', 'LIN', 'LIN']), SumKE(['PER', 'C'])] + # More generic LIN and PER
                                           both_changes('LIN')) # To catch a possible changepoint or changewindow with simple enough shapes
 

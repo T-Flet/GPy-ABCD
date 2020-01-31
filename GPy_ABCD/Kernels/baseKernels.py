@@ -5,7 +5,7 @@ from GPy_ABCD.Kernels import linearKernel as _Lk, linearOffsetKernel as _LOk, ch
 
 
 #### CORE CONFIGURATION OF BASE KERNELS ####
-__INCLUDE_SE_KERNEL = True # The most generic kernel; always a bargain in terms of parameters
+__INCLUDE_SE_KERNEL = False # The most generic kernel; always a bargain in terms of parameters
 __USE_LIN_KERNEL_HORIZONTAL_OFFSET = True # Identifies the polynomial roots; more accurate but one extra parameter per degree
 __USE_NON_PURELY_PERIODIC_PER_KERNEL = False # Full standard periodic kernel [MacKay (1998)] instead of only its purely periodic part
 __FIX_SIGMOIDAL_KERNELS_SLOPE = True # Hence one parameter fewer for each sigmoidal and related kernel
@@ -15,7 +15,7 @@ __FIX_SIGMOIDAL_KERNELS_SLOPE = True # Hence one parameter fewer for each sigmoi
 
 ## Useful Kernel Sets
 
-base_kerns = frozenset(['WN', 'C', 'LIN', 'SE', 'PER']) if __INCLUDE_SE_KERNEL else frozenset(['WN', 'C', 'LIN', 'PER'])
+base_kerns = frozenset(['WN', 'C', 'LIN', 'SE', 'PER']) #if __INCLUDE_SE_KERNEL else frozenset(['WN', 'C', 'LIN', 'PER'])
 
 stationary_kerns = frozenset(['WN', 'C', 'SE', 'PER'])
 # addition_idempotent_kerns = frozenset(['WN', 'C'])
@@ -31,63 +31,43 @@ base_sigmoids = frozenset(['S', 'Sr', 'SI', 'SIr'])
 
 ## Base Kernels
 
-# WN = _Gk.White(1)
 def WN(): return _Gk.White(1)
 
-# C = _Gk.Bias(1)
 def C(): return _Gk.Bias(1)
 
-# LIN = _Gk.Linear(1)
 # def LIN(): return _Gk.Linear(1) # Not the same as ABCD's; missing horizontal offset
-# LIN = _Lk.Linear(1)
 def LIN(): return _Lk.Linear(1) # Not the same as ABCD's; missing horizontal offset
 if __USE_LIN_KERNEL_HORIZONTAL_OFFSET: # The version in ABCD; not sure if a good idea; the horizontal offset is the same as a vertical one, which is just kC
-    # LIN = _Lk.LinearWithOffset(1)
     def LIN(): return _LOk.LinearWithOffset(1)
 
-# SE = _Gk.RBF(1)
 def SE(): return _Gk.RBF(1)
 
-# PER = _Pk.PureStdPeriodicKernel(1)
 def PER(): return _Pk.PureStdPeriodicKernel(1)
 if __USE_NON_PURELY_PERIODIC_PER_KERNEL: # Not the same as ABCD's
-    # PER = _Gk.StdPeriodic(1)
     def PER(): return _Gk.StdPeriodic(1)
 
 
 ## Sigmoidal Kernels
 
-# S = _Sk.SigmoidalKernel(1, False)
 def S(): return _Sk.SigmoidalKernel(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-# Sr = _Sk.SigmoidalKernel(1, True)
 def Sr(): return _Sk.SigmoidalKernel(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
 
-# SIW = _Sk.SigmoidalIndicatorKernelWithWidth(1, False)
 def SI(): return _Sk.SigmoidalIndicatorKernelWithWidth(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-# SIWr = _Sk.SigmoidalIndicatorKernelWithWidth(1, True)
 def SIr(): return _Sk.SigmoidalIndicatorKernelWithWidth(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
-# SI = _Sk.SigmoidalIndicatorKernel(1, False)
 def SIT(): return _Sk.SigmoidalIndicatorKernel(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-# SIr = _Sk.SigmoidalIndicatorKernel(1, True)
 def SITr(): return _Sk.SigmoidalIndicatorKernel(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
-# SIO = _Sk.SigmoidalIndicatorKernelOneLocation(1, False)
 def SIO(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-# SIOr = _Sk.SigmoidalIndicatorKernelOneLocation(1, True)
 def SIOr(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
 
 # Change-Operator Kernels
 
-CP = _Cs.ChangePointKernel
 def CP(left, right): return _Cs.ChangePointKernel(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-# # CW = _Cs.ChangeWindowKernel
 # def CW(left, right): return _Cs.ChangeWindowKernel(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-# # CW = _Cs.ChangeWindowKernelOneLocation
 # def CW(left, right): return _Cs.ChangeWindowKernelOneLocation(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-# CW = _Cs.ChangeWindowKernelWithWidth
 def CW(left, right): return _Cs.ChangeWindowKernelWithWidth(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
 # CP = _CFs.kCP

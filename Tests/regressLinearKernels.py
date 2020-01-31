@@ -15,7 +15,7 @@ from GPy_ABCD.Models.modelSearch import fit_model_list_parallel
 # kernel = LinearWithOffset(1)
 
 
-X, Y = generate_data(lambda x: (x - 2) * (x  + 3), np.linspace(-20, 20, 201), 1, 1)
+X, Y = generate_data(lambda x: - (x - 2) * (x + 3), np.linspace(-20, 20, 201), 1, 20)
 # kernel = Linear(1) * Linear(1)
 # kernel = Linear(1) * Linear(1) + C()
 # kernel = ProductKE(['LIN', 'LIN']).to_kernel()

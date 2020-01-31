@@ -322,6 +322,7 @@ class ProductKE(SumOrProductKE):
 
     def simplify_base_terms(self):
         if self.base_terms['WN'] > 0: # WN acts as a multiplicative zero for all stationary kernels, i.e. all but LIN and sigmoids
+            self.base_terms['WN'] = 1 # It is also idempotent
             for bt in list(self.base_terms.keys()):
                 if bt not in ['WN', 'LIN'] + list(base_sigmoids): del self.base_terms[bt]
         else:

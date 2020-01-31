@@ -14,7 +14,7 @@ def read(filename):
 
 setup(
     name="GPy-ABCD",
-    version="0.1.3",
+    version="0.1.4",
     url="https://github.com/T-Flet/GPy-ABCD",
     license='BSD 3-Clause',
 

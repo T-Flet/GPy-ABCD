@@ -13,7 +13,7 @@ base_expr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), C
     # Base terms
     (SumKE(['WN', 'WN', 'C', 'C', 'LIN', 'LIN', 'SE', 'SE', 'PER', 'PER']), SumKE(['WN', 'C', 'LIN', 'LIN', 'SE', 'SE', 'PER', 'PER'])),
     (ProductKE(['C', 'LIN', 'LIN', 'SE', 'SE', 'PER', 'PER']), ProductKE(['LIN', 'LIN', 'SE', 'PER', 'PER'])),
-    (ProductKE(['C', 'LIN', 'LIN', 'SE', 'SE', 'PER', 'PER', 'WN']), ProductKE(['LIN', 'LIN', 'WN'])),
+    (ProductKE(['C', 'LIN', 'LIN', 'SE', 'SE', 'PER', 'PER', 'WN', 'WN']), ProductKE(['LIN', 'LIN', 'WN'])),
     # Nested Singleton Extractions
         # Base term singletons
     (ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), SumKE([], [ProductKE(['WN', 'C'])]))._initialise(), ChangeKE('CP', ProductKE(['PER'], [SumKE(['WN', 'C'])]), 'WN')._initialise()),

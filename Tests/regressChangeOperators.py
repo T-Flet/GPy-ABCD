@@ -24,4 +24,4 @@ kernel = CW(LIN(), LIN() * LIN())
 # # kernel = CW(PER + C, LIN)
 
 
-m = doGPR(X, Y, kernel, 5)
+m = doGPR(X, Y, kernel, 10)
