@@ -82,6 +82,17 @@ def test_both_changes(kex, other, res):
 def test_remove_a_term(kex, res): assert remove_a_term(kex) == res
 
 
+@pytest.mark.parametrize('kex, res', [
+    (SumKE(['PER', 'SE']), [SumKE(['PER'], [ProductKE(['LIN', 'LIN'])]), SumKE(['PER'], [ProductKE(['LIN', 'LIN', 'LIN'])])]),
+    (ProductKE(['PER', 'SE']), [ProductKE(['PER', 'LIN', 'LIN']), ProductKE(['PER', 'LIN', 'LIN', 'LIN']), ProductKE(['PER', 'PER'])]),
+    (ProductKE(['SE', 'SE']), [ProductKE(['LIN', 'LIN']), ProductKE(['LIN', 'LIN', 'LIN']), ProductKE(['PER', 'PER'])]),
+    (ChangeKE('CP', 'C', ProductKE(['LIN', 'SE'])), [ChangeKE('CP', ProductKE(['LIN', 'LIN']), ProductKE(['LIN', 'SE'])), ChangeKE('CP', ProductKE(['LIN', 'LIN', 'LIN']), ProductKE(['LIN', 'SE']))]),
+    (ChangeKE('CW', ProductKE(['LIN', 'SE']), 'PER'), [ChangeKE('CW', ProductKE(['LIN', 'SE']), ProductKE(['LIN', 'LIN'])), ChangeKE('CW', ProductKE(['LIN', 'SE']), ProductKE(['LIN', 'LIN', 'LIN']))]),
+    ('PER', [[]]) # This does not occur in expansions
+])
+def test_higher_curves(kex, res): assert higher_curves(kex) == res
+
+
 
 
 @pytest.mark.by_inspection

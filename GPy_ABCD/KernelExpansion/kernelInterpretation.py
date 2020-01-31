@@ -42,13 +42,13 @@ def first_term_interpretation(bps):
     elif b == 'LIN':
         if len(ps) > 1:
             if __USE_LIN_KERNEL_HORIZONTAL_OFFSET:
-                res = 'A polynomial function of order {:d} with offsets '.format(len(ps))
+                res = 'A polynomial function of order {:d} with roots '.format(len(ps))
                 offsets = ['{:.2f}'.format(p['offset']) for p in ps]
                 if len(ps) > 1: offsets[-1] = 'and ' + offsets[-1]
                 res += ', '.join(offsets)
             else: res = 'A polynomial function of order {:d}'.format(len(ps))
         else:
-            if __USE_LIN_KERNEL_HORIZONTAL_OFFSET: res = 'A linear function with offset {:.2f}'.format(ps[0]['offset'])
+            if __USE_LIN_KERNEL_HORIZONTAL_OFFSET: res = 'A linear function with horizontal offset {:.2f}'.format(ps[0]['offset'])
             else: res = 'A linear function'
     else: raise ValueError(f'An unexpected type of first term in a pure product has arisen: {b}')
     return res
@@ -61,13 +61,13 @@ def postmodifier_interpretation(bps):
     elif b == 'LIN':
         if len(ps) > 1:
             if __USE_LIN_KERNEL_HORIZONTAL_OFFSET:
-                res = 'with polynomially varying amplitude of order {:d} with offsets '.format(len(ps))
+                res = 'with polynomially varying amplitude of order {:d} with roots '.format(len(ps))
                 offsets = ['{:.2f}'.format(p['offset']) for p in ps]
                 if len(ps) > 1: offsets[-1] = 'and ' + offsets[-1]
                 res += ', '.join(offsets)
             else: res = 'with polynomially varying amplitude of order {:d}'.format(len(ps))
         else:
-            if __USE_LIN_KERNEL_HORIZONTAL_OFFSET: res = 'with linearly varying amplitude with offset {:.2f}'.format(ps[0]['offset'])
+            if __USE_LIN_KERNEL_HORIZONTAL_OFFSET: res = 'with linearly varying amplitude with horizontal offset {:.2f}'.format(ps[0]['offset'])
             else: res = 'with linearly varying amplitude'
     elif b == 'sigmoidal_intervals':
         if not isinstance(ps, list): ps = [ps]

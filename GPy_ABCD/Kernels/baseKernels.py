@@ -5,10 +5,10 @@ from GPy_ABCD.Kernels import linearKernel as _Lk, linearOffsetKernel as _LOk, ch
 
 
 #### CORE CONFIGURATION OF BASE KERNELS ####
-__INCLUDE_SE_KERNEL = True
-__USE_LIN_KERNEL_HORIZONTAL_OFFSET = False
-__USE_NON_PURELY_PERIODIC_PER_KERNEL = False
-__FIX_SIGMOIDAL_KERNELS_SLOPE = True
+__INCLUDE_SE_KERNEL = True # The most generic kernel; always a bargain in terms of parameters
+__USE_LIN_KERNEL_HORIZONTAL_OFFSET = True # Identifies the polynomial roots; more accurate but one extra parameter per degree
+__USE_NON_PURELY_PERIODIC_PER_KERNEL = False # Full standard periodic kernel [MacKay (1998)] instead of only its purely periodic part
+__FIX_SIGMOIDAL_KERNELS_SLOPE = True # Hence one parameter fewer for each sigmoidal and related kernel
 #### CORE CONFIGURATION OF BASE KERNELS ####
 
 
@@ -83,9 +83,11 @@ def SIOr(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, True, fixed_slope 
 
 CP = _Cs.ChangePointKernel
 def CP(left, right): return _Cs.ChangePointKernel(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-# CW = _Cs.ChangeWindowKernel
-# CW = _Cs.ChangeWindowKernelOneLocation
-CW = _Cs.ChangeWindowKernelWithWidth
+# # CW = _Cs.ChangeWindowKernel
+# def CW(left, right): return _Cs.ChangeWindowKernel(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+# # CW = _Cs.ChangeWindowKernelOneLocation
+# def CW(left, right): return _Cs.ChangeWindowKernelOneLocation(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+# CW = _Cs.ChangeWindowKernelWithWidth
 def CW(left, right): return _Cs.ChangeWindowKernelWithWidth(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
 # CP = _CFs.kCP

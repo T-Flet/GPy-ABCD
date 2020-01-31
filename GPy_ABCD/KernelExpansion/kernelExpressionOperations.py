@@ -117,6 +117,27 @@ def remove_a_term(S):
         # elif not S.is_root(): print('THIS WAS HERE JUST TO VERIFY THAT IT NEVER HAPPENS (BY DESIGN); NOT THAT IT WOULD BREAK ANYTHING IF IT DID')
     elif isinstance(S, ChangeKE):
         res = [SumKE([branch]) if isinstance(branch, str) else branch for branch in (S.left, S.right)]
-    else: # elif isinstance(k1, str): # This never occurs in the expansion though
+    else: # elif isinstance(S, str): # This never occurs in the expansion though
+        res = [[]]
+    return res
+
+
+def higher_curves(S):
+    res = []
+    higher_kers = [ProductKE(['LIN', 'LIN']), ProductKE(['LIN', 'LIN', 'LIN'])]
+    if isinstance(S, SumKE):
+        res = [SumKE(+S.base_terms, S.composite_terms + [ct]) for ct in higher_kers]
+        # res += [SumKE((+S.base_terms) + Counter({'SE': -S.base_terms['SE'], bt: bt_c}), S.composite_terms) for bt, bt_c in [('LIN', 2), ('PER', 2)]]
+        if 'SE' in (+S.base_terms).keys(): # Discourage SE
+            for r in res: del r.base_terms['SE']
+    elif isinstance(S, ProductKE):
+        res = [ProductKE(+S.base_terms + Counter(bts), S.composite_terms) for bts in [{'LIN': 2}, {'LIN': 3}]]
+        res += [ProductKE(+S.base_terms + (Counter({'PER': 1}) if 'PER' in +S.base_terms else Counter({'PER': 2})), S.composite_terms)]
+        if 'SE' in (+S.base_terms).keys(): # Discourage SE
+            for r in res: del r.base_terms['SE']
+    elif isinstance(S, ChangeKE):
+        res += [ChangeKE(S.CP_or_CW, ct, S.right) for ct in higher_kers if isinstance(S.left, str)]
+        res += [ChangeKE(S.CP_or_CW, S.left, ct) for ct in higher_kers if isinstance(S.right, str)]
+    else: # elif isinstance(S, str): # This never occurs in the expansion though
         res = [[]]
     return res

@@ -1,5 +1,6 @@
 from GPy_ABCD.KernelExpansion.kernelExpressionOperations import *
 from GPy_ABCD.Util.genericUtil import *
+from GPy_ABCD.Kernels.baseKernels import __USE_LIN_KERNEL_HORIZONTAL_OFFSET
 
 
 ## Expansion functions
@@ -35,6 +36,8 @@ def change_point_linear(S): return [deep_apply(one_change, S, 'CP', 'LIN')] # No
 def times_shifted_base(S): return [deep_apply(multiply, S, SumKE([B, 'C'])) for B in base_kerns - {'C'}]
 def replace_with_singleton(S): return [deep_apply(replace_node, S, SumKE([B])) for B in base_kerns]
 def remove_some_term(S): return [deep_apply(remove_a_term, S)]
+def try_higher_curves(S): return [deep_apply(higher_curves, S)] # Not in original ABCD
+
 
 production_rules_by_type = {
     'basic': {
@@ -50,6 +53,7 @@ production_rules_by_type = {
         'times_shifted_base': times_shifted_base, # S -> S * (B + C)
         'replace_with_singleton': replace_with_singleton, # S -> B
         'remove_some_term': remove_some_term, # S + S2 -> S and S * S2 -> S
+        'try_higher_curves': try_higher_curves, # S -> S with higher polynomials or PERs, discouraging SE
     }
 }
 
@@ -68,19 +72,18 @@ def make_simple_kexs(pseudo_kexs): return [pseudo_to_real_kex(pkex)._initialise(
 
 # TODO: SumKE(['LIN', 'C']) instead of 'LIN'? Only for non-horizontal-offset-including version?
 standard_start_kernels = make_simple_kexs(list(base_kerns - {'SE'}) + # Base Kernels without SE
-                                          [SumKE(['LIN', 'C']), SumKE(['PER', 'C'])] + # More generic LIN and PER
-                                          # both_changes('LIN')) # To catch a possible changepoint or changewindow with simple enough shapes
+                                          [ProductKE(['LIN', 'LIN']), ProductKE(['LIN', 'LIN', 'LIN']), SumKE(['PER', 'C'])] + # More generic LIN and PER
+                                          both_changes('LIN')) # To catch a possible changepoint or changewindow with simple enough shapes
+
+extended_start_kernels = make_simple_kexs(list(base_kerns - {'SE'}) + # Base Kernels without SE
+                                          [ProductKE(['LIN', 'LIN']), ProductKE(['LIN', 'LIN', 'LIN']), SumKE(['PER', 'C'])] + # More generic LIN and PER
                                           [SumKE(['C'], [ck]) for ck in both_changes('LIN')]) # To catch a possible changepoint or changewindow with simple enough shapes
 
-extended_start_kernels = make_simple_kexs(list(base_kerns) + # Base Kernels
-                                          [SumKE(['LIN', 'C']), SumKE(['PER', 'C'])] + # More generic LIN and PER
-                                          # both_changes(ProductKE(['LIN', 'LIN']))) # To catch a possible changepoint or changewindow with simple enough shapes
-                                          both_changes(ProductKE([], [SumKE(['LIN', 'C']), SumKE(['LIN', 'C'])]))) # To catch a possible changepoint or changewindow with simple enough shapes
-
-test_start_kernels = make_simple_kexs(list(base_kerns - {'SE'}) + # Base Kernels without SE and PER
-                                          [SumKE(['PER', 'C'])] + # More generic LIN and PER
+test_start_kernels = make_simple_kexs(list(base_kerns) + # Base Kernels
+                                          [ProductKE(['LIN', 'LIN']), ProductKE(['LIN', 'LIN', 'LIN']), SumKE(['PER', 'C'])] + # More generic LIN and PER
                                           both_changes('LIN')) # To catch a possible changepoint or changewindow with simple enough shapes
-                                          # both_changes(SumKE(['LIN', 'C']))) # To catch a possible changepoint or changewindow with simple enough shapes
+
+if not __USE_LIN_KERNEL_HORIZONTAL_OFFSET: assert SumKE(['LIN', 'C']) in standard_start_kernels, 'Non-offset-LIN needs C to achieve (almost) parity with offset-LIN'
 
 
 # Production Rules
