@@ -2,23 +2,13 @@ import numpy as np
 
 from GPy_ABCD.Models.modelSearch import *
 from GPy_ABCD.Util.dataAndPlottingUtil import *
+from testConsistency import save_one_run
+from synthetic_datasets import *
 
 
 if __name__ == '__main__':
 
     # np.seterr(all='raise') # Raise exceptions instead of RuntimeWarnings. The exceptions can then be caught by the debugger
-
-    # X, Y = generate_data(lambda x: x * np.cos( (x - 5) / 2 )**2, np.linspace(-15, 15, 101), 2, 1)
-    # kernel = LIN() * (PER() + C())
-    # X, Y = generate_data(lambda x: (x + 30) * (x - 5) * (x - 7), np.linspace(-15, 15, 101), 1, 30)
-    # kernel = LIN() * LIN() * LIN()
-    X, Y = generate_changepoint_data(np.linspace(-20, 30, 101), lambda x: 0.1 * x, lambda x: 2 * np.sin(x), 3, 1, 0.3, True)
-    kernel = CP(LIN(), PER() + C())
-    # X, Y = generate_changewindow_data(np.linspace(-30, 30, 101), lambda x: 0.1 * x, lambda x: 4 * np.sin(x), -10, 10, 1, 0.3, True)
-    # kernel = CW(LIN(), PER() + C())
-
-    # print(gg_plot(X, Y))
-
 
     # from GPy_ABCD.Util.kernelUtil import doGPR
     # mod = doGPR(X, Y, kernel, 10)
@@ -39,7 +29,8 @@ if __name__ == '__main__':
     # best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernels = test_start_kernels, p_rules = production_rules_all,
     # best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernels = extended_start_kernels, p_rules = production_rules_all,
     best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all,
-                                                     restarts = 2, utility_function = 'BIC', rounds = 2, buffer = 2, dynamic_buffer = True, verbose = True, parallel = True)
+                                                     restarts = 3, utility_function = 'BIC', rounds = 2, buffer = 2, dynamic_buffer = True, verbose = True, parallel = True)
+
 
     for mod_depth in all_mods: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]) + f'\n{len(mod_depth)}')
 
@@ -57,7 +48,11 @@ if __name__ == '__main__':
     # preds = best_mods[0].predict(predict_X)
     # print(preds)
 
+
     plt.show()
+
+
+    save_one_run(dataset, correct_k, best_mods, all_mods, all_exprs)
 
 
 # TODO:

@@ -21,6 +21,7 @@ base_expr = ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'C', 'C'])]), C
         # Composite term singletons
     (ProductKE([], [SumKE([], [ProductKE(['LIN', 'SE'])])])._initialise(), ProductKE(['LIN', 'SE'])._initialise()),
     (SumKE([], [ProductKE([], [SumKE([], [ProductKE(['LIN', 'SE'])])])])._initialise(), SumKE([], [ProductKE(['LIN', 'SE'],[])])._initialise()), # This one cannot go further by itself; standardise_singleton_root in grammar handles it
+    (ProductKE(['LIN'], [SumKE([], [ProductKE(['C']), ProductKE(['PER'])])]), ProductKE(['LIN'], [SumKE(['C', 'PER'])])),
         # Homogeneous Composites
     (SumKE(['PER', 'SE'], [SumKE(['WN', 'C', 'C'], [SumKE(['SE'], [])]), ProductKE(['LIN', 'WN'], [])])._initialise(), SumKE(['PER', 'SE', 'SE', 'WN', 'C'], [ProductKE(['LIN', 'WN'])]))
 ])

@@ -1,0 +1,11 @@
+https://github.com/jamesrobertlloyd/gpss-research/tree/master/data/tsdlr-renamed
+
+We recommend that you read the report for ‘01airline’ first and review the reports that follow afterwards more briefly.
+‘02-solar’ is discussed in the main text.
+‘03mauna’ analyses a dataset mentioned in the related work.
+‘04-wheat’ demonstrates changepoints being used to capture heteroscedasticity.
+‘05-temperature’ extracts an exactly periodic pattern from noisy data.
+‘07-call-centre’ demonstrates a large discontinuity being modeled by a changepoint.
+‘10sulphuric’ combines many changepoints to create a highly structured model of the data.
+‘12-births’ discovers multiple periodic components.
+

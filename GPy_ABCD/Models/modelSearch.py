@@ -29,7 +29,7 @@ class GPModel():
             self.model.optimize_restarts(num_restarts = self.restarts, verbose = False)
         return self
 
-    def interpret(self): return fit_ker_to_kex_with_params(self.model.kern, self.kernel_expression).get_interpretation()
+    def interpret(self): return fit_ker_to_kex_with_params(self.model.kern, deepcopy(self.kernel_expression)).get_interpretation()
 
     def predict(self, X, quantiles = (2.5, 97.5), full_cov = False, Y_metadata = None, kern = None, likelihood = None, include_likelihood = True):
         mean, cov = self.model.predict(X, full_cov, Y_metadata, kern, likelihood, include_likelihood)
@@ -85,7 +85,7 @@ def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = prod
 
     start_kexs = make_simple_kexs(start_kernels)
 
-    if verbose: print(f'Testing {rounds} layers of model expansion starting from: {print_k_list(start_kexs)}\nModels are fitted with {restarts} random restarts and scored by {utility_function}')
+    if verbose: print(f'Testing {rounds} layers of model expansion on {len(X)} datapoints, starting from: {print_k_list(start_kexs)}\nModels are fitted with {restarts} random restarts and scored by {utility_function}')
     fit_model_list = fit_model_list_parallel if parallel else fit_model_list_not_parallel
 
     tested_models = [sorted(fit_model_list(X, Y, start_kexs, restarts), key = methodcaller(utility_function))]
