@@ -20,7 +20,6 @@ base_sigmoids = frozenset(['S', 'Sr', 'SI', 'SIr'])
 
 stationary_kerns = frozenset(['WN', 'C', 'SE', 'PER'])
 non_stationary_kerns = base_sigmoids.union(base_kerns - stationary_kerns)
-print(non_stationary_kerns)
 # addition_idempotent_kerns = frozenset(['WN', 'C'])
 # multiplication_idempotent_kerns = frozenset(['WN', 'C', 'SE'])
 # multiplication_zero_kerns = frozenset(['WN']) # UNLESS LIN!!!!!!! I.E. ZERO ONLY FOR STATIONARY KERNELS
@@ -55,11 +54,14 @@ def S(): return _Sk.SigmoidalKernel(1, False, fixed_slope = __FIX_SIGMOIDAL_KERN
 def Sr(): return _Sk.SigmoidalKernel(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
 
-def SI(): return _Sk.SigmoidalIndicatorKernelWithWidth(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-def SIr(): return _Sk.SigmoidalIndicatorKernelWithWidth(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+def SI(): return _Sk.SigmoidalIndicatorKernel(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+def SIr(): return _Sk.SigmoidalIndicatorKernel(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
-def SIT(): return _Sk.SigmoidalIndicatorKernel(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-def SITr(): return _Sk.SigmoidalIndicatorKernel(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+def SICW(): return _Sk.SigmoidalIndicatorKernelCentreWidth(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+def SICWr(): return _Sk.SigmoidalIndicatorKernelCentreWidth(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+
+def SIT(): return _Sk.SigmoidalIndicatorKernelTwoLocations(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+def SITr(): return _Sk.SigmoidalIndicatorKernelTwoLocations(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
 def SIO(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 def SIOr(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
@@ -68,9 +70,10 @@ def SIOr(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, True, fixed_slope 
 # Change-Operator Kernels
 
 def CP(left, right): return _Cs.ChangePointKernel(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-# def CW(left, right): return _Cs.ChangeWindowKernel(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+def CW(left, right): return _Cs.ChangeWindowKernel(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+# def CW(left, right): return _Cs.ChangeWindowKernelCentreWidth(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+# def CW(left, right): return _Cs.ChangeWindowKernelTwoLocations(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 # def CW(left, right): return _Cs.ChangeWindowKernelOneLocation(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-def CW(left, right): return _Cs.ChangeWindowKernelWithWidth(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
 # CP = _CFs.kCP
 # # CW = _CFs.kCW

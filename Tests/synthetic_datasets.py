@@ -3,10 +3,10 @@ from GPy_ABCD.KernelExpansion import *
 from GPy_ABCD.Util.dataAndPlottingUtil import *
 
 
-dataset = 'LINx(PER+C)'
-X, Y = generate_data(lambda x: x * np.cos( (x - 5) / 2 )**2, np.linspace(-15, 15, 101), 2, 1)
-correct_k = ProductKE(['LIN'], [SumKE(['PER', 'C'])])._initialise()
-kernel = LIN() * (PER() + C())
+# dataset = 'LINx(PER+C)'
+# X, Y = generate_data(lambda x: x * np.cos( (x - 5) / 2 )**2, np.linspace(-15, 15, 101), 2, 1)
+# correct_k = ProductKE(['LIN'], [SumKE(['PER', 'C'])])._initialise()
+# kernel = LIN() * (PER() + C())
 
 # dataset = 'LINxLINxLIN'
 # X, Y = generate_data(lambda x: (x + 30) * (x - 5) * (x - 7), np.linspace(-15, 15, 101), 1, 30)
@@ -22,3 +22,8 @@ kernel = LIN() * (PER() + C())
 # X, Y = generate_changewindow_data(np.linspace(-30, 30, 101), lambda x: 0.1 * x, lambda x: 4 * np.sin(x), -10, 10, 1, 0.3, True)
 # correct_k = ChangeKE('CW', 'LIN', SumKE(['PER', 'C']))
 # kernel = CW(LIN(), PER() + C())
+
+dataset = 'CW(LIN,LIN*LIN)'
+X, Y = generate_changewindow_data(np.linspace(-10, 30, 212), lambda x: 0.05 * x, lambda x: 0.05 * x * (x - 14), 0, 16, 1, 0.3, False)
+correct_k = ChangeKE('CW', 'LIN', ProductKE(['LIN', 'LIN']))
+kernel = CW(LIN(), LIN() * LIN())

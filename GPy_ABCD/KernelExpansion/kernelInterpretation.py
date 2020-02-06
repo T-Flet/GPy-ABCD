@@ -114,8 +114,8 @@ def SIr_hole_interval(STr_p): return {'end': SI_ps_left(STr_p), 'start': SI_ps_r
 
 def SIr_split_intervals(hole_interval): return [{'end': hole_interval['end'], 'end_slope': hole_interval['end_slope']}, {'start': hole_interval['start'], 'start_slope': hole_interval['start_slope']}]
 
-def SI_ps_left(SI_p): return SI_p['location'] - SI_p['width'] / 2
-def SI_ps_right(SI_p): return SI_p['location'] + SI_p['width'] / 2
+def SI_ps_left(SI_p): return SI_p['location']# - SI_p['width'] / 2 for the central location version
+def SI_ps_right(SI_p): return SI_p['location'] + SI_p['width']# / 2 for the central location version
 
 
 

@@ -16,14 +16,14 @@ import pytest
       Sr_interval({'location': 2, 'slope': 2})],
      {'end': 0, 'end_slope': 0}),
     (SI_overlap,
-     [SI_interval({'location': 0, 'slope': 0, 'width': 2}), # +-1
-      SI_interval({'location': 1, 'slope': 1, 'width': 1}), # 0.5, 1.5
-      SI_interval({'location': 0.25, 'slope': 2, 'width': 1})], # -0.25, 0.75
+     [SI_interval({'location': -1, 'slope': 0, 'width': 2}), # +-1
+      SI_interval({'location': 0.5, 'slope': 1, 'width': 1}), # 0.5, 1.5
+      SI_interval({'location': -0.25, 'slope': 2, 'width': 1})], # -0.25, 0.75
      {'start': 0.5, 'start_slope': 1, 'end': 0.75, 'end_slope': 2}),
     (SIr_overlap,
-     [SIr_hole_interval({'location': 0, 'slope': 0, 'width': 2}), # +-1
-      SIr_hole_interval({'location': 1, 'slope': 1, 'width': 1}), # 0.5, 1.5
-      SIr_hole_interval({'location': 0.25, 'slope': 2, 'width': 1})], # -0.25, 0.75
+     [SIr_hole_interval({'location': -1, 'slope': 0, 'width': 2}), # +-1
+      SIr_hole_interval({'location': 0.5, 'slope': 1, 'width': 1}), # 0.5, 1.5
+      SIr_hole_interval({'location': -0.25, 'slope': 2, 'width': 1})], # -0.25, 0.75
      [{'end': -1.0, 'end_slope': 0}, {'start': 1.5, 'start_slope': 1}])
 ])
 def test_individual_sigmoid_overlaps(s_type, ss, res): assert s_type(ss) == res

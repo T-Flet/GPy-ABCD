@@ -114,6 +114,162 @@ class SigmoidalKernel(SigmoidalKernelBase):
             if not self._fixed_slope: self.slope.gradient = - self.slope.gradient
 
 
+# NOTE: Multiple versions of SigmoidalIndicator Kernels appear below, each with different parameters:
+#   - Start location and full width # USING THIS ONE
+#   - Central location and full width
+#   - Just location ("fixed" width term)
+#   - Start and end locations
+
+
+class SigmoidalIndicatorKernel(SigmoidalKernelBase):
+    """
+    Sigmoidal indicator function kernel with parametrised start location and width:
+    ascendingSigmoid(location) + (1 - ascendingSigmoid(stop_location + width)) - 1, i.e. ascendingSigmoid(location) - ascendingSigmoid(location + width)
+    (hat if width > 0, and positive-well otherwise; can flip from one to the other by reverse=True)
+    """
+
+    def __init__(self, input_dim: int, reverse: bool = False, variance: float = 1., location: float = 0., slope: float = 0.5, width: float = 1.,
+                 active_dims: int = None, name: str = 'sigmoidal_indicator', fixed_slope = False) -> None:
+        super(SigmoidalIndicatorKernel, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name, fixed_slope)
+        self.width = Param('width', width, Logexp())
+        self.link_parameters(self.width)
+
+    @staticmethod
+    def _sigmoid_function_dw(x, l, s, w): # 0 if no width or same as dl one but with l -> l + w
+        # return 0 if w is None else SigmoidalKernelBase._sigmoid_function_dl(x, l + w, s) # Here just for clarity; the 0 case is just omitted later
+        return SigmoidalKernelBase._sigmoid_function_dl(x, l + w, s)
+
+    @staticmethod
+    def _sigmoid_function_opposites_sum_height(w, s): # Height of sig(x, l, s) + sig(x, l + w, -s) - 1, i.e. the value at x = l + w/2
+        return np.tanh(w / (2 * s))
+
+    def is_reversed(self):
+        return (self.slope < 0) ^ self.reverse
+
+    @Cache_this(limit = 3)
+    def _phi(self, X):
+        asc = self._sigmoid_function(X, self.location, self.slope)
+        desc = self._sigmoid_function(X, self.location + self.width, -self.slope)
+        height = SigmoidalIndicatorKernel._sigmoid_function_opposites_sum_height(self.width, self.slope)
+        hat = (asc + desc - 1) / height
+        return 1 - hat if self.reverse else hat
+
+    def update_gradients_full(self, dL_dK, X, X2=None):
+        super(SigmoidalIndicatorKernel, self).update_gradients_full(dL_dK, X, X2)
+        if X2 is None: X2 = X
+
+        phi1 = self.phi(X)
+        phi2 = self.phi(X2) if X2 is not X else phi1
+        if phi1.ndim != 2:
+            phi1 = phi1[:, None]
+            phi2 = phi2[:, None] if X2 is not X else phi1
+
+        inv_height = 1 / SigmoidalIndicatorKernel._sigmoid_function_opposites_sum_height(self.width, self.slope)
+        numerator1 = self._sigmoid_function(X, self.location, self.slope) + self._sigmoid_function(X, self.location + self.width, -self.slope) - 1 # asc1 + desc1 - 1
+        numerator2 = self._sigmoid_function(X2, self.location, self.slope) + self._sigmoid_function(X2, self.location + self.width, -self.slope) - 1 # asc2 + desc2 - 1
+
+        height_arg = self.width / (2 * self.slope)
+        dinvheight_dw = - (SigmoidalKernelBase._csch(height_arg) ** 2) / (2 * self.slope)
+        dinvheight_ds = - 2 * height_arg * dinvheight_dw
+
+        dphi1_dl = (self._sigmoid_function_dl(X, self.location, self.slope) + self._sigmoid_function_dl(X, self.location + self.width, -self.slope)) * inv_height #+ (asc + desc) * dinvheight_dl, which is 0
+        dphi2_dl = (self._sigmoid_function_dl(X2, self.location, self.slope) + self._sigmoid_function_dl(X2, self.location + self.width, -self.slope)) * inv_height #+ (asc + desc) * dinvheight_dl, which is 0
+        self.location.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_dl.T) + phi2.dot(dphi1_dl.T))).sum())
+        self.location.gradient = np.where(np.isnan(self.location.gradient), 0, self.location.gradient)
+
+        if not self._fixed_slope:
+            dphi1_ds = (self._sigmoid_function_ds(X, self.location, self.slope) - self._sigmoid_function_ds(X, self.location + self.width, -self.slope)) * inv_height + numerator1 * dinvheight_ds
+            dphi2_ds = (self._sigmoid_function_ds(X2, self.location, self.slope) - self._sigmoid_function_ds(X2, self.location + self.width, -self.slope)) * inv_height + numerator2 * dinvheight_ds
+            self.slope.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_ds.T) + phi2.dot(dphi1_ds.T))).sum())
+            self.slope.gradient = np.where(np.isnan(self.slope.gradient), 0, self.slope.gradient)
+
+        dphi1_dw = self._sigmoid_function_dw(X, self.location, -self.slope, self.width) * inv_height + numerator1 * dinvheight_dw # d(asc)_dw = 0
+        dphi2_dw = self._sigmoid_function_dw(X2, self.location, -self.slope, self.width) * inv_height + numerator2 * dinvheight_dw # d(asc)_dw = 0
+        self.width.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_dw.T) + phi2.dot(dphi1_dw.T))).sum())
+        self.width.gradient = np.where(np.isnan(self.width.gradient), 0, self.width.gradient)
+
+
+        if self.reverse: # Works this simply (a single sign flip per product above)
+            self.location.gradient = - self.location.gradient
+            if not self._fixed_slope: self.slope.gradient = - self.slope.gradient
+            self.width.gradient = - self.width.gradient
+
+
+class SigmoidalIndicatorKernelCentreWidth(SigmoidalKernelBase):
+    """
+    Sigmoidal indicator function kernel with a location and a specific width:
+    ascendingSigmoid(location - width/2) + (1 - ascendingSigmoid(stop_location + width/2)) - 1, i.e. ascendingSigmoid(location - width/2) - ascendingSigmoid(location + width/2)
+    (hat if width > 0, and positive-well otherwise; can flip from one to the other by reverse=True)
+    """
+
+    def __init__(self, input_dim: int, reverse: bool = False, variance: float = 1., location: float = 0., slope: float = 0.5, width: float = 1.,
+                 active_dims: int = None, name: str = 'sigmoidal_indicator', fixed_slope = False) -> None:
+        super(SigmoidalIndicatorKernelCentreWidth, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name, fixed_slope)
+        self.width = Param('width', width, Logexp())
+        self.link_parameters(self.width)
+
+    @staticmethod
+    def _sigmoid_function_dw(x, l, s, hw, hw_sign): # plus: original_dl_one(l -> l + w/2) * 1/2; minus: original_dl_one(x -> -x, l -> -l + w/2) * -1/2
+        return SigmoidalKernelBase._sigmoid_function_dl(x, l + hw, s) / 2 if hw_sign == 1 else - SigmoidalKernelBase._sigmoid_function_dl(-x, - l + hw, s) / 2
+
+    @staticmethod
+    def _sigmoid_function_opposites_sum_height(w, s):  # Height of sig(x, l - w/2, s) + sig(x, l + w/2, -s) - 1
+        return np.tanh(w / (2 * s))  # Simplification of: 2 * SigmoidalKernelBase._sigmoid_function(w/2, 0, s) - 1
+
+    def is_reversed(self):
+        return ((self.width < 0) ^ (self.slope < 0)) ^ self.reverse
+
+    @Cache_this(limit = 3)
+    def _phi(self, X):
+        hw = self.width / 2
+        asc = self._sigmoid_function(X, self.location - hw, self.slope)
+        desc = self._sigmoid_function(X, self.location + hw, -self.slope)
+        height = SigmoidalIndicatorKernelCentreWidth._sigmoid_function_opposites_sum_height(self.width, self.slope)
+        hat = (asc + desc - 1) / height
+        return 1 - hat if self.reverse else hat
+
+    def update_gradients_full(self, dL_dK, X, X2=None):
+        super(SigmoidalIndicatorKernelCentreWidth, self).update_gradients_full(dL_dK, X, X2)
+        if X2 is None: X2 = X
+
+        phi1 = self.phi(X)
+        phi2 = self.phi(X2) if X2 is not X else phi1
+        if phi1.ndim != 2:
+            phi1 = phi1[:, None]
+            phi2 = phi2[:, None] if X2 is not X else phi1
+
+        hw = self.width / 2
+        inv_height = 1 / SigmoidalIndicatorKernelCentreWidth._sigmoid_function_opposites_sum_height(self.width, self.slope)
+        numerator1 = self._sigmoid_function(X, self.location - hw, self.slope) + self._sigmoid_function(X, self.location + hw, -self.slope) - 1 # asc1 + desc1 - 1
+        numerator2 = self._sigmoid_function(X2, self.location - hw, self.slope) + self._sigmoid_function(X2, self.location + hw, -self.slope) - 1 # asc2 + desc2 - 1
+
+        height_arg = self.width / (2 * self.slope)
+        dinvheight_dw = - (SigmoidalKernelBase._csch(height_arg) ** 2) / (2 * self.slope)
+        dinvheight_ds = - 2 * height_arg * dinvheight_dw
+
+        dphi1_dl = (self._sigmoid_function_dl(X, self.location - hw, self.slope) + self._sigmoid_function_dl(X, self.location + hw, -self.slope)) * inv_height #+ (asc + desc) * dinvheight_dl, which is 0
+        dphi2_dl = (self._sigmoid_function_dl(X2, self.location - hw, self.slope) + self._sigmoid_function_dl(X2, self.location + hw, -self.slope)) * inv_height #+ (asc + desc) * dinvheight_dl, which is 0
+        self.location.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_dl.T) + phi2.dot(dphi1_dl.T))).sum())
+        self.location.gradient = np.where(np.isnan(self.location.gradient), 0, self.location.gradient)
+
+        if not self._fixed_slope:
+            dphi1_ds = (self._sigmoid_function_ds(X, self.location - hw, self.slope) - self._sigmoid_function_ds(X, self.location + hw, -self.slope)) * inv_height + numerator1 * dinvheight_ds
+            dphi2_ds = (self._sigmoid_function_ds(X2, self.location - hw, self.slope) - self._sigmoid_function_ds(X2, self.location + hw, -self.slope)) * inv_height + numerator2 * dinvheight_ds
+            self.slope.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_ds.T) + phi2.dot(dphi1_ds.T))).sum())
+            self.slope.gradient = np.where(np.isnan(self.slope.gradient), 0, self.slope.gradient)
+
+        dphi1_dw = (self._sigmoid_function_dw(X, self.location, self.slope, hw, -1) + self._sigmoid_function_dw(X, self.location, -self.slope, hw, +1)) * inv_height + numerator1 * dinvheight_dw
+        dphi2_dw = (self._sigmoid_function_dw(X2, self.location, self.slope, hw, -1) + self._sigmoid_function_dw(X2, self.location, -self.slope, hw, +1)) * inv_height + numerator2 * dinvheight_dw
+        self.width.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_dw.T) + phi2.dot(dphi1_dw.T))).sum())
+        self.width.gradient = np.where(np.isnan(self.width.gradient), 0, self.width.gradient)
+
+
+        if self.reverse: # Works this simply (a single sign flip per product above)
+            self.location.gradient = - self.location.gradient
+            if not self._fixed_slope: self.slope.gradient = - self.slope.gradient
+            self.width.gradient = - self.width.gradient
+
+
 class SigmoidalIndicatorKernelOneLocation(SigmoidalKernelBase):
     """
     Sigmoidal indicator function kernel with a single location for the centre of the hat/well
@@ -182,7 +338,7 @@ class SigmoidalIndicatorKernelOneLocation(SigmoidalKernelBase):
             if not self._fixed_slope: self.slope.gradient = - self.slope.gradient
 
 
-class SigmoidalIndicatorKernel(SigmoidalKernelBase):
+class SigmoidalIndicatorKernelTwoLocations(SigmoidalKernelBase):
     """
     Sigmoidal indicator function kernel with a start and a stop location:
     ascendingSigmoid(location) + (1 - ascendingSigmoid(stop_location)) - 1, i.e. ascendingSigmoid(location) - ascendingSigmoid(stop_location)
@@ -191,7 +347,7 @@ class SigmoidalIndicatorKernel(SigmoidalKernelBase):
 
     def __init__(self, input_dim: int, reverse: bool = False, variance: float = 1., location: float = 0., stop_location: float = 1., slope: float = 0.5,
                  active_dims: int = None, name: str = 'sigmoidal_indicator', fixed_slope = False) -> None:
-        super(SigmoidalIndicatorKernel, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name, fixed_slope)
+        super(SigmoidalIndicatorKernelTwoLocations, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name, fixed_slope)
         self.stop_location = Param('stop_location', stop_location)
         self.link_parameters(self.stop_location)
 
@@ -206,12 +362,12 @@ class SigmoidalIndicatorKernel(SigmoidalKernelBase):
     def _phi(self, X):
         asc = self._sigmoid_function(X, self.location, self.slope)
         desc = self._sigmoid_function(X, self.stop_location, -self.slope)
-        height = SigmoidalIndicatorKernel._sigmoid_function_opposites_sum_height(self.location, self.stop_location, self.slope)
+        height = SigmoidalIndicatorKernelTwoLocations._sigmoid_function_opposites_sum_height(self.location, self.stop_location, self.slope)
         hat = (asc + desc - 1) / height #if self.location > self.stop_location else asc - asc2 + 1 # Note: it does not affect the gradients
         return 1 - hat if self.reverse else hat
 
     def update_gradients_full(self, dL_dK, X, X2=None):
-        super(SigmoidalIndicatorKernel, self).update_gradients_full(dL_dK, X, X2)
+        super(SigmoidalIndicatorKernelTwoLocations, self).update_gradients_full(dL_dK, X, X2)
         if X2 is None: X2 = X
 
         phi1 = self.phi(X)
@@ -224,7 +380,7 @@ class SigmoidalIndicatorKernel(SigmoidalKernelBase):
         asc2 = self._sigmoid_function(X2, self.location, self.slope)
         desc1 = self._sigmoid_function(X, self.stop_location, -self.slope)
         desc2 = self._sigmoid_function(X2, self.stop_location, -self.slope)
-        inv_height = 1 / SigmoidalIndicatorKernel._sigmoid_function_opposites_sum_height(self.location, self.stop_location, self.slope)
+        inv_height = 1 / SigmoidalIndicatorKernelTwoLocations._sigmoid_function_opposites_sum_height(self.location, self.stop_location, self.slope)
         numerator1 = asc1 + desc1 - 1
         numerator2 = asc2 + desc2 - 1
 
@@ -255,78 +411,3 @@ class SigmoidalIndicatorKernel(SigmoidalKernelBase):
             self.location.gradient = - self.location.gradient
             self.stop_location.gradient = - self.stop_location.gradient
             if not self._fixed_slope: self.slope.gradient = - self.slope.gradient
-
-
-class SigmoidalIndicatorKernelWithWidth(SigmoidalKernelBase):
-    """
-    Sigmoidal indicator function kernel with a location and a specific width:
-    ascendingSigmoid(location - width/2) + (1 - ascendingSigmoid(stop_location + width/2)) - 1, i.e. ascendingSigmoid(location - width/2) - ascendingSigmoid(stop_location + width/2)
-    (hat if width > 0, and positive-well otherwise; can flip from one to the other by reverse=True)
-    """
-
-    def __init__(self, input_dim: int, reverse: bool = False, variance: float = 1., location: float = 0., slope: float = 0.5, width: float = 1.,
-                 active_dims: int = None, name: str = 'sigmoidal_indicator', fixed_slope = False) -> None:
-        super(SigmoidalIndicatorKernelWithWidth, self).__init__(input_dim, reverse, variance, location, slope, active_dims, name, fixed_slope)
-        self.width = Param('width', width, Logexp())
-        self.link_parameters(self.width)
-
-    @staticmethod
-    def _sigmoid_function_dw(x, l, s, hw, hw_sign): # plus: original_dl_one(l -> l + w/2) * 1/2; minus: original_dl_one(x -> -x, l -> -l + w/2) * -1/2
-        return SigmoidalKernelBase._sigmoid_function_dl(x, l + hw, s) / 2 if hw_sign == 1 else - SigmoidalKernelBase._sigmoid_function_dl(-x, - l + hw, s) / 2
-
-    @staticmethod
-    def _sigmoid_function_opposites_sum_height(w, s):  # Height of sig(x, l - w/2, s) + sig(x, l + w/2, -s) - 1
-        return np.tanh(w / (2 * s))  # Simplification of: 2 * SigmoidalKernelBase._sigmoid_function(w/2, 0, s) - 1
-
-    def is_reversed(self):
-        return ((self.width < 0) ^ (self.slope < 0)) ^ self.reverse
-
-    @Cache_this(limit = 3)
-    def _phi(self, X):
-        hw = self.width / 2
-        asc = self._sigmoid_function(X, self.location - hw, self.slope)
-        desc = self._sigmoid_function(X, self.location + hw, -self.slope)
-        height = SigmoidalIndicatorKernelWithWidth._sigmoid_function_opposites_sum_height(self.width, self.slope)
-        hat = (asc + desc - 1) / height
-        return 1 - hat if self.reverse else hat
-
-    def update_gradients_full(self, dL_dK, X, X2=None):
-        super(SigmoidalIndicatorKernelWithWidth, self).update_gradients_full(dL_dK, X, X2)
-        if X2 is None: X2 = X
-
-        phi1 = self.phi(X)
-        phi2 = self.phi(X2) if X2 is not X else phi1
-        if phi1.ndim != 2:
-            phi1 = phi1[:, None]
-            phi2 = phi2[:, None] if X2 is not X else phi1
-
-        hw = self.width / 2
-        inv_height = 1 / SigmoidalIndicatorKernelWithWidth._sigmoid_function_opposites_sum_height(self.width, self.slope)
-        numerator1 = self._sigmoid_function(X, self.location - hw, self.slope) + self._sigmoid_function(X, self.location + hw, -self.slope) - 1 # asc1 + desc1 - 1
-        numerator2 = self._sigmoid_function(X2, self.location - hw, self.slope) + self._sigmoid_function(X2, self.location + hw, -self.slope) - 1 # asc2 + desc2 - 1
-
-        height_arg = self.width / (2 * self.slope)
-        dinvheight_dw = - (SigmoidalKernelBase._csch(height_arg) ** 2) / (2 * self.slope)
-        dinvheight_ds = - 2 * height_arg * dinvheight_dw
-
-        dphi1_dl = (self._sigmoid_function_dl(X, self.location - hw, self.slope) + self._sigmoid_function_dl(X, self.location + hw, -self.slope)) * inv_height #+ (asc + desc) * dinvheight_dl, which is 0
-        dphi2_dl = (self._sigmoid_function_dl(X2, self.location - hw, self.slope) + self._sigmoid_function_dl(X2, self.location + hw, -self.slope)) * inv_height #+ (asc + desc) * dinvheight_dl, which is 0
-        self.location.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_dl.T) + phi2.dot(dphi1_dl.T))).sum())
-        self.location.gradient = np.where(np.isnan(self.location.gradient), 0, self.location.gradient)
-
-        if not self._fixed_slope:
-            dphi1_ds = (self._sigmoid_function_ds(X, self.location - hw, self.slope) - self._sigmoid_function_ds(X, self.location + hw, -self.slope)) * inv_height + numerator1 * dinvheight_ds
-            dphi2_ds = (self._sigmoid_function_ds(X2, self.location - hw, self.slope) - self._sigmoid_function_ds(X2, self.location + hw, -self.slope)) * inv_height + numerator2 * dinvheight_ds
-            self.slope.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_ds.T) + phi2.dot(dphi1_ds.T))).sum())
-            self.slope.gradient = np.where(np.isnan(self.slope.gradient), 0, self.slope.gradient)
-
-        dphi1_dw = (self._sigmoid_function_dw(X, self.location, self.slope, hw, -1) + self._sigmoid_function_dw(X, self.location, -self.slope, hw, +1)) * inv_height + numerator1 * dinvheight_dw
-        dphi2_dw = (self._sigmoid_function_dw(X2, self.location, self.slope, hw, -1) + self._sigmoid_function_dw(X2, self.location, -self.slope, hw, +1)) * inv_height + numerator2 * dinvheight_dw
-        self.width.gradient = np.sum(self.variance * (dL_dK * (phi1.dot(dphi2_dw.T) + phi2.dot(dphi1_dw.T))).sum())
-        self.width.gradient = np.where(np.isnan(self.width.gradient), 0, self.width.gradient)
-
-
-        if self.reverse: # Works this simply (a single sign flip per product above)
-            self.location.gradient = - self.location.gradient
-            if not self._fixed_slope: self.slope.gradient = - self.slope.gradient
-            self.width.gradient = - self.width.gradient
