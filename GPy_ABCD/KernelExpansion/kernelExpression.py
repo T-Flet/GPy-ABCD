@@ -105,6 +105,14 @@ class KernelExpression(ABC): # Abstract
         pass
 
     @abstractmethod
+    def contains_base(self, bt):
+        pass
+
+    @abstractmethod
+    def is_stationary(self):
+        pass
+
+    @abstractmethod
     def to_kernel(self):
         pass
 
@@ -237,6 +245,13 @@ class SumOrProductKE(KernelExpression): # Abstract
 
     def term_count(self):
         return sum(self.base_terms.values()) + len(self.composite_terms)
+
+    def contains_base(self, bts):
+        if not isinstance(bts, list): bts = [bts]
+        return any([bt in self.base_terms for bt in bts]) or any([ct.contains_base(bts) for ct in self.composite_terms])
+
+    def is_stationary(self):
+        return all([ns not in self.base_terms for ns in non_stationary_kerns]) and all([ct.is_stationary() for ct in self.composite_terms])
 
     @abstractmethod
     def to_kernel(self):
@@ -460,6 +475,13 @@ class ChangeKE(KernelExpression):
         if self.left is old_child: self.left = new_child # NOT A deepcopy!
         else: self.right = new_child # NOT A deepcopy! # I.e. elif self.right is old_child
         return new_child # NOTE THIS RETURN VALUE (used by new_tree_with_self_replaced)
+
+    def contains_base(self, bts):
+        if not isinstance(bts, list): bts = [bts]
+        return any([branch in bts if isinstance(branch, str) else branch.contains_base(bts) for branch in (self.left, self.right)])
+
+    def is_stationary(self):
+        return False
 
     def to_kernel(self):
         left_ker = self.left.to_kernel() if isinstance(self.left, KernelExpression) else base_str_to_ker(self.left)

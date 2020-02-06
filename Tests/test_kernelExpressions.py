@@ -93,6 +93,22 @@ def test__eq():
     # print(SumKE(['WN', 'C', 'C']) * SumKE(['WN', 'PER', 'C']))
 
 
+@pytest.mark.parametrize('kex, bts, res', [
+    (SumKE(['PER', 'C']), 'PER', True),
+    (ProductKE(['PER', 'C']), 'SE', False),
+    (ChangeKE('CP', ProductKE(['PER', 'C'], [SumKE(['WN', 'LIN', 'C'])]), SumKE([], [ProductKE(['WN', 'C'])])), 'LIN', True)
+])
+def test_contains_base(kex, bts, res): assert kex.contains_base(bts) == res
+
+
+@pytest.mark.parametrize('kex, res', [
+    (SumKE(['PER', 'C']), True),
+    (ProductKE(['LIN', 'C']), False),
+    (ChangeKE('CP', 'C', 'SE'), False)
+])
+def test_is_stationary(kex, res): assert kex.is_stationary() == res
+
+
 def test_to_kernel():
     test_expr = deepcopy(base_expr)._initialise()
     ker_by_parts = test_expr.to_kernel()

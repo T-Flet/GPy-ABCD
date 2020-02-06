@@ -9,7 +9,7 @@ from GPy_ABCD.Util.dataAndPlottingUtil import *
 # kernel = CP(LIN(), PER() + C())
 
 
-X, Y = generate_changewindow_data(np.linspace(-10, 30, 212), lambda x: 0.05 * x, lambda x: 0.05 * x * (x - 14), 0, 15, 1, 0.3, False)
+X, Y = generate_changewindow_data(np.linspace(-10, 30, 212), lambda x: 0.05 * x, lambda x: 0.05 * x * (x - 14), 0, 16, 1, 0.3, False)
 kernel = CW(LIN(), LIN() * LIN())
 # kernel = CW(LIN() * LIN(), LIN())
 

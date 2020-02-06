@@ -16,8 +16,11 @@ __FIX_SIGMOIDAL_KERNELS_SLOPE = True # Hence one parameter fewer for each sigmoi
 ## Useful Kernel Sets
 
 base_kerns = frozenset(['WN', 'C', 'LIN', 'SE', 'PER']) #if __INCLUDE_SE_KERNEL else frozenset(['WN', 'C', 'LIN', 'PER'])
+base_sigmoids = frozenset(['S', 'Sr', 'SI', 'SIr'])
 
 stationary_kerns = frozenset(['WN', 'C', 'SE', 'PER'])
+non_stationary_kerns = base_sigmoids.union(base_kerns - stationary_kerns)
+print(non_stationary_kerns)
 # addition_idempotent_kerns = frozenset(['WN', 'C'])
 # multiplication_idempotent_kerns = frozenset(['WN', 'C', 'SE'])
 # multiplication_zero_kerns = frozenset(['WN']) # UNLESS LIN!!!!!!! I.E. ZERO ONLY FOR STATIONARY KERNELS
@@ -26,7 +29,6 @@ stationary_kerns = frozenset(['WN', 'C', 'SE', 'PER'])
 base_order = {'PER': 1, 'WN': 2, 'SE': 3, 'C': 4, 'LIN': 5}
     # Then sort by: sorted(LIST, key=lambda SYM: baseOrder[SYM])
 
-base_sigmoids = frozenset(['S', 'Sr', 'SI', 'SIr'])
 
 
 ## Base Kernels
