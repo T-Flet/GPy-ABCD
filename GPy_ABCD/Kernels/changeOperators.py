@@ -56,15 +56,27 @@ class ChangeKernelBase(CombinationKernel):
     def Kdiag(self, X):
         return self.left.Kdiag(X) * self.sigmoidal_reverse.Kdiag(X) + self.right.Kdiag(X) * self.sigmoidal.Kdiag(X)
 
-    def update_gradients_full(self, dL_dK, X, X2 = None):
-        [p.update_gradients_full(dL_dK, X, X2) for p in [self.left, self.right, self.sigmoidal] if not p.is_fixed]
-        self.location.gradient = self.sigmoidal.location.gradient
-        if not self._fixed_slope: self.slope.gradient = self.sigmoidal.slope.gradient
+    # NOTE ON OPTIMISATION:
+    #   Should be able to get away with only optimising the parameters of one sigmoidal kernel and propagating them
 
-    def update_gradients_diag(self, dL_dK, X):
-        [p.update_gradients_diag(dL_dK, X) for p in [self.left, self.right, self.sigmoidal]]
-        self.location.gradient = self.sigmoidal.location.gradient
-        if not self._fixed_slope: self.slope.gradient = self.sigmoidal.slope.gradient
+    def update_gradients_full(self, dL_dK, X, X2 = None): # See NOTE ON OPTIMISATION
+        self.left.update_gradients_full(dL_dK * self.sigmoidal_reverse.K(X, X2), X, X2)
+        # self.sigmoidal_reverse.update_gradients_full(dL_dK * self.left.K(X, X2), X, X2)
+        self.right.update_gradients_full(dL_dK * self.sigmoidal.K(X, X2), X, X2)
+        self.sigmoidal.update_gradients_full(dL_dK * self.right.K(X, X2), X, X2)
+
+        self.location.gradient = self.sigmoidal.location.gradient# + self.sigmoidal_reverse.location.gradient
+        if not self._fixed_slope: self.slope.gradient = self.sigmoidal.slope.gradient# + self.sigmoidal_reverse.slope.gradient
+
+
+    def update_gradients_diag(self, dL_dK, X): # See NOTE ON OPTIMISATION
+        self.left.update_gradients_diag(dL_dK * self.sigmoidal_reverse.Kdiag(X), X)
+        # self.sigmoidal_reverse.update_gradients_diag(dL_dK * self.left.Kdiag(X), X)
+        self.right.update_gradients_diag(dL_dK * self.sigmoidal.Kdiag(X), X)
+        self.sigmoidal.update_gradients_diag(dL_dK * self.right.Kdiag(X), X)
+
+        self.location.gradient = self.sigmoidal.location.gradient# + self.sigmoidal_reverse.location.gradient
+        if not self._fixed_slope: self.slope.gradient = self.sigmoidal.slope.gradient# + self.sigmoidal_reverse.slope.gradient
 
 
 class ChangePointKernel(ChangeKernelBase):
@@ -93,11 +105,11 @@ class ChangeWindowKernel(ChangeKernelBase):
 
     def update_gradients_full(self, dL_dK, X, X2 = None):
         super(ChangeWindowKernel, self).update_gradients_full(dL_dK, X, X2)
-        self.width.gradient = self.sigmoidal.width.gradient
+        self.width.gradient = self.sigmoidal.width.gradient# + self.sigmoidal_reverse.width.gradient # See NOTE ON OPTIMISATION in ChangeKernelBase
 
     def update_gradients_diag(self, dL_dK, X):
         super(ChangeWindowKernel, self).update_gradients_diag(dL_dK, X)
-        self.width.gradient = self.sigmoidal.width.gradient
+        self.width.gradient = self.sigmoidal.width.gradient# + self.sigmoidal_reverse.width.gradient # See NOTE ON OPTIMISATION in ChangeKernelBase
 
 
 class ChangeWindowKernelCentreWidth(ChangeKernelBase):
@@ -113,11 +125,11 @@ class ChangeWindowKernelCentreWidth(ChangeKernelBase):
 
     def update_gradients_full(self, dL_dK, X, X2 = None):
         super(ChangeWindowKernelCentreWidth, self).update_gradients_full(dL_dK, X, X2)
-        self.width.gradient = self.sigmoidal.width.gradient
+        self.width.gradient = self.sigmoidal.width.gradient# + self.sigmoidal_reverse.width.gradient # See NOTE ON OPTIMISATION in ChangeKernelBase
 
     def update_gradients_diag(self, dL_dK, X):
         super(ChangeWindowKernelCentreWidth, self).update_gradients_diag(dL_dK, X)
-        self.width.gradient = self.sigmoidal.width.gradient
+        self.width.gradient = self.sigmoidal.width.gradient# + self.sigmoidal_reverse.width.gradient # See NOTE ON OPTIMISATION in ChangeKernelBase
 
 
 class ChangeWindowKernelOneLocation(ChangeKernelBase):
@@ -137,11 +149,11 @@ class ChangeWindowKernelTwoLocations(ChangeKernelBase):
 
     def update_gradients_full(self, dL_dK, X, X2 = None):
         super(ChangeWindowKernelTwoLocations, self).update_gradients_full(dL_dK, X, X2)
-        self.stop_location.gradient = self.sigmoidal.stop_location.gradient
+        self.stop_location.gradient = self.sigmoidal.stop_location.gradient# + self.sigmoidal_reverse.stop_location.gradient # See NOTE ON OPTIMISATION in ChangeKernelBase
 
     def update_gradients_diag(self, dL_dK, X):
         super(ChangeWindowKernelTwoLocations, self).update_gradients_diag(dL_dK, X)
-        self.stop_location.gradient = self.sigmoidal.stop_location.gradient
+        self.stop_location.gradient = self.sigmoidal.stop_location.gradient# + self.sigmoidal_reverse.stop_location.gradient # See NOTE ON OPTIMISATION in ChangeKernelBase
 
 
 
