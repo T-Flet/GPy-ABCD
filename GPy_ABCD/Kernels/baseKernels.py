@@ -1,6 +1,7 @@
 import GPy.kern as _Gk
 
 from GPy_ABCD.Kernels import linearKernel as _Lk, linearOffsetKernel as _LOk, changeOperators as _Cs, periodicKernel as _Pk, sigmoidalKernels as _Sk
+from GPy_ABCD.Kernels import changeWindowThreePart as _CWTk
 
 
 
@@ -9,6 +10,7 @@ __INCLUDE_SE_KERNEL = False # The most generic kernel; always a bargain in terms
 __USE_LIN_KERNEL_HORIZONTAL_OFFSET = True # Identifies the polynomial roots; more accurate but one extra parameter per degree
 __USE_NON_PURELY_PERIODIC_PER_KERNEL = False # Full standard periodic kernel [MacKay (1998)] instead of only its purely periodic part
 __FIX_SIGMOIDAL_KERNELS_SLOPE = True # Hence one parameter fewer for each sigmoidal and related kernel
+__USE_INDEPENDENT_SIDES_CHANGEWINDOW_KERNEL = True # Vertical offsets acquired through windows prevent same-instance non-stationary sides kernels from fitting
 #### CORE CONFIGURATION OF BASE KERNELS ####
 
 
@@ -69,11 +71,14 @@ def SIOr(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, True, fixed_slope 
 
 # Change-Operator Kernels
 
-def CP(left, right): return _Cs.ChangePointKernel(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-def CW(left, right): return _Cs.ChangeWindowKernel(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-# def CW(left, right): return _Cs.ChangeWindowKernelCentreWidth(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-# def CW(left, right): return _Cs.ChangeWindowKernelTwoLocations(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-# def CW(left, right): return _Cs.ChangeWindowKernelOneLocation(left, right, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+def CP(first, second): return _Cs.ChangePointKernel(first, second, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+def CW(first, second): return _Cs.ChangeWindowKernel(first, second, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+# def CW(first, second): return _Cs.ChangeWindowKernelCentreWidth(first, second, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+# def CW(first, second): return _Cs.ChangeWindowKernelTwoLocations(first, second, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+# def CW(first, second): return _Cs.ChangeWindowKernelOneLocation(first, second, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+if __USE_INDEPENDENT_SIDES_CHANGEWINDOW_KERNEL:
+    def CW(first, second): return _CWTk.ChangeWindowKernelIndependent(first, second, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
+
 
 # CP = _CFs.kCP
 # # CW = _CFs.kCW

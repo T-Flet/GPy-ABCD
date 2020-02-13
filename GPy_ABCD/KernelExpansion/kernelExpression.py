@@ -499,10 +499,10 @@ class ChangeKE(KernelExpression):
         self.parameters[self.CP_or_CW].append({p: param_dict[prefix + p] for p in base_k_param_names[self.CP_or_CW]['parameters']})
         same_type_branches = type(self.left) == type(self.right) and\
                              ((isinstance(self.left, KernelExpression) and self.left.GPy_name == self.right.GPy_name) or self.left == self.right)
-        for child in (('left', self.left), ('right', self.right)):
-            postfix = '_1.' if same_type_branches and child[0] == 'right' else '.'
-            if isinstance(child[1], KernelExpression): child[1].match_up_fit_parameters(param_dict, prefix + child[1].GPy_name + postfix)
-            else: self.parameters[child].append({p: param_dict[prefix + base_k_param_names[child[1]]['name'] + postfix + p] for p in base_k_param_names[child[1]]['parameters']})
+        for branch, kex in (('left', self.left), ('right', self.right)):
+            postfix = '_1.' if same_type_branches and branch == 'right' else '.'
+            if isinstance(kex, KernelExpression): kex.match_up_fit_parameters(param_dict, prefix + kex.GPy_name + postfix)
+            else: self.parameters[(branch, kex)].append({p: param_dict[prefix + base_k_param_names[kex]['name'] + postfix + p] for p in base_k_param_names[kex]['parameters']})
         return self
 
     @staticmethod # This would live in kernelExpressionOperations if it did not need to be used within ChangeKEs
@@ -519,13 +519,13 @@ class ChangeKE(KernelExpression):
 
     def sum_of_prods_form(self):
         new_children = []
-        for child in (('left', self.left), ('right', self.right)):
-            sigmoid_parameters = (change_k_sigmoid_names[self.CP_or_CW][child[0]], self.parameters[self.CP_or_CW][0])
-            if isinstance(child[1], str):
-                leaf_params = [self.parameters[k][0] for k in self.parameters.keys() if isinstance(k, tuple) and k[0] == child[0]][0]
-                new_children.append(ProductKE([]).new_bases_with_parameters([(child[1], leaf_params), sigmoid_parameters]))
+        for branch, kex in (('left', self.left), ('right', self.right)):
+            sigmoid_parameters = (change_k_sigmoid_names[self.CP_or_CW][branch], self.parameters[self.CP_or_CW][0])
+            if isinstance(kex, str):
+                leaf_params = [self.parameters[k][0] for k in self.parameters.keys() if isinstance(k, tuple) and k[0] == branch][0]
+                new_children.append(ProductKE([]).new_bases_with_parameters([(kex, leaf_params), sigmoid_parameters]))
             else:
-                new_child = child[1].sum_of_prods_form()
+                new_child = kex.sum_of_prods_form()
                 if isinstance(new_child, ProductKE): new_child.new_bases_with_parameters(sigmoid_parameters)
                 else: # I.e. SumKE
                     for pt in new_child.composite_terms: pt.new_bases_with_parameters(sigmoid_parameters)

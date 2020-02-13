@@ -10,11 +10,11 @@ class ChangeKernelBase(CombinationKernel):
     """
     Abstract class for change kernels
     """
-    def __init__(self, left, right, sigmoidal, location: float = 0., slope: float = 0.5, name = 'change_base', fixed_slope = False):
-        _newkerns = [kern.copy() for kern in (left, right)]
+    def __init__(self, first, second, sigmoidal, location: float = 0., slope: float = 0.5, name = 'change_base', fixed_slope = False):
+        _newkerns = [kern.copy() for kern in (first, second)]
         super(ChangeKernelBase, self).__init__(_newkerns, name)
-        self.left = left
-        self.right = right
+        self.first = first
+        self.second = second
 
         self._fixed_slope = fixed_slope # Note: here to be used by subclasses, and changing it from the outside does not link the parameter
         if self._fixed_slope: self.slope = slope
@@ -50,39 +50,39 @@ class ChangeKernelBase(CombinationKernel):
 
     @Cache_this(limit = 3)
     def K(self, X, X2 = None):
-        return self.left.K(X, X2) * self.sigmoidal_reverse.K(X, X2) + self.right.K(X, X2) * self.sigmoidal.K(X, X2)
+        return self.first.K(X, X2) * self.sigmoidal_reverse.K(X, X2) + self.second.K(X, X2) * self.sigmoidal.K(X, X2)
 
     @Cache_this(limit = 3)
     def Kdiag(self, X):
-        return self.left.Kdiag(X) * self.sigmoidal_reverse.Kdiag(X) + self.right.Kdiag(X) * self.sigmoidal.Kdiag(X)
+        return self.first.Kdiag(X) * self.sigmoidal_reverse.Kdiag(X) + self.second.Kdiag(X) * self.sigmoidal.Kdiag(X)
 
     # NOTE ON OPTIMISATION:
     #   Should be able to get away with only optimising the parameters of one sigmoidal kernel and propagating them
 
     def update_gradients_full(self, dL_dK, X, X2 = None): # See NOTE ON OPTIMISATION
-        self.left.update_gradients_full(dL_dK * self.sigmoidal_reverse.K(X, X2), X, X2)
-        # self.sigmoidal_reverse.update_gradients_full(dL_dK * self.left.K(X, X2), X, X2)
-        self.right.update_gradients_full(dL_dK * self.sigmoidal.K(X, X2), X, X2)
-        self.sigmoidal.update_gradients_full(dL_dK * self.right.K(X, X2), X, X2)
+        self.first.update_gradients_full(dL_dK * self.sigmoidal_reverse.K(X, X2), X, X2)
+        # self.sigmoidal_reverse.update_gradients_full(dL_dK * self.first.K(X, X2), X, X2)
+        self.second.update_gradients_full(dL_dK * self.sigmoidal.K(X, X2), X, X2)
+        self.sigmoidal.update_gradients_full(dL_dK * self.second.K(X, X2), X, X2)
 
         self.location.gradient = self.sigmoidal.location.gradient# + self.sigmoidal_reverse.location.gradient
         if not self._fixed_slope: self.slope.gradient = self.sigmoidal.slope.gradient# + self.sigmoidal_reverse.slope.gradient
 
 
     def update_gradients_diag(self, dL_dK, X): # See NOTE ON OPTIMISATION
-        self.left.update_gradients_diag(dL_dK * self.sigmoidal_reverse.Kdiag(X), X)
-        # self.sigmoidal_reverse.update_gradients_diag(dL_dK * self.left.Kdiag(X), X)
-        self.right.update_gradients_diag(dL_dK * self.sigmoidal.Kdiag(X), X)
-        self.sigmoidal.update_gradients_diag(dL_dK * self.right.Kdiag(X), X)
+        self.first.update_gradients_diag(dL_dK * self.sigmoidal_reverse.Kdiag(X), X)
+        # self.sigmoidal_reverse.update_gradients_diag(dL_dK * self.first.Kdiag(X), X)
+        self.second.update_gradients_diag(dL_dK * self.sigmoidal.Kdiag(X), X)
+        self.sigmoidal.update_gradients_diag(dL_dK * self.second.Kdiag(X), X)
 
         self.location.gradient = self.sigmoidal.location.gradient# + self.sigmoidal_reverse.location.gradient
         if not self._fixed_slope: self.slope.gradient = self.sigmoidal.slope.gradient# + self.sigmoidal_reverse.slope.gradient
 
 
 class ChangePointKernel(ChangeKernelBase):
-    """Composite kernel changing from left to right subkernels at location"""
-    def __init__(self, left, right, location: float = 0., slope: float = 0.5, name='change_point', fixed_slope = False):
-        super(ChangePointKernel, self).__init__(left, right, SigmoidalKernel, location, slope, name, fixed_slope)
+    """Composite kernel changing from first to second subkernels at location"""
+    def __init__(self, first, second, location: float = 0., slope: float = 0.5, name='change_point', fixed_slope = False):
+        super(ChangePointKernel, self).__init__(first, second, SigmoidalKernel, location, slope, name, fixed_slope)
 
 
 # NOTE: Multiple versions of ChangeWindow Kernels appear below, each using SigmoidalIndicator Kernels with different parameters:
@@ -93,9 +93,9 @@ class ChangePointKernel(ChangeKernelBase):
 
 
 class ChangeWindowKernel(ChangeKernelBase):
-    """Composite kernel changing from left to right subkernels at a limited location"""
-    def __init__(self, left, right, location: float = 0., slope: float = 0.5, width: float = 1., name='change_window', fixed_slope = False):
-        super(ChangeWindowKernel, self).__init__(left, right, SigmoidalIndicatorKernel, location, slope, name, fixed_slope)
+    """Composite kernel changing from first to second subkernels at a limited location"""
+    def __init__(self, first, second, location: float = 0., slope: float = 0.5, width: float = 1., name='change_window', fixed_slope = False):
+        super(ChangeWindowKernel, self).__init__(first, second, SigmoidalIndicatorKernel, location, slope, name, fixed_slope)
         self.width = Param('width', width, Logexp())
         self.link_parameter(self.width)
 
@@ -113,9 +113,9 @@ class ChangeWindowKernel(ChangeKernelBase):
 
 
 class ChangeWindowKernelCentreWidth(ChangeKernelBase):
-    """Composite kernel changing from left to right subkernels at a limited location"""
-    def __init__(self, left, right, location: float = 0., slope: float = 0.5, width: float = 1., name='change_window', fixed_slope = False):
-        super(ChangeWindowKernelCentreWidth, self).__init__(left, right, SigmoidalIndicatorKernelCentreWidth, location, slope, name, fixed_slope)
+    """Composite kernel changing from first to second subkernels at a limited location"""
+    def __init__(self, first, second, location: float = 0., slope: float = 0.5, width: float = 1., name='change_window', fixed_slope = False):
+        super(ChangeWindowKernelCentreWidth, self).__init__(first, second, SigmoidalIndicatorKernelCentreWidth, location, slope, name, fixed_slope)
         self.width = Param('width', width, Logexp())
         self.link_parameter(self.width)
 
@@ -133,15 +133,15 @@ class ChangeWindowKernelCentreWidth(ChangeKernelBase):
 
 
 class ChangeWindowKernelOneLocation(ChangeKernelBase):
-    """Composite kernel changing from left to right subkernels at a limited location"""
-    def __init__(self, left, right, location: float = 0., slope: float = 0.5, name='change_window_one_location', fixed_slope = False):
-        super(ChangeWindowKernelOneLocation, self).__init__(left, right, SigmoidalIndicatorKernelTwoLocations, location, slope, name, fixed_slope)
+    """Composite kernel changing from first to second subkernels at a limited location"""
+    def __init__(self, first, second, location: float = 0., slope: float = 0.5, name='change_window_one_location', fixed_slope = False):
+        super(ChangeWindowKernelOneLocation, self).__init__(first, second, SigmoidalIndicatorKernelTwoLocations, location, slope, name, fixed_slope)
 
 
 class ChangeWindowKernelTwoLocations(ChangeKernelBase):
-    """Composite kernel changing from left to right subkernels at a limited location"""
-    def __init__(self, left, right, location: float = 0., stop_location: float = 1., slope: float = 0.5, name='change_window', fixed_slope = False):
-        super(ChangeWindowKernelTwoLocations, self).__init__(left, right, SigmoidalIndicatorKernelTwoLocations, (location, stop_location), slope, name, fixed_slope)
+    """Composite kernel changing from first to second subkernels at a limited location"""
+    def __init__(self, first, second, location: float = 0., stop_location: float = 1., slope: float = 0.5, name='change_window', fixed_slope = False):
+        super(ChangeWindowKernelTwoLocations, self).__init__(first, second, SigmoidalIndicatorKernelTwoLocations, (location, stop_location), slope, name, fixed_slope)
 
     def parameters_changed(self):
         super(ChangeWindowKernelTwoLocations, self).parameters_changed()
@@ -158,8 +158,8 @@ class ChangeWindowKernelTwoLocations(ChangeKernelBase):
 
 
 # TODO:
-#   Add a 3-part changewindow operator (with separate instances of left and right kernels) (maybe to be used conditionally
-#       on whether left/right is non-stationary)
+#   Add a 3-part changewindow operator (with separate instances of first and second kernels) (maybe to be used conditionally
+#       on whether first/second is non-stationary)
 #   Idea: have only one version of each change operator (NOT the sigmoidal kernels themselves), which can fit the reverse too by different parameter values
 #       Pros: have to fit HALF the number of change models
 #       Con: the kernel expression does not always match the actual shape anymore
