@@ -3,6 +3,7 @@ from paramz.transformations import Logexp, Logistic
 from GPy.kern.src.kern import CombinationKernel
 from GPy.core.parameterization import Param
 from copy import deepcopy
+import numpy as np
 
 from GPy_ABCD.Kernels.sigmoidalKernels import SigmoidalKernel, SigmoidalIndicatorKernel
 
@@ -23,15 +24,19 @@ class ChangeWindowIndependentBase(CombinationKernel):
         self._fixed_slope = fixed_slope # Note: here to be used by subclasses, and changing it from the outside does not link the parameter
         if self._fixed_slope: self.slope = slope
         else:
-            self.slope = Param('slope', slope, Logexp())
+            self.slope = Param('slope', np.array(slope), Logexp())
             self.link_parameter(self.slope)
 
         self.sigmoidal = sigmoidal(1, False, 1., location, slope)
         self.sigmoidal_reverse = sigmoidal(1, True, 1., location, slope)
         self.sigmoidal_indicator = sigmoidal_indicator(1, False, 1., location, slope, width)
-        self.location = Param('location', location)
-        self.width = Param('width', width, Logexp())
+        self.location = Param('location', np.array(location))
+        self.width = Param('width', np.array(width), Logexp())
         self.link_parameters(self.location, self.width)
+
+        self.data_range = None
+        self.one_off_bounds_set = False
+        self.last_parameter_values = {'location': np.array(location), 'slope': np.array(slope), 'width': np.array(width)}
 
     def to_dict(self):
         """
@@ -44,10 +49,17 @@ class ChangeWindowIndependentBase(CombinationKernel):
         return input_dict
 
     def parameters_changed(self):
+        if np.isnan(self.location): self.location = self.last_parameter_values['location']
+        else: self.last_parameter_values['location'] = np.array(self.location)
+        if np.isnan(self.slope): self.slope = self.last_parameter_values['slope']
+        else: self.last_parameter_values['slope'] = np.array(self.slope)
+        if np.isnan(self.width): self.width = self.last_parameter_values['width']
+        else: self.last_parameter_values['width'] = np.array(self.width)
+
         self.sigmoidal_indicator.location = self.sigmoidal_reverse.location = self.location
         self.sigmoidal.location = self.location + self.width
         self.sigmoidal_indicator.slope = self.sigmoidal_reverse.slope = self.sigmoidal.slope = self.slope
-        self.sigmoidal_indicator.width = self.sigmoidal_reverse.width = self.sigmoidal.width = self.width
+        self.sigmoidal_indicator.width = self.width
 
     @Cache_this(limit = 3)
     def K(self, X, X2 = None):
@@ -60,11 +72,34 @@ class ChangeWindowIndependentBase(CombinationKernel):
     # NOTE ON OPTIMISATION:
     #   Should be able to get away with only optimising the parameters of one sigmoidal kernel and propagating them
 
+    def update_parameter_bounds(self, X):
+        if self.data_range is None:
+            self.data_range = (X.min(), X.max())
+            self.location = Param('location', self.location, Logistic(*self.data_range))
+            self.sigmoidal_indicator.location = Param('location', self.location, Logistic(*self.data_range))
+            # self.sigmoidal_reverse.location = Param('location', self.location, Logistic(*self.data_range))
+            # self.sigmoidal.location = Param('location', self.location + self.width, Logistic(*self.data_range))
+            # self.location.constrain_bounded(*self.data_range)
+            # self.sigmoidal_indicator.location.constrain_bounded(*self.data_range)
+            # # self.sigmoidal_reverse.location.constrain_bounded(*self.data_range)
+            # # self.sigmoidal.location.constrain_bounded(*self.data_range)
+
+        max_width = self.data_range[1] - self.location
+        max_width = max_width if max_width > 0 else self.data_range[1] - self.data_range[0]
+        self.width = Param('width', self.width, Logistic(0, max_width))
+        self.sigmoidal_indicator.width = Param('width', self.width, Logistic(0, max_width))
+        # self.width.constrain_bounded(0, max_width)
+        # self.sigmoidal_indicator.width.constrain_bounded(0, max_width)
+
     def update_gradients_full(self, dL_dK, X, X2 = None): # See NOTE ON OPTIMISATION
-        self.first.update_gradients_full(dL_dK * self.sigmoidal_reverse.K(X, X2), X, X2)
-        # self.sigmoidal_reverse.update_gradients_full(dL_dK * self.first.K(X, X2), X, X2)
+        self.update_parameter_bounds(X)
+
         self.second.update_gradients_full(dL_dK * self.sigmoidal_indicator.K(X, X2), X, X2)
         self.sigmoidal_indicator.update_gradients_full(dL_dK * self.second.K(X, X2), X, X2)
+
+        self.first.update_gradients_full(dL_dK * self.sigmoidal_reverse.K(X, X2), X, X2)
+        # self.sigmoidal_reverse.update_gradients_full(dL_dK * self.first.K(X, X2), X, X2)
+
         self.third.update_gradients_full(dL_dK * self.sigmoidal.K(X, X2), X, X2)
         # self.sigmoidal.update_gradients_full(dL_dK * self.third.K(X, X2), X, X2)
 
@@ -74,10 +109,14 @@ class ChangeWindowIndependentBase(CombinationKernel):
 
 
     def update_gradients_diag(self, dL_dK, X): # See NOTE ON OPTIMISATION
-        self.first.update_gradients_diag(dL_dK * self.sigmoidal_reverse.Kdiag(X), X)
-        # self.sigmoidal_reverse.update_gradients_diag(dL_dK * self.first.Kdiag(X), X)
+        self.update_parameter_bounds(X)
+
         self.second.update_gradients_diag(dL_dK * self.sigmoidal_indicator.Kdiag(X), X)
         self.sigmoidal_indicator.update_gradients_diag(dL_dK * self.second.Kdiag(X), X)
+
+        self.first.update_gradients_diag(dL_dK * self.sigmoidal_reverse.Kdiag(X), X)
+        # self.sigmoidal_reverse.update_gradients_diag(dL_dK * self.first.Kdiag(X), X)
+
         self.third.update_gradients_diag(dL_dK * self.sigmoidal.Kdiag(X), X)
         # self.sigmoidal.update_gradients_diag(dL_dK * self.third.Kdiag(X), X)
 

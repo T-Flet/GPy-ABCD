@@ -34,4 +34,13 @@ kernel = CW(PER() + C(), LIN()) # Stationary outside the window
 # # kernel = CW(PER + C, LIN)
 
 
-m = doGPR(X, Y, kernel, 10)
+
+# np.seterr(all='raise') # Raise exceptions instead of RuntimeWarnings. The exceptions can then be caught by the debugger
+
+m = doGPR(X, Y, kernel, 5, optimizer = 'lbfgsb')
+
+
+# Temporary diagnostics for 3-part changewindow kernel
+# print(f'{m.kern.sigmoidal_indicator.location.values} + {m.kern.sigmoidal_indicator.width.values} = {m.kern.sigmoidal_indicator.location.values + m.kern.sigmoidal_indicator.width.values}')
+# print(f'{m.kern.sigmoidal.location.values}')
+# print(m.kern.sigmoidal.location.values == m.kern.sigmoidal_indicator.location.values + m.kern.sigmoidal_indicator.width.values)

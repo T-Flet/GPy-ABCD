@@ -29,13 +29,13 @@ Usage
 ::
 
     import numpy as np
-    import GPy_ABCD
+    from GPy_ABCD import *
 
     if __name__ == '__main__':
         X = np.linspace(-10, 10, 101)[:, None]
         Y = np.cos( (X - 5) / 2 )**2 * X * 2 + np.random.randn(101, 1)
 
-        best_mods, all_mods, all_exprs = GPy_ABCD.find_best_model(X, Y,
+        best_mods, all_mods, all_exprs = find_best_model(X, Y,
             start_kernels = standard_start_kernels, p_rules = production_rules_all,
             restarts = 5, utility_function = 'BIC', rounds = 2, buffer = 3,
             dynamic_buffer = True, verbose = False, parallel = True)
