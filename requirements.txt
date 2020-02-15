@@ -8,4 +8,3 @@ pytest>=5.3.2
 scipy>=1.3.1
 GPy>=1.9.9
 ipython>=7.11.1
-pylab>=0.0.2

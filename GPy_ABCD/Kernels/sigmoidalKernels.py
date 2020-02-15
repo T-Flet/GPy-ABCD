@@ -41,7 +41,8 @@ class SigmoidalKernelBase(BasisFuncKernel):
         return 2 / (np.exp(x) + np.exp(-x))
     @staticmethod
     def _csch(x):
-        return 2 / (np.exp(x) - np.exp(-x))
+        denom = np.exp(x) - np.exp(-x)
+        return 2 / denom if denom != 0 else np.sign(x) * 1e30
     @staticmethod
     def _sigmoid_function(x, l, s):
         return (1 + np.tanh( (x - l) / s )) / 2
