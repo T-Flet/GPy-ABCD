@@ -27,3 +27,8 @@ dataset = 'CW(LIN,LIN*LIN)'
 X, Y = generate_changewindow_data(np.linspace(-10, 30, 212), lambda x: 0.05 * x, lambda x: 0.05 * x * (x - 14), 0, 16, 1, 0.3, False)
 correct_k = ChangeKE('CW', 'LIN', ProductKE(['LIN', 'LIN']))
 kernel = CW(LIN(), LIN() * LIN())
+
+# dataset = 'CW(LIN,LIN)'
+# X, Y = generate_changewindow_data(np.linspace(-30, 30, 212), lambda x: 0.5 * x, lambda x: 1.5 * x, -15, 15, 1, 0.3, False)
+# correct_k = ChangeKE('CW', 'LIN', 'LIN')
+# kernel = CW(LIN(), LIN()) # Both non-stationary
