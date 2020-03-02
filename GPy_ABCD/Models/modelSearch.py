@@ -5,6 +5,7 @@ from GPy.models import GPRegression
 
 from GPy_ABCD.KernelExpansion.grammar import *
 from GPy_ABCD.Util.kernelUtil import score_ps, AIC, AICc, BIC
+from GPy_ABCD.Util.genericUtil import flatten
 
 
 ## Model class
@@ -81,8 +82,11 @@ def fit_model_list_parallel(X, Y, k_exprs, restarts = 5):
 
 
 # start_kernels = make_simple_kexs(['WN']) #for the original ABCD
-def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all, restarts = 5,
-                    utility_function = 'BIC', rounds = 2, buffer = 4, dynamic_buffer = True, verbose = False, parallel = True):
+def explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all, restarts = 5,
+                        utility_function = 'BIC', rounds = 2, buffer = 4, dynamic_buffer = True, verbose = False, parallel = True):
+    """
+
+    """
     if len(np.shape(X)) == 1: X = np.array(X)[:, None]
     if len(np.shape(Y)) == 1: Y = np.array(Y)[:, None]
 
@@ -92,7 +96,7 @@ def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = prod
     fit_model_list = fit_model_list_parallel if parallel else fit_model_list_not_parallel
 
     tested_models = [sorted(fit_model_list(X, Y, start_kexs, restarts), key = methodcaller(utility_function))]
-    sorted_models = not_expanded = tested_models[0]
+    sorted_models = not_expanded = sorted(flatten(tested_models), key = methodcaller(utility_function))
     expanded = []
     tested_k_exprs = deepcopy(start_kexs)
 
@@ -100,9 +104,21 @@ def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = prod
     if dynamic_buffer: buffer += 2 # Higher for the 1st round
     if verbose: print(f'(All models are listed by descending {utility_function})\n\nBest round-{0} models [{buffer} moving forward]: {print_k_list(not_expanded[:buffer])}')
 
+    sorted_models, tested_models, tested_k_exprs, expanded, not_expanded = model_search_rounds(X, Y,
+                   original_buffer, sorted_models, tested_models, tested_k_exprs, expanded, not_expanded, fit_model_list,
+                   p_rules, restarts, utility_function, rounds, buffer, dynamic_buffer, verbose)
+
+    if verbose: print(f'\nBest models overall: {print_k_list(sorted_models[:original_buffer])}\n')
+    return sorted_models, tested_models, tested_k_exprs, expanded, not_expanded
+
+
+# This function is split from the above both for tidyness and to allow the possibility of continuing a search if desired
+def model_search_rounds(X, Y, original_buffer, sorted_models, tested_models, tested_k_exprs, expanded, not_expanded,
+                        fit_model_list, p_rules, restarts, utility_function, rounds, buffer, dynamic_buffer, verbose):
+    # Note: sorted_models is not actually used but replaced with the new value; present as an argument just for consistency
     for d in range(1, rounds + 1):
         new_k_exprs = [kex for kex in unique(flatten([expand(mod.kernel_expression, p_rules) for mod in not_expanded[:buffer]])) if kex not in tested_k_exprs]
-        tested_models.append(sorted(fit_model_list(X, Y, new_k_exprs, restarts), key = methodcaller(utility_function))) # tested_models[d]
+        tested_models.append(sorted(fit_model_list(X, Y, new_k_exprs, restarts), key = methodcaller(utility_function)))  # tested_models[d]
 
         sorted_models = sorted(flatten(tested_models), key = attrgetter('cached_utility_function')) # Merge-sort would be applicable
         expanded += not_expanded[:buffer]
@@ -112,10 +128,13 @@ def find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = prod
         buffer -= 1 if dynamic_buffer and (d <= 2 or d in range(rounds - 1, rounds + 1)) else 0
         if verbose: print(f'Round-{d} models [{buffer} moving forward]:\n\tBest new: {print_k_list(tested_models[d][:original_buffer])}\n\tBest so far: {print_k_list(sorted_models[:original_buffer])}\n\tBest not-already-expanded: {print_k_list(not_expanded[:buffer])}')
 
-    if verbose: print(f'\nBest models overall: {print_k_list(sorted_models[:original_buffer])}\n')
-    return sorted_models, tested_models, tested_k_exprs
+    return sorted_models, tested_models, tested_k_exprs, expanded, not_expanded
+
 
 
 # TODO:
+#   - focus on documenting end-user and generic developer functions etc in sphinx
 #   - make the dynamic buffer configurable
-#   - make a function to pick-up the modelling from a given selection of tested models
+#   - make an interactive mode which asks whether to go further, retaining how many etc
+#   - allow the model lists in each round to be fit in batches, with interactive request to continue (timed response maybe)
+#   - show an updating count of models having been fitted so far in this round; at least by batches

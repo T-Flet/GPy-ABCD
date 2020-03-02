@@ -1,1 +1,1 @@
-from GPy_ABCD.Models.modelSearch import find_best_model, standard_start_kernels, production_rules_all
+from GPy_ABCD.Models.modelSearch import explore_model_space, standard_start_kernels, production_rules_all

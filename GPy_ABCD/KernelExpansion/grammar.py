@@ -34,6 +34,7 @@ def replace_base(S): return [deep_apply(swap_base, S, B) for B in base_kerns_for
 def change_new_base(S): return [deep_apply(both_changes, S, B) for B in base_kerns_for_prod - {'C'}] # Not in original ABCD
 def change_same(S): return [deep_apply(both_changes, S)]
 def change_window_constant(S): return [deep_apply(one_change, S, 'CW', 'C')]
+def change_window_linear(S): return [deep_apply(one_change, S, 'CW', 'LIN')] # Not in original ABCD
 def change_point_linear(S): return [deep_apply(one_change, S, 'CP', 'LIN')] # Not in original ABCD
 def times_shifted_base(S): return [deep_apply(multiply, S, SumKE([B, 'C'])) for B in base_kerns_for_prod - {'C'}]
 def replace_with_singleton(S): return [deep_apply(replace_node, S, SumKE([B])) for B in base_kerns_for_prod]
@@ -48,9 +49,10 @@ production_rules_by_type = {
         'replace_base': replace_base, # B -> B
     }, 'change': {
         # 'change_new_base': change_new_base, # S -> CP(S, B) and S -> CW(S, B)
-        'change_same': change_same, # S -> CP(S, S) and S -> CW(S, S)
-        # 'change_point_linear': change_point_linear, # S -> CP(S, LIN) and S -> CP(LIN, S)
-        'change_window_constant': change_window_constant, # S -> CW(S, C) and S -> CW(C, S)
+        # 'change_same': change_same, # S -> CP(S, S) and S -> CW(S, S)
+        'change_point_linear': change_point_linear, # S -> CP(S, LIN) and S -> CP(LIN, S)
+        # 'change_window_constant': change_window_constant, # S -> CW(S, C) and S -> CW(C, S)
+        'change_window_linear': change_window_linear, # S -> CW(S, LIN) and S -> CW(LIN, S)
     }, 'heuristic': {
         'times_shifted_base': times_shifted_base, # S -> S * (B + C)
         'replace_with_singleton': replace_with_singleton, # S -> B
