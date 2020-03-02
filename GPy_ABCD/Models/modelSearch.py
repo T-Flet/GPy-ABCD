@@ -82,10 +82,32 @@ def fit_model_list_parallel(X, Y, k_exprs, restarts = 5):
 
 
 # start_kernels = make_simple_kexs(['WN']) #for the original ABCD
-def explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all, restarts = 5,
-                        utility_function = 'BIC', rounds = 2, buffer = 4, dynamic_buffer = True, verbose = False, parallel = True):
+def explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all, utility_function = 'BIC',
+                        restarts = 5, rounds = 2, buffer = 4, dynamic_buffer = True, verbose = False, parallel = True):
     """
+    Perform `rounds` rounds of kernel expansion followed by model fit starting from the given `start_kernels` with and
+    expanding the best `buffer` of them with `p_rules` production rules
 
+    :param start_kernels: the starting kernels
+    :type start_kernels: [KernelExpression]
+    :param p_rules: the production rules applied at each expansion
+    :type p_rules: [function]
+    :param utility_function: Name of utility function: AIC, AICc and BIC available so far (will allow function input in future releases)
+    :type utility_function: String
+    :param restarts: Number of GPy model-fitting restarts with different parameters
+    :type restarts: Int
+    :param rounds: Number of rounds of model exploration
+    :type rounds: Int
+    :param buffer: Number of best fit-models' kernels to expand each round
+    :type buffer: Int
+    :param dynamic_buffer: If True: buffer is increased by 2 at the beginning and decreased by 1 in the first two and last two rounds
+    :type dynamic_buffer: Boolean
+    :param verbose: Produce verbose logs
+    :type verbose: Boolean
+    :param parallel: Perform multiple model fits concurrently on all available processors (vs GPy's own parallel argument, which splits a single fit over multiple processors)
+    :type parallel: Boolean
+
+    :rtype: (sorted_models: [GPModel], tested_models: [[GPModel]], tested_k_exprs: [KernelExpression], expanded: [GPModel], not_expanded: [GPModel])
     """
     if len(np.shape(X)) == 1: X = np.array(X)[:, None]
     if len(np.shape(Y)) == 1: Y = np.array(Y)[:, None]
@@ -106,16 +128,20 @@ def explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = 
 
     sorted_models, tested_models, tested_k_exprs, expanded, not_expanded = model_search_rounds(X, Y,
                    original_buffer, sorted_models, tested_models, tested_k_exprs, expanded, not_expanded, fit_model_list,
-                   p_rules, restarts, utility_function, rounds, buffer, dynamic_buffer, verbose)
+                   p_rules, utility_function, restarts, rounds, buffer, dynamic_buffer, verbose)
 
     if verbose: print(f'\nBest models overall: {print_k_list(sorted_models[:original_buffer])}\n')
     return sorted_models, tested_models, tested_k_exprs, expanded, not_expanded
 
 
-# This function is split from the above both for tidyness and to allow the possibility of continuing a search if desired
+# This function is split from the above both for tidiness and to allow the possibility of continuing a search if desired
 def model_search_rounds(X, Y, original_buffer, sorted_models, tested_models, tested_k_exprs, expanded, not_expanded,
-                        fit_model_list, p_rules, restarts, utility_function, rounds, buffer, dynamic_buffer, verbose):
-    # Note: sorted_models is not actually used but replaced with the new value; present as an argument just for consistency
+                        fit_model_list, p_rules, utility_function, restarts, rounds, buffer, dynamic_buffer, verbose):
+    """
+    See explore_model_space description and source code for argument explanation and context
+
+    Note: sorted_models is not actually used but replaced with the new value; present as an argument just for consistency
+    """
     for d in range(1, rounds + 1):
         new_k_exprs = [kex for kex in unique(flatten([expand(mod.kernel_expression, p_rules) for mod in not_expanded[:buffer]])) if kex not in tested_k_exprs]
         tested_models.append(sorted(fit_model_list(X, Y, new_k_exprs, restarts), key = methodcaller(utility_function)))  # tested_models[d]
@@ -138,3 +164,4 @@ def model_search_rounds(X, Y, original_buffer, sorted_models, tested_models, tes
 #   - make an interactive mode which asks whether to go further, retaining how many etc
 #   - allow the model lists in each round to be fit in batches, with interactive request to continue (timed response maybe)
 #   - show an updating count of models having been fitted so far in this round; at least by batches
+#   - Make the utility_function argument optionally a function taking (ll, n, k) as arguments as in kernelUtil
