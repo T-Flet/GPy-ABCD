@@ -82,7 +82,7 @@ class PureStdPeriodicKernel(Kern):
             return self.variance * cos_term
         else:
             # Overflow on exp and i0 by going backwards from sys.float_info.max (1.7976931348623157e+308): 1/l^2 < 709.782712893384
-            invL2 = np.clip(1 / self.lengthscale ** 2, 0, 700)
+            invL2 = np.clip(1 / np.where(self.lengthscale < 1e-100, 1e-200, self.lengthscale ** 2), 0, 700)
             exp_term = np.exp(cos_term * invL2)
             bessel0 = i0(invL2)
             return self.variance * ((exp_term - bessel0) / (np.exp(invL2) - bessel0)) # The brackets prevent an overflow; want division first
@@ -109,7 +109,7 @@ class PureStdPeriodicKernel(Kern):
             dK_dl = 1e-4 / self.lengthscale
         else:
             # Overflow on exp and i0 by going backwards from sys.float_info.max (1.7976931348623157e+308): 1/l^2 < 709.782712893384
-            invL2 = np.clip(1 / self.lengthscale ** 2, 0, 700)
+            invL2 = np.clip(1 / np.where(self.lengthscale < 1e-100, 1e-200, self.lengthscale ** 2), 0, 700)
             bessel0 = i0(invL2)
             bessel1 = i1(invL2)
             eInvL2 = np.exp(invL2)
@@ -121,7 +121,7 @@ class PureStdPeriodicKernel(Kern):
             dK_dp = (self.variance * invL2 * trig_arg * sin_term / self.period) * (exp_term / denom) # exp terms division separate because of overflow risk
 
             K = self.variance * dK_dV
-            dInvL2_dl = -2 / self.lengthscale ** 3
+            dInvL2_dl = -2 / np.where(self.lengthscale < 1e-100, 1e-300, self.lengthscale ** 3)
             dK_dl = dInvL2_dl * ( self.variance * ((cos_term * exp_term - bessel1) / denom) - K * ((eInvL2 - bessel1) / denom) ) # The brackets prevent some overflows; want those divisions first
 
         self.variance.gradient = np.sum(dL_dK * dK_dV)

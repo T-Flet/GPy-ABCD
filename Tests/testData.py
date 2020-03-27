@@ -17,13 +17,13 @@ if __name__ == '__main__':
     X = data['X']
     Y = data['y']
 
-    best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all,
+    sorted_models, tested_models, tested_k_exprs, expanded, not_expanded = explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all,
                                                      restarts = 3, utility_function = 'BIC', rounds = 2, buffer = 2, dynamic_buffer = True, verbose = True, parallel = True)
 
-    for mod_depth in all_mods: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]) + f'\n{len(mod_depth)}')
+    for mod_depth in tested_models: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]) + f'\n{len(mod_depth)}')
 
     from matplotlib import pyplot as plt
-    for bm in best_mods[:3]:
+    for bm in sorted_models[:3]:
         print(bm.kernel_expression)
         print(bm.model.kern)
         print(bm.model.log_likelihood())
@@ -33,4 +33,5 @@ if __name__ == '__main__':
 
     plt.show()
 
-    save_one_run(dataset_name, 'UNKNOWN', best_mods, all_mods, all_exprs)
+    save_one_run(dataset_name, 'UNKNOWN', sorted_models, tested_models, tested_k_exprs)
+

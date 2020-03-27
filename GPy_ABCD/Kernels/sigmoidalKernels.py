@@ -38,11 +38,13 @@ class SigmoidalKernelBase(BasisFuncKernel):
 
     @staticmethod
     def _sech(x): # Because the np.cosh overflows too easily before inversion
-        return 2 / (np.exp(x) + np.exp(-x))
+        safe_x = np.where(np.abs(x) < 700, x, np.sign(x) * 700) # 709.782712893384 is the real np.log(1.7976931348623157e+308)
+        return 2 / (np.exp(safe_x) + np.exp(-safe_x))
     @staticmethod
     def _csch(x):
-        denom = np.exp(x) - np.exp(-x)
-        return 2 / denom if denom != 0 else np.sign(x) * 1e30
+        safe_x = np.where(np.abs(x) < 700, x, np.sign(x) * 700) # 709.782712893384 is the real np.log(1.7976931348623157e+308)
+        denom = np.exp(safe_x) - np.exp(-safe_x)
+        return 2 / denom if denom != 0 else np.sign(safe_x) * 1e30
     @staticmethod
     def _sigmoid_function(x, l, s):
         return (1 + np.tanh( (x - l) / s )) / 2

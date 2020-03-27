@@ -42,6 +42,10 @@ def remove_some_term(S): return [deep_apply(remove_a_term, S)]
 def try_higher_curves(S): return [deep_apply(higher_curves, S)] # Not in original ABCD
 
 
+# TODO:
+#   - Group production rules by introduced base kernels in order to be able to remove some, in particular changepoint ones
+#   - Have a way to refer to the ones depending on the user-definable base_kerns_for_prod
+
 production_rules_by_type = {
     'basic': {
         'plus_base': plus_base, # S -> S + B

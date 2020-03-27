@@ -8,18 +8,18 @@ from GPy_ABCD.Util.dataAndPlottingUtil import *
 from synthetic_datasets import *
 
 
-def get_model_round(bm, all_mods):
-    for i in range(len(all_mods)):
-        if bm.kernel_expression in [m.kernel_expression for m in all_mods[i]]: return i
+def get_model_round(bm, tested_models):
+    for i in range(len(tested_models)):
+        if bm.kernel_expression in [m.kernel_expression for m in tested_models[i]]: return i
     raise ValueError('Somehow this model is not among the tested models; equality checking failure?')
 
 
-def one_run_statistics(best_mods, all_mods, all_exprs, top_n):
+def one_run_statistics(sorted_models, tested_models, tested_k_exprs, top_n):
     res = defaultdict(list)
-    for m in best_mods[:top_n]:
+    for m in sorted_models[:top_n]:
         res['kex'].append(m.kernel_expression)
         res['utility'].append(m.cached_utility_function)
-        res['round'].append(get_model_round(m, all_mods))
+        res['round'].append(get_model_round(m, tested_models))
     return res
 
 
@@ -61,10 +61,10 @@ if __name__ == '__main__':
     n_iterations = 3
     n_runs_stats = []
     for i in range(n_iterations):
-        best_mods, all_mods, all_exprs = find_best_model(X, Y, start_kernels=standard_start_kernels, p_rules=production_rules_all,
+        sorted_models, tested_models, tested_k_exprs, expanded, not_expanded = explore_model_space(X, Y, start_kernels=standard_start_kernels, p_rules=production_rules_all,
                                                          restarts=3, utility_function='BIC', rounds=2, buffer=2,
-                                                         dynamic_buffer=True, verbose=False, parallel=True)
-        n_runs_stats.append(one_run_statistics(best_mods, all_mods, all_exprs, 5))
+                                                         dynamic_buffer=True, verbose=True, parallel=True)
+        n_runs_stats.append(one_run_statistics(sorted_models, tested_models, tested_k_exprs, 5))
         print(f'{i+1} runs done')
 
     get_and_save_stats(n_runs_stats)
