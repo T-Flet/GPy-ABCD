@@ -5,6 +5,10 @@ GPy-ABCD
     :target: https://pypi.python.org/pypi/GPy-ABCD/
     :alt: Latest PyPI version
 
+.. image:: https://pepy.tech/badge/gpy-abcd
+    :target: https://pepy.tech/project/gpy-abcd
+    :alt: Package Downloads
+
 .. image:: https://img.shields.io/pypi/pyversions/GPy-ABCD.svg
     :target: https://pypi.python.org/pypi/GPy-ABCD/
     :alt: Python Versions
@@ -19,10 +23,20 @@ GPy-ABCD
 
 Basic implementation with GPy of an Automatic Bayesian Covariance Discovery (ABCD) system
 
-(as in Lloyd, James Robert; Duvenaud, David Kristjanson; Grosse, Roger Baker; Tenenbaum, Joshua B.; Ghahramani, Zoubin (2014):
+Briefly: a modelling system which consists in exploring a space of compositional kernels
+(i.e. covariances of gaussian processes) built from a few carefully selected base ones,
+returning the best fitting gaussian process models using them and generating simple text
+interpretations of the fits based on the functional shapes of the final composed covariance
+kernels and parameter values.
+
+See the picture in `Usage` below to get a feeling for it and
+read one of the papers on the original ABCD for details:
+
+Lloyd, James Robert; Duvenaud, David Kristjanson; Grosse, Roger Baker; Tenenbaum, Joshua B.; Ghahramani, Zoubin (2014):
 Automatic construction and natural-language description of nonparametric regression models.
 In: National Conference on Artificial Intelligence, 7/27/2014, pp. 1242-1250.
-Available online at https://academic.microsoft.com/paper/1950803081.)
+Available online at https://academic.microsoft.com/paper/1950803081.
+
 
 Installation
 ------------

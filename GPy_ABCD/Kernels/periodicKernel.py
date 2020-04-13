@@ -82,7 +82,7 @@ class PureStdPeriodicKernel(Kern):
             return self.variance * cos_term
         else:
             # Overflow on exp and i0 by going backwards from sys.float_info.max (1.7976931348623157e+308): 1/l^2 < 709.782712893384
-            invL2 = np.clip(1 / np.where(self.lengthscale < 1e-100, 1e-200, self.lengthscale ** 2), 0, 700)
+            invL2 = np.clip(1 / np.where(self.lengthscale < 1e-100, 1e-200, self.lengthscale ** 2), 0, 705)
             exp_term = np.exp(cos_term * invL2)
             bessel0 = i0(invL2)
             return self.variance * ((exp_term - bessel0) / (np.exp(invL2) - bessel0)) # The brackets prevent an overflow; want division first
@@ -109,7 +109,7 @@ class PureStdPeriodicKernel(Kern):
             dK_dl = 1e-4 / self.lengthscale
         else:
             # Overflow on exp and i0 by going backwards from sys.float_info.max (1.7976931348623157e+308): 1/l^2 < 709.782712893384
-            invL2 = np.clip(1 / np.where(self.lengthscale < 1e-100, 1e-200, self.lengthscale ** 2), 0, 700)
+            invL2 = np.clip(1 / np.where(self.lengthscale < 1e-100, 1e-200, self.lengthscale ** 2), 0, 705)
             bessel0 = i0(invL2)
             bessel1 = i1(invL2)
             eInvL2 = np.exp(invL2)

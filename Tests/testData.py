@@ -18,7 +18,7 @@ if __name__ == '__main__':
     Y = data['y']
 
     sorted_models, tested_models, tested_k_exprs, expanded, not_expanded = explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all,
-                                                     restarts = 3, utility_function = 'BIC', rounds = 2, buffer = 2, dynamic_buffer = True, verbose = True, parallel = True)
+                                                     restarts = 3, utility_function = 'BIC', rounds = 3, buffer = 2, dynamic_buffer = True, verbose = True, parallel = True)
 
     for mod_depth in tested_models: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]) + f'\n{len(mod_depth)}')
 
