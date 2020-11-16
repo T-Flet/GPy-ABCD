@@ -26,7 +26,7 @@ def kCW(k1, k2):
     :param k2: Kernel during the window
     :return: A kernel of k1 replaced by k2 in some changewindow
     """
-    res = k1 * SigmoidalIndicatorKernelCentreWidth(1, True) + k2 * SigmoidalIndicatorKernelCentreWidth(1, False)
+    res = k1 * SigmoidalIndicatorKernel(1, True) + k2 * SigmoidalIndicatorKernel(1, False)
     res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.variance)
     res.mul_1.sigmoidal_indicator.variance = res.mul.sigmoidal_indicator.variance
     res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.location)
@@ -38,35 +38,3 @@ def kCW(k1, k2):
     return res
 
 
-def kCW_separate_locs(k1, k2):
-    """
-    :param k1: Kernel before and after the window
-    :param k2: Kernel during the window
-    :return: A kernel of k1 replaced by k2 in some changewindow
-    """
-    res = k1 * SigmoidalIndicatorKernelOneLocation(1, True) + k2 * SigmoidalIndicatorKernelOneLocation(1, False)
-    res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.variance)
-    res.mul_1.sigmoidal_indicator.variance = res.mul.sigmoidal_indicator.variance
-    # res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.location)
-    # res.mul_1.sigmoidal_indicator.location = res.mul.sigmoidal_indicator.location
-    res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.slope)
-    res.mul_1.sigmoidal_indicator.slope = res.mul.sigmoidal_indicator.slope
-    return res
-
-
-def kCW_two_locs(k1, k2):
-    """
-    :param k1: Kernel before and after the window
-    :param k2: Kernel during the window
-    :return: A kernel of k1 replaced by k2 in some changewindow
-    """
-    res = k1 * SigmoidalIndicatorKernelTwoLocations(1, True) + k2 * SigmoidalIndicatorKernelTwoLocations(1, False)
-    res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.variance)
-    res.mul_1.sigmoidal_indicator.variance = res.mul.sigmoidal_indicator.variance
-    res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.location)
-    res.mul_1.sigmoidal_indicator.location = res.mul.sigmoidal_indicator.location
-    res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.stop_location)
-    res.mul_1.sigmoidal_indicator.stop_location = res.mul.sigmoidal_indicator.stop_location
-    res.mul_1.sigmoidal_indicator.unlink_parameter(res.mul_1.sigmoidal_indicator.slope)
-    res.mul_1.sigmoidal_indicator.slope = res.mul.sigmoidal_indicator.slope
-    return res

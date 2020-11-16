@@ -6,6 +6,14 @@ from plotnine import ggplot, geom_line, aes
 from GPy.models import GPRegression
 
 
+def sortOutTypePair(k1, k2):
+    t1 = type(k1)
+    t2 = type(k2)
+    if t1 == t2: return {t1: [k1, k2]}
+    else: return {t1: k1, t2: k2}
+
+
+
 ## GPy Model Scoring
 
 def score_ps(m):

@@ -5,7 +5,7 @@ from GPy.core.parameterization import Param
 import numpy as np
 from copy import copy
 
-from GPy_ABCD.Kernels.sigmoidalKernels import SigmoidalKernel, SigmoidalIndicatorKernel, SigmoidalIndicatorKernelTwoLocations, SigmoidalIndicatorKernelCentreWidth
+from GPy_ABCD.Kernels.sigmoidalKernels import SigmoidalKernel, SigmoidalIndicatorKernel
 
 
 class ChangeKernelBase(CombinationKernel):
@@ -182,50 +182,6 @@ class ChangeWindowKernelAlternating(ChangeKernelBase):
         else:
             self.location.gradient = np.array(0)
             self.width.gradient = self.sigmoidal.width.gradient# + self.sigmoidal_reverse.width.gradient # See NOTE ON OPTIMISATION in ChangeKernelBase
-
-
-class ChangeWindowKernelCentreWidth(ChangeKernelBase):
-    """Composite kernel changing from first to second subkernels at a limited location"""
-    def __init__(self, first, second, location: float = 0., slope: float = 0.5, width: float = 1., name='change_window', fixed_slope = False):
-        super(ChangeWindowKernelCentreWidth, self).__init__(first, second, SigmoidalIndicatorKernelCentreWidth, location, slope, name, fixed_slope)
-        self.width = Param('width', width, Logexp())
-        self.link_parameter(self.width)
-
-    def parameters_changed(self):
-        super(ChangeWindowKernelCentreWidth, self).parameters_changed()
-        self.sigmoidal_reverse.width = self.sigmoidal.width = self.width
-
-    def update_gradients_full(self, dL_dK, X, X2 = None):
-        super(ChangeWindowKernelCentreWidth, self).update_gradients_full(dL_dK, X, X2)
-        self.width.gradient = self.sigmoidal.width.gradient# + self.sigmoidal_reverse.width.gradient # See NOTE ON OPTIMISATION in ChangeKernelBase
-
-    def update_gradients_diag(self, dL_dK, X):
-        super(ChangeWindowKernelCentreWidth, self).update_gradients_diag(dL_dK, X)
-        self.width.gradient = self.sigmoidal.width.gradient# + self.sigmoidal_reverse.width.gradient # See NOTE ON OPTIMISATION in ChangeKernelBase
-
-
-class ChangeWindowKernelOneLocation(ChangeKernelBase):
-    """Composite kernel changing from first to second subkernels at a limited location"""
-    def __init__(self, first, second, location: float = 0., slope: float = 0.5, name='change_window_one_location', fixed_slope = False):
-        super(ChangeWindowKernelOneLocation, self).__init__(first, second, SigmoidalIndicatorKernelTwoLocations, location, slope, name, fixed_slope)
-
-
-class ChangeWindowKernelTwoLocations(ChangeKernelBase):
-    """Composite kernel changing from first to second subkernels at a limited location"""
-    def __init__(self, first, second, location: float = 0., stop_location: float = 1., slope: float = 0.5, name='change_window', fixed_slope = False):
-        super(ChangeWindowKernelTwoLocations, self).__init__(first, second, SigmoidalIndicatorKernelTwoLocations, (location, stop_location), slope, name, fixed_slope)
-
-    def parameters_changed(self):
-        super(ChangeWindowKernelTwoLocations, self).parameters_changed()
-        self.sigmoidal_reverse.stop_location = self.sigmoidal.stop_location = self.stop_location
-
-    def update_gradients_full(self, dL_dK, X, X2 = None):
-        super(ChangeWindowKernelTwoLocations, self).update_gradients_full(dL_dK, X, X2)
-        self.stop_location.gradient = self.sigmoidal.stop_location.gradient# + self.sigmoidal_reverse.stop_location.gradient # See NOTE ON OPTIMISATION in ChangeKernelBase
-
-    def update_gradients_diag(self, dL_dK, X):
-        super(ChangeWindowKernelTwoLocations, self).update_gradients_diag(dL_dK, X)
-        self.stop_location.gradient = self.sigmoidal.stop_location.gradient# + self.sigmoidal_reverse.stop_location.gradient # See NOTE ON OPTIMISATION in ChangeKernelBase
 
 
 

@@ -61,7 +61,7 @@ production_rules_by_type = {
         'times_shifted_base': times_shifted_base, # S -> S * (B + C)
         'replace_with_singleton': replace_with_singleton, # S -> B
         'remove_some_term': remove_some_term, # S + S2 -> S and S * S2 -> S
-        'try_higher_curves': try_higher_curves, # S -> S with higher polynomials or PERs, discouraging SE
+        # 'try_higher_curves': try_higher_curves, # S -> S with higher polynomials or PERs, discouraging SE
     }
 }
 

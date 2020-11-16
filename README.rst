@@ -13,13 +13,13 @@ GPy-ABCD
     :target: https://pypi.python.org/pypi/GPy-ABCD/
     :alt: Python Versions
 
-.. image:: https://img.shields.io/pypi/l/GPy-ABCD.svg
-    :target: https://github.com/T-Flet/GPy-ABCD/blob/master/LICENSE
-    :alt: License
-
 .. image:: https://github.com/T-Flet/GPy-ABCD/workflows/Python%20package/badge.svg
     :target: https://github.com/T-Flet/GPy-ABCD/actions?query=workflow%3A%22Python+package%22
     :alt: Build
+
+.. image:: https://img.shields.io/pypi/l/GPy-ABCD.svg
+    :target: https://github.com/T-Flet/GPy-ABCD/blob/master/LICENSE
+    :alt: License
 
 Basic implementation with GPy of an Automatic Bayesian Covariance Discovery (ABCD) system
 

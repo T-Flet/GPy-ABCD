@@ -148,7 +148,7 @@ def model_search_rounds(X, Y, original_buffer, sorted_models, tested_models, tes
 
         sorted_models = sorted(flatten(tested_models), key = attrgetter('cached_utility_function')) # Merge-sort would be applicable
         expanded += not_expanded[:buffer]
-        not_expanded = lists_of_unhashables__diff(sorted_models, expanded) # More efficient than sorting another whole list
+        not_expanded = diff(sorted_models, expanded) # More efficient than sorting another whole list
         tested_k_exprs += new_k_exprs
 
         buffer -= 1 if dynamic_buffer and (d <= 2 or d in range(rounds - 1, rounds + 1)) else 0

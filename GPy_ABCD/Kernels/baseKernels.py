@@ -59,15 +59,6 @@ def Sr(): return _Sk.SigmoidalKernel(1, True, fixed_slope = __FIX_SIGMOIDAL_KERN
 def SI(): return _Sk.SigmoidalIndicatorKernel(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 def SIr(): return _Sk.SigmoidalIndicatorKernel(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
 
-def SICW(): return _Sk.SigmoidalIndicatorKernelCentreWidth(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-def SICWr(): return _Sk.SigmoidalIndicatorKernelCentreWidth(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-
-def SIT(): return _Sk.SigmoidalIndicatorKernelTwoLocations(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-def SITr(): return _Sk.SigmoidalIndicatorKernelTwoLocations(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-
-def SIO(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, False, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-def SIOr(): return _Sk.SigmoidalIndicatorKernelOneLocation(1, True, fixed_slope = __FIX_SIGMOIDAL_KERNELS_SLOPE)
-
 
 # Change-Operator Kernels
 

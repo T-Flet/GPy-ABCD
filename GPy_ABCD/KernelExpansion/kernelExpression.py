@@ -7,7 +7,8 @@ from itertools import chain, product
 
 from GPy_ABCD.KernelExpansion.kernelOperations import *
 from GPy_ABCD.KernelExpansion.kernelInterpretation import *
-from GPy_ABCD.Util.genericUtil import sortOutTypePair, update_dict_with, partition, lists_of_unhashables__eq
+from GPy_ABCD.Util.genericUtil import update_dict_with, partition, eq_elems
+from GPy_ABCD.Util.kernelUtil import sortOutTypePair
 
 
 # IDEA:
@@ -165,7 +166,7 @@ class SumOrProductKE(KernelExpression): # Abstract
         return res + cts + ')'
 
     def __eq__(self, other): ## NOTE: this is intended to check equality of data fields only, i.e. it does not check root or parent
-        return type(self) == type(other) and self.base_terms == other.base_terms and lists_of_unhashables__eq(self.composite_terms, other.composite_terms)
+        return type(self) == type(other) and self.base_terms == other.base_terms and eq_elems(self.composite_terms, other.composite_terms)
 
     @staticmethod
     def bracket_if_needed(kex):
@@ -341,8 +342,9 @@ class ProductKE(SumOrProductKE):
             for bt in list(self.base_terms.keys()):
                 if bt not in ['WN', 'LIN'] + list(base_sigmoids): del self.base_terms[bt]
         else:
-            if self.base_terms['C'] > 0: # C is the multiplication-identity element, therefore remove it unless it is the only factor
-                self.base_terms['C'] = 0 if self.term_count() != self.base_terms['C'] else 1
+            if self.base_terms['C'] > 0: # C is the multiplication-identity element, therefore remove it unless it is the only factor or alone with a sigmoidal
+                base_sigmoidals_count = sum([self.base_terms[sb] for sb in base_sigmoids if sb in self.base_terms.keys()])
+                self.base_terms['C'] = 0 if self.term_count() - base_sigmoidals_count != self.base_terms['C'] else 1
             if self.base_terms['SE'] > 1: self.base_terms['SE'] = 1 # SE is multiplication-idempotent
         self.base_terms = + self.base_terms
         return self
@@ -441,15 +443,16 @@ class ChangeKE(KernelExpression):
 
     def traverse(self):
         res = [self]
-        # NOTE: this version does not add new elements for raw string leaves; replace by comments for that behaviour
-        res += self.left.traverse() if isinstance(self.left, KernelExpression) else []#[self.left]
-        res += self.right.traverse() if isinstance(self.right, KernelExpression) else []#[self.right]
+        # NOTE: this version adds new elements for raw string leaves (making them SumKE singletons); replace by comments to remove that behaviour
+        res += self.left.traverse() if isinstance(self.left, KernelExpression) else [SumKE([self.left]).set_root(self.root).set_parent(self)]#[]
+        res += self.right.traverse() if isinstance(self.right, KernelExpression) else [SumKE([self.right]).set_root(self.root).set_parent(self)]#[]
         return res
 
     def reduce(self, func, acc):
-        # NOTE: this function does not deal with raw string leaves; see further comments upstream
+        # NOTE: this function DOES deal with raw string leaves; see further comments upstream; swap commented middle line for opposite behaviour
         return reduce(lambda acc2, branch: branch.reduce(func, acc2),
-               [branch for branch in (self.left, self.right) if isinstance(branch, KernelExpression)],
+               [branch if isinstance(branch, KernelExpression) else SumKE([branch]).set_root(self.root).set_parent(self) for branch in (self.left, self.right)],
+               # [branch for branch in (self.left, self.right) if isinstance(branch, KernelExpression)],
                func(self, acc))
 
     def set_root(self, new_root = None):

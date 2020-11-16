@@ -1,5 +1,5 @@
 from GPy_ABCD.KernelExpansion.kernelExpression import *
-from GPy_ABCD.Util.genericUtil import sortOutTypePair
+from GPy_ABCD.Util.kernelUtil import sortOutTypePair
 
 
 # NICE BUT UNNECESSARY REFACTORING: make add and multiply two cases of the same function

@@ -63,13 +63,15 @@ def test_reduce():
         if isinstance(node, SumOrProductKE):  # Or split Sum and Product cases further
             node.new_base('LIN')
             acc += node.base_terms.elements()
-        else:  # elif isinstance(node, ChangeKE):
-            if isinstance(node.left, str): acc += [node.left]
-            if isinstance(node.right, str): acc += [node.right]
+        # Comment out the below lines if ChangeKE reduce handles str branches
+        # else:  # elif isinstance(node, ChangeKE):
+            # if isinstance(node.left, str): acc += [node.left]
+            # if isinstance(node.right, str): acc += [node.right]
         return acc
 
     res = test_expr.reduce(testFunc, [])
-    assert res == ['PER', 'LIN', 'WN', 'C', 'LIN', 'SE', 'WN']
+    assert res == ['PER', 'LIN', 'WN', 'C', 'LIN', 'SE', 'LIN', 'WN', 'LIN'] # This is reduce handles str ChangeKE branches
+    # assert res == ['PER', 'LIN', 'WN', 'C', 'LIN', 'SE', 'WN'] # This one if it does not
     assert [kex.root == 'HI' for kex in test_expr.traverse()]
     assert test_expr == ChangeKE('CP', ProductKE(['PER', 'LIN'], [SumKE(['WN', 'C', 'LIN'])]), ChangeKE('CW', 'SE', 'WN'))
 
