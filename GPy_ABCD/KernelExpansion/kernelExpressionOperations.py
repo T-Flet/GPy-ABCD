@@ -1,4 +1,6 @@
-from GPy_ABCD.KernelExpansion.kernelExpression import *
+from collections import Counter
+
+from GPy_ABCD.KernelExpressions.all import SumKE, ProductKE, ChangeKE
 from GPy_ABCD.Util.kernelUtil import sortOutTypePair
 
 

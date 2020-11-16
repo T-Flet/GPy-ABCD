@@ -1,5 +1,5 @@
-from GPy_ABCD.Kernels import *
-from GPy_ABCD.KernelExpansion import *
+from GPy_ABCD.Kernels.baseKernels import *
+from GPy_ABCD.KernelExpansion.grammar import *
 from GPy_ABCD.Util.dataAndPlottingUtil import *
 
 

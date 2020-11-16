@@ -1,5 +1,7 @@
-from GPy_ABCD.KernelExpansion.grammar import *
 import pytest
+from copy import deepcopy
+
+from GPy_ABCD.KernelExpansion.grammar import *
 
 
 @pytest.mark.parametrize('kex, kex_str', [

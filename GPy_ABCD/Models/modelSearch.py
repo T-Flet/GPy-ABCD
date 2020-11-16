@@ -1,11 +1,15 @@
 import warnings
+import numpy as np
 from operator import methodcaller, attrgetter
 from multiprocessing import Pool, cpu_count
+from copy import deepcopy
 from GPy.models import GPRegression
 
-from GPy_ABCD.KernelExpansion.grammar import *
+from GPy_ABCD.KernelExpressions.all import SumKE
+from GPy_ABCD.KernelExpansion.grammar import standard_start_kernels, production_rules_all, make_simple_kexs, expand
+from GPy_ABCD.KernelExpansion.kernelOperations import fit_ker_to_kex_with_params
 from GPy_ABCD.Util.kernelUtil import score_ps, AIC, AICc, BIC
-from GPy_ABCD.Util.genericUtil import flatten
+from GPy_ABCD.Util.genericUtil import flatten, diff, unique
 
 
 ## Model class

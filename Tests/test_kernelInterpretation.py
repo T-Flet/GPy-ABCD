@@ -1,4 +1,5 @@
-from GPy_ABCD.KernelExpansion.kernelExpression import *
+from GPy_ABCD.KernelExpressions.all import *
+from GPy_ABCD.KernelExpansion.kernelOperations import init_rand_params
 from GPy_ABCD.KernelExpansion.kernelExpressionOperations import *
 from GPy_ABCD.KernelExpansion.kernelInterpretation import *
 import pytest

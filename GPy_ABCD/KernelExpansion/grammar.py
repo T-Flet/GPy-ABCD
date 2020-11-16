@@ -1,6 +1,7 @@
+from GPy_ABCD.KernelExpressions.all import KernelExpression
 from GPy_ABCD.KernelExpansion.kernelExpressionOperations import *
-from GPy_ABCD.Util.genericUtil import *
-from GPy_ABCD.Kernels.baseKernels import __INCLUDE_SE_KERNEL, __USE_LIN_KERNEL_HORIZONTAL_OFFSET
+from GPy_ABCD.Kernels.baseKernels import base_kerns, __INCLUDE_SE_KERNEL, __USE_LIN_KERNEL_HORIZONTAL_OFFSET
+from GPy_ABCD.Util.genericUtil import flatten, unique
 
 
 ## Expansion functions

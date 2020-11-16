@@ -1,4 +1,4 @@
-from GPy_ABCD.Kernels import *
+from GPy_ABCD.Kernels.baseKernels import *
 from GPy_ABCD.Kernels.baseKernels import __FIX_SIGMOIDAL_KERNELS_SLOPE
 
 

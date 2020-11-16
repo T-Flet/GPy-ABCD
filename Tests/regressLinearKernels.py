@@ -3,11 +3,10 @@ import numpy as np
 from GPy_ABCD.Kernels.linearKernel import Linear
 from GPy_ABCD.Kernels.linearOffsetKernel import LinearWithOffset
 from GPy_ABCD.Kernels.baseKernels import C, __USE_LIN_KERNEL_HORIZONTAL_OFFSET
-from GPy_ABCD.KernelExpansion.kernelExpression import *
+from GPy_ABCD.KernelExpressions import *
 from GPy_ABCD.Util.dataAndPlottingUtil import *
 from GPy_ABCD.Util.kernelUtil import doGPR, score_ps, BIC, AIC, AICc
 from GPy_ABCD.Models.modelSearch import fit_model_list_parallel
-
 
 # X, Y = generate_data(lambda x: 2 * x + 20, np.linspace(-20, 20, 201), 1, 0.5)
 # # kernel = Linear(1)

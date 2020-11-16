@@ -1,5 +1,8 @@
 import pytest
+from copy import deepcopy
 
+from GPy_ABCD.KernelExpressions.all import KernelExpression, SumOrProductKE
+from GPy_ABCD.KernelExpansion.kernelOperations import init_rand_params, get_param_dict
 from GPy_ABCD.KernelExpansion.kernelExpressionOperations import *
 from GPy_ABCD.Util.genericUtil import diff
 from GPy_ABCD.Kernels.baseKernels import __USE_LIN_KERNEL_HORIZONTAL_OFFSET
