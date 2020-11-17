@@ -20,7 +20,7 @@ if __name__ == '__main__':
     # from timeit import timeit
     # def statement():
     #     best_mods, all_mods, all_exprs, expanded, not_expanded = explore_model_space(X, Y, start_kernels=standard_start_kernels, p_rules=production_rules_all,
-    #                                                      utility_function='BIC', restarts=2, rounds=2, buffer=3, dynamic_buffer = True, verbose=True, parallel=True)
+    #                                                      utility_function=BIC, restarts=2, rounds=2, buffer=3, dynamic_buffer = True, verbose=True, parallel=True)
     # print(timeit(statement, number = 3))
 
     # X = np.linspace(-10, 10, 101)[:, None]
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     # best_mods, all_mods, all_exprs, expanded, not_expanded = explore_model_space(X, Y, start_kernels = test_start_kernels, p_rules = production_rules_all,
     # best_mods, all_mods, all_exprs, expanded, not_expanded = explore_model_space(X, Y, start_kernels = extended_start_kernels, p_rules = production_rules_all,
     best_mods, all_mods, all_exprs, expanded, not_expanded = explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all,
-                                 utility_function = 'BIC', restarts = 4, rounds = 1, buffer = 3, dynamic_buffer = False, verbose = True, parallel = True)
+                                 utility_function = BIC, restarts = 4, rounds = 1, buffer = 3, dynamic_buffer = False, verbose = True, parallel = True)
 
 
     for mod_depth in all_mods: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]) + f'\n{len(mod_depth)}')
