@@ -63,8 +63,8 @@ called from within a :code:`if __name__ == '__main__':`
         # Main function call with suggested arguments
         best_mods, all_mods, all_exprs, expanded, not_expanded = explore_model_space(X, Y,
             start_kernels = standard_start_kernels, p_rules = production_rules_all,
-            utility_function = 'BIC', restarts = 3, rounds = 2, buffer = 3,
-            dynamic_buffer = True, verbose = False, parallel = True)
+            utility_function = BIC, restarts = 4, rounds = 2, buffer = 3, dynamic_buffer = True,
+            verbose = True, parallel = True, optimiser = GPy_optimisers[0])
 
 
         # Typical output exploration printout
@@ -75,13 +75,7 @@ called from within a :code:`if __name__ == '__main__':`
 
         # Explore the best 3 models in detail
         from matplotlib import pyplot as plt
-        for bm in best_mods[:3]:
-            print(bm.kernel_expression)
-            print(bm.model.kern)
-            print(bm.model.log_likelihood())
-            print(bm.cached_utility_function)
-            bm.model.plot()
-            print(bm.interpret())
+        for bm in best_mods[:3]: model_printout(bm)
 
         # Perform some predictions
         predict_X = np.linspace(10, 15, 50)[:, None]

@@ -1,13 +1,15 @@
-from GPy_ABCD.Util.kernelUtil import doGPR
-from GPy_ABCD.Kernels.baseKernels import *
 import numpy as np
 
-# np.seterr(all='raise') # Raise exceptions instead of RuntimeWarnings. The exceptions can then be caught by the debugger
+from GPy_ABCD.Kernels.baseKernels import *
+from GPy_ABCD.KernelExpansion.grammar import *
+from GPy_ABCD.Util.dataAndPlottingUtil import *
+from GPy_ABCD.Util.modelUtil import *
 
-def tanhSigmoid(x):
-    return (1 + np.tanh(x)) / 2
-def tanhSigTwoLocIndicatorHeight(location, stop_location, slope):
-    return 2 * tanhSigmoid(((stop_location - location) / 2) / slope) - 1
+
+def sig(x): return (1 + x / (1 + abs(x))) / 2
+def sigTwoLocIndicatorHeight(location, stop_location, slope):
+    arg = (stop_location - location) / (2 * slope)
+    return arg / (1 + abs(arg))
 
 
 X = np.linspace(-50, 50, 101)[:, None]
@@ -15,22 +17,22 @@ X = np.linspace(-50, 50, 101)[:, None]
 
 ## Sigmoidal
 
-# YS = tanhSigmoid((X - 5) / 10) * 5 + np.random.randn(101, 1) * 0.5 #- 100
-# doGPR(X, YS, S(), 5)
-# doGPR(X, YS, Sr(), 5)
-# doGPR(X, YS, S + C, 5)
+# YS = sig((X - 5) / 10) * 5 + np.random.randn(101, 1) * 0.5 #- 100
+# fit_GPy_kern(X, YS, S(), 5)
+# fit_GPy_kern(X, YS, Sr(), 5)
+# fit_GPy_kern(X, YS, S + C, 5)
 # YS = -YS
-# doGPR(X, YS, S(), 5)
-# doGPR(X, YS, Sr(), 5)
-# doGPR(X, YS, S + C, 5)
-# YS = tanhSigmoid((X - 5) / (-10)) * 5 + np.random.randn(101, 1) * 0.5 #- 100
-# doGPR(X, YS, S(), 5)
-# doGPR(X, YS, Sr(), 5)
-# doGPR(X, YS, S + C, 5)
+# fit_GPy_kern(X, YS, S(), 5)
+# fit_GPy_kern(X, YS, Sr(), 5)
+# fit_GPy_kern(X, YS, S + C, 5)
+# YS = sig((X - 5) / (-10)) * 5 + np.random.randn(101, 1) * 0.5 #- 100
+# fit_GPy_kern(X, YS, S(), 5)
+# fit_GPy_kern(X, YS, Sr(), 5)
+# fit_GPy_kern(X, YS, S + C, 5)
 # YS = -YS
-# doGPR(X, YS, S(), 5)
-# doGPR(X, YS, Sr(), 5)
-# doGPR(X, YS, S + C, 5)
+# fit_GPy_kern(X, YS, S(), 5)
+# fit_GPy_kern(X, YS, Sr(), 5)
+# fit_GPy_kern(X, YS, S + C, 5)
 
 # I.e: S only fits functions moving from 0 to +ve or -ve values; Sr ones going TO 0
 #   Also, adding a constant makes either version fit any vaguely sigmoidal shape
@@ -39,22 +41,22 @@ X = np.linspace(-50, 50, 101)[:, None]
 
 ## Sigmoidal Indicator with Start Location and Width
 
-YSI = ((tanhSigmoid((X + 8) / 10) + tanhSigmoid((X - 5) / (-10)) - 1) / tanhSigTwoLocIndicatorHeight(-8, 5, 10)) * 5 + np.random.randn(101, 1) * 0.4 #- 100
-doGPR(X, YSI, SI(), 5)
-doGPR(X, YSI, SIr(), 5)
-doGPR(X, YSI, SI() + C(), 5)
+YSI = ((sig((X + 8) / 10) + sig((X - 5) / (-10)) - 1) / sigTwoLocIndicatorHeight(-8, 5, 10)) * 5 + np.random.randn(101, 1) * 0.4 #- 100
+fit_GPy_kern(X, YSI, SI(), 5)
+fit_GPy_kern(X, YSI, SIr(), 5)
+fit_GPy_kern(X, YSI, SI() + C(), 5)
 YSI = -YSI
-doGPR(X, YSI, SI(), 5)
-doGPR(X, YSI, SIr(), 5)
-doGPR(X, YSI, SI() + C(), 5)
-YSI = (1 - ((tanhSigmoid((X + 8) / 10) + tanhSigmoid((X - 5) / (-10)) - 1) / tanhSigTwoLocIndicatorHeight(-8, 5, 10))) * 5 + np.random.randn(101, 1) * 0.4 #- 100
-doGPR(X, YSI, SI(), 5)
-doGPR(X, YSI, SIr(), 5)
-doGPR(X, YSI, SI() + C(), 5)
+fit_GPy_kern(X, YSI, SI(), 5)
+fit_GPy_kern(X, YSI, SIr(), 5)
+fit_GPy_kern(X, YSI, SI() + C(), 5)
+YSI = (1 - ((sig((X + 8) / 10) + sig((X - 5) / (-10)) - 1) / sigTwoLocIndicatorHeight(-8, 5, 10))) * 5 + np.random.randn(101, 1) * 0.4 #- 100
+fit_GPy_kern(X, YSI, SI(), 5)
+fit_GPy_kern(X, YSI, SIr(), 5)
+fit_GPy_kern(X, YSI, SI() + C(), 5)
 YSI = -YSI
-doGPR(X, YSI, SI(), 5)
-doGPR(X, YSI, SIr(), 5)
-doGPR(X, YSI, SI() + C(), 5)
+fit_GPy_kern(X, YSI, SI(), 5)
+fit_GPy_kern(X, YSI, SIr(), 5)
+fit_GPy_kern(X, YSI, SI() + C(), 5)
 
 # I.e: Same concept as for S, SIT and SIO etc.: SI only fits functions moving from 0 to +ve or -ve values and then going back to 0; SIr ones going temporarily TO 0
 #   Also, adding a constant makes either version fit any vaguely sigmoidal peak/well shape

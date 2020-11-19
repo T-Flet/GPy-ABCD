@@ -1,3 +1,4 @@
+import numpy as np
 from operator import attrgetter
 from multiprocessing import Pool, cpu_count
 from typing import Callable
@@ -21,18 +22,18 @@ def print_k_list(k_or_model_list):
     return ', '.join([str(m.kernel_expression) for m in k_or_model_list] if isinstance(k_or_model_list[0], GPModel) else [str(k) for k in k_or_model_list])
 
 
-def fit_one_model(X, Y, kex, restarts): return GPModel(X, Y, kex).fit(restarts)
-def fit_model_list_not_parallel(X, Y, k_exprs, restarts = 5):
-    return [fit_one_model(X, Y, kex, restarts) for kex in k_exprs]
-def fit_model_list_parallel(X, Y, k_exprs, restarts = 5):
-    with Pool() as pool: return pool.starmap_async(fit_one_model, [(X, Y, kex, restarts) for kex in k_exprs], int(len(k_exprs) / cpu_count()) + 1).get()
+def fit_one_model(X, Y, kex, restarts, optimiser = GPy_optimisers[0]): return GPModel(X, Y, kex).fit(restarts, optimiser)
+def fit_model_list_not_parallel(X, Y, k_exprs, restarts = 5, optimiser = GPy_optimisers[0]):
+    return [fit_one_model(X, Y, kex, restarts, optimiser) for kex in k_exprs]
+def fit_model_list_parallel(X, Y, k_exprs, restarts = 5, optimiser = GPy_optimisers[0]):
+    with Pool() as pool: return pool.starmap_async(fit_one_model, [(X, Y, kex, restarts, optimiser) for kex in k_exprs], int(len(k_exprs) / cpu_count()) + 1).get()
     # NOTE: Any code that calls fit_model_list_parallel (however many nested levels in), needs to be within a "if __name__ == '__main__':"
     #       preamble in order to work on Windows. Note that this includes find_best_model, and hence any call to this project.
 
 
 # start_kernels = make_simple_kexs(['WN']) #for the original ABCD
 def explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all, utility_function = BIC,
-                        restarts = 5, rounds = 2, buffer = 4, dynamic_buffer = True, verbose = False, parallel = True):
+                        restarts = 5, rounds = 2, buffer = 4, dynamic_buffer = True, verbose = True, parallel = True, optimiser = GPy_optimisers[0]):
     """
     Perform `rounds` rounds of kernel expansion followed by model fit starting from the given `start_kernels` with and
     expanding the best `buffer` of them with `p_rules` production rules
@@ -55,6 +56,8 @@ def explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = 
     :type verbose: Boolean
     :param parallel: perform multiple model fits concurrently on all available processors (vs GPy's own parallel argument, which splits a single fit over multiple processors)
     :type parallel: Boolean
+    :param optimiser: identifying string for the model optimiser function; GPy 1.9.9 optimiser strings (GPy > paramz > optimization > optimization.py): 'lbfgsb', 'org-bfgs', 'fmin_tnc', 'scg', 'simplex', 'adadelta', 'rprop', 'adam'
+    :type optimiser: str
 
     :rtype: (sorted_models: [GPModel], tested_models: [[GPModel]], tested_k_exprs: [KernelExpression], expanded: [GPModel], not_expanded: [GPModel])
     """
@@ -63,11 +66,11 @@ def explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = 
 
     start_kexs = make_simple_kexs(start_kernels)
 
-    if verbose: print(f'Testing {rounds} layers of model expansion on {len(X)} datapoints, starting from: {print_k_list(start_kexs)}\nModels are fitted with {restarts} random restarts and scored by {utility_function.__name__}')
+    if verbose: print(f'Testing {rounds} layers of model expansion on {len(X)} datapoints, starting from: {print_k_list(start_kexs)}\nModels are fitted with {restarts} random restarts (with {optimiser} optimiser) and scored by {utility_function.__name__}')
     fit_model_list = fit_model_list_parallel if parallel else fit_model_list_not_parallel
     def score(m): return m.compute_utility(utility_function)
 
-    tested_models = [sorted(fit_model_list(X, Y, start_kexs, restarts), key = score)]
+    tested_models = [sorted(fit_model_list(X, Y, start_kexs, restarts, optimiser), key = score)]
     sorted_models = not_expanded = sorted(flatten(tested_models), key = score)
     expanded = []
     tested_k_exprs = deepcopy(start_kexs)
@@ -78,7 +81,7 @@ def explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = 
 
     sorted_models, tested_models, tested_k_exprs, expanded, not_expanded = model_search_rounds(X, Y,
                    original_buffer, sorted_models, tested_models, tested_k_exprs, expanded, not_expanded, fit_model_list,
-                   p_rules, utility_function, restarts, rounds, buffer, dynamic_buffer, verbose)
+                   p_rules, utility_function, restarts, rounds, buffer, dynamic_buffer, verbose, optimiser)
 
     if verbose: print(f'\nBest models overall: {print_k_list(sorted_models[:original_buffer])}\n')
     return sorted_models, tested_models, tested_k_exprs, expanded, not_expanded
@@ -86,7 +89,7 @@ def explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = 
 
 # This function is split from the above both for tidiness and to allow the possibility of continuing a search if desired
 def model_search_rounds(X, Y, original_buffer, sorted_models, tested_models, tested_k_exprs, expanded, not_expanded,
-                        fit_model_list, p_rules, utility_function, restarts, rounds, buffer, dynamic_buffer, verbose):
+                        fit_model_list, p_rules, utility_function, restarts, rounds, buffer, dynamic_buffer, verbose, optimiser):
     """
     See explore_model_space description and source code for argument explanation and context
 
@@ -96,7 +99,7 @@ def model_search_rounds(X, Y, original_buffer, sorted_models, tested_models, tes
 
     for d in range(1, rounds + 1):
         new_k_exprs = [kex for kex in unique(flatten([expand(mod.kernel_expression, p_rules) for mod in not_expanded[:buffer]])) if kex not in tested_k_exprs]
-        tested_models.append(sorted(fit_model_list(X, Y, new_k_exprs, restarts), key = score))  # tested_models[d]
+        tested_models.append(sorted(fit_model_list(X, Y, new_k_exprs, restarts, optimiser), key = score))  # tested_models[d]
 
         sorted_models = sorted(flatten(tested_models), key = attrgetter('cached_utility_function')) # Merge-sort would be applicable
         expanded += not_expanded[:buffer]

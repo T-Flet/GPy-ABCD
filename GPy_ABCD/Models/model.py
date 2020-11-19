@@ -19,14 +19,14 @@ class GPModel():
     # Kwargs passed to optimize_restarts, which passes them to optimize
     #   Check comments in optimize's class AND optimization.get_optimizer for real list of optimizers
     # TODO: Eventually set robust to True; see description in optimize_restarts method
-    def fit(self, restarts = None, verbose = False, robust = False, **kwargs):
+    def fit(self, restarts = None, optimiser = 'lbfgsb', verbose = False, robust = False, **kwargs):
         if restarts is None:
             if self.restarts is None: raise ValueError('No restarts value specified')
         else: self.restarts = restarts
         self.model = GPRegression(self.X, self.Y, self.kernel_expression.to_kernel())
         with warnings.catch_warnings(): # Ignore known numerical warnings
-            warnings.simplefilter("ignore")
-            self.model.optimize_restarts(num_restarts = self.restarts, verbose = verbose, robust = robust, **kwargs)
+            warnings.simplefilter('ignore')
+            self.model.optimize_restarts(num_restarts = self.restarts, verbose = verbose, robust = robust, optimizer = optimiser, **kwargs)
         return self
 
     def interpret(self): return fit_ker_to_kex_with_params(self.model.kern, deepcopy(self.kernel_expression)).get_interpretation()

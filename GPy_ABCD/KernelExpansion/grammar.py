@@ -1,6 +1,7 @@
+from GPy_ABCD.config import __INCLUDE_SE_KERNEL, __USE_LIN_KERNEL_HORIZONTAL_OFFSET
 from GPy_ABCD.KernelExpressions.all import KernelExpression
 from GPy_ABCD.KernelExpansion.kernelExpressionOperations import *
-from GPy_ABCD.Kernels.baseKernels import base_kerns, __INCLUDE_SE_KERNEL, __USE_LIN_KERNEL_HORIZONTAL_OFFSET
+from GPy_ABCD.Kernels.baseKernels import base_kerns
 from GPy_ABCD.Util.genericUtil import flatten, unique
 
 
@@ -99,3 +100,5 @@ if not __USE_LIN_KERNEL_HORIZONTAL_OFFSET: assert SumKE(['LIN', 'C']) in standar
 production_rules_all = flatten([list(x.values()) for x in production_rules_by_type.values()])
 # production_rules_start = [plus_base, times_base, replace_base, change_new_base]
 # production_rules_start = list(production_rules_by_type['basic'].values()) + [change_same]
+
+
