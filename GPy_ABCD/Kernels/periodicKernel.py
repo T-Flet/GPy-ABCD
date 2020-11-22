@@ -6,7 +6,7 @@ from paramz.transformations import Logexp
 from paramz.caching import Cache_this
 
 
-# Based on StdPeriodic and gaussianprocess.org/gpml/code/matlab/cov/covPeriodicNoDC.m
+# Based on GPy's StdPeriodic kernel and gaussianprocess.org/gpml/code/matlab/cov/covPeriodicNoDC.m
 class PureStdPeriodicKernel(Kern):
     """
     The standard periodic kernel due to MacKay (1998) can be decomposed into a sum of a periodic and a constant component;
@@ -63,7 +63,6 @@ class PureStdPeriodicKernel(Kern):
 
         self.link_parameters(self.variance, self.period, self.lengthscale)
 
-
     def to_dict(self):
         input_dict = super(PureStdPeriodicKernel, self)._save_to_input_dict()
         input_dict["class"] = "BesselShiftedPeriodic"
@@ -72,61 +71,141 @@ class PureStdPeriodicKernel(Kern):
         input_dict["lengthscale"] = self.lengthscale.values.tolist()
         return input_dict
 
+    @staticmethod
+    def embi0(x): # == exp(-x) * besseli(0, x) => 9.8.2 Abramowitz & Stegun (http://people.math.sfu.ca/~cbm/aands/page_378.htm)
+        y = 3.75 / x # The below is an efficient polynomial computation
+        f = 0.39894228 + (0.01328592 + (0.00225319 + (-0.00157565 + (0.00916281 + (-0.02057706 + (0.02635537 + (-0.01647633 + (0.00392377)*y)*y)*y)*y)*y)*y)*y)*y
+        return f / np.sqrt(x)
+    @staticmethod
+    def embi1(x): # == exp(-x) * besseli(1, x) => 9.8.4 Abramowitz & Stegun (http://people.math.sfu.ca/~cbm/aands/page_378.htm)
+        y = 3.75 / x # The below is an efficient polynomial computation
+        f = 0.39894228 + (-0.03988024 + (-0.00362018 + (0.00163801 + (-0.01031555 + (0.02282967 + (-0.02895312 + (0.01787654 + (-0.00420059)*y)*y)*y)*y)*y)*y)*y)*y
+        return f / np.sqrt(x)
+    @staticmethod
+    def embi0min1(x): # == embi0(x) - embi1(x)
+        y = 3.75 / x # The below is an efficient polynomial computation (with the 0-th power term equal to 0)
+        f = (0.05316616 + (0.00587337 + (-0.00321366 + (0.01947836 + (-0.04340673 + (0.05530849 + (-0.03435287 + (0.00812436)*y)*y)*y)*y)*y)*y)*y)*y
+        return f / np.sqrt(x)
 
-    @Cache_this(limit=3)
+    @Cache_this(limit = 3)
     def K(self, X, X2=None):
         if X2 is None: X2 = X
-        cos_term = np.cos(2 * np.pi * (X - X2.T) / self.period)
+        cos_term = np.cos((2 * np.pi / self.period) * (X - X2.T))
+        invL2 = 1 / self.lengthscale ** 2
 
         if np.any(self.lengthscale > 1e4): # Limit for l -> infinity
             return self.variance * cos_term
-        else:
-            # Overflow on exp and i0 by going backwards from sys.float_info.max (1.7976931348623157e+308): 1/l^2 < 709.782712893384
-            invL2 = np.clip(1 / np.where(self.lengthscale < 1e-100, 1e-200, self.lengthscale ** 2), 0, 705)
+        elif np.any(invL2 < 3.75):
             exp_term = np.exp(cos_term * invL2)
             bessel0 = i0(invL2)
             return self.variance * ((exp_term - bessel0) / (np.exp(invL2) - bessel0)) # The brackets prevent an overflow; want division first
-
+        else:
+            exp_term = np.exp((cos_term - 1) * invL2)
+            embi0 = self.embi0(invL2)
+            return self.variance * ((exp_term - embi0) / (1 - embi0))  # The brackets prevent an overflow; want division first
+    # @Cache_this(limit = 3)
+    # def K(self, X, X2 = None):
+    #     if X2 is None: X2 = X
+    #     cos_term = np.cos(2 * np.pi * (X - X2.T) / self.period)
+    #
+    #     if np.any(self.lengthscale > 1e4): # Limit for l -> infinity
+    #         return self.variance * cos_term
+    #     else:
+    #         # Overflow on exp and i0 by going backwards from sys.float_info.max (1.7976931348623157e+308): 1/l^2 < 709.782712893384
+    #         invL2 = np.clip(1 / np.where(self.lengthscale < 1e-100, 1e-200, self.lengthscale ** 2), 0, 705)
+    #         exp_term = np.exp(cos_term * invL2)
+    #         bessel0 = i0(invL2)
+    #         return self.variance * ((exp_term - bessel0) / (np.exp(invL2) - bessel0)) # The brackets prevent an overflow; want division first
 
     def Kdiag(self, X): # Correct; nice and fast
         ret = np.empty(X.shape[0])
         ret[:] = self.variance
         return ret
 
-
-    def update_gradients_full(self, dL_dK, X, X2=None):
+    def update_gradients_full(self, dL_dK, X, X2 = None):
         if X2 is None: X2 = X
-        trig_arg = 2 * np.pi * (X - X2.T) / self.period
+        trig_arg = (2 * np.pi / self.period) * (X - X2.T)
         cos_term = np.cos(trig_arg)
         sin_term = np.sin(trig_arg)
+        invL2 = 1 / self.lengthscale ** 2
 
         if np.any(self.lengthscale > 1e4):  # Limit for l -> infinity
             dK_dV = cos_term # K / V
 
-            dK_dp = self.variance * trig_arg * sin_term / self.period
+            dK_dp = (self.variance / self.period) * trig_arg * sin_term
 
             # This is 0 in the limit, but best to set it to a small non-0 value
             dK_dl = 1e-4 / self.lengthscale
-        else:
-            # Overflow on exp and i0 by going backwards from sys.float_info.max (1.7976931348623157e+308): 1/l^2 < 709.782712893384
-            invL2 = np.clip(1 / np.where(self.lengthscale < 1e-100, 1e-200, self.lengthscale ** 2), 0, 705)
+        elif np.any(invL2 < 3.75):
             bessel0 = i0(invL2)
             bessel1 = i1(invL2)
             eInvL2 = np.exp(invL2)
+            dInvL2_dl = -2 * invL2 / self.lengthscale # == -2 / l^3
+
             denom = eInvL2 - bessel0
             exp_term = np.exp(cos_term * invL2)
+            K_no_Var = (exp_term - bessel0) / denom # == K / V; here just for clarity of further expressions
 
-            dK_dV = (exp_term - bessel0) / denom # = K / V
 
-            dK_dp = (self.variance * invL2 * trig_arg * sin_term / self.period) * (exp_term / denom) # exp terms division separate because of overflow risk
+            dK_dV = K_no_Var
 
-            K = self.variance * dK_dV
-            dInvL2_dl = -2 / np.where(self.lengthscale < 1e-100, 1e-300, self.lengthscale ** 3)
-            dK_dl = dInvL2_dl * ( self.variance * ((cos_term * exp_term - bessel1) / denom) - K * ((eInvL2 - bessel1) / denom) ) # The brackets prevent some overflows; want those divisions first
+            dK_dp = (self.variance / self.period) * invL2 * trig_arg * sin_term * exp_term / denom
+
+            dK_dl = dInvL2_dl * self.variance * ( (cos_term * exp_term - bessel1) - K_no_Var * (eInvL2 - bessel1) ) / denom
+        else:
+            embi0 = self.embi0(invL2)
+            # embi1 = self.embi1(invL2)
+            # embi0min1 = embi0 - embi1
+            embi0min1 = self.embi0min1(invL2)
+            dInvL2_dl = -2 * invL2 / self.lengthscale # == -2 / l^3
+
+            denom = 1 - embi0
+            exp_term = np.exp((cos_term - 1) * invL2)
+            K_no_Var = (exp_term - embi0) / denom # == K / V; here just for clarity of further expressions
+
+
+            dK_dV = K_no_Var
+
+            dK_dp = (self.variance / self.period) * invL2 * trig_arg * sin_term * exp_term / denom # I.e. SAME as the above case at this abstraction level
+
+            dK_dl = dInvL2_dl * self.variance * ( (cos_term - 1) * exp_term + embi0min1 - K_no_Var * embi0min1 ) / denom
 
         self.variance.gradient = np.sum(dL_dK * dK_dV)
         self.period.gradient = np.sum(dL_dK * dK_dp)
         self.lengthscale.gradient = np.sum(dL_dK * dK_dl)
+    # def update_gradients_full(self, dL_dK, X, X2 = None):
+    #     if X2 is None: X2 = X
+    #     trig_arg = 2 * np.pi * (X - X2.T) / self.period
+    #     cos_term = np.cos(trig_arg)
+    #     sin_term = np.sin(trig_arg)
+    #
+    #     if np.any(self.lengthscale > 1e4):  # Limit for l -> infinity
+    #         dK_dV = cos_term # K / V
+    #
+    #         dK_dp = self.variance * trig_arg * sin_term / self.period
+    #
+    #         # This is 0 in the limit, but best to set it to a small non-0 value
+    #         dK_dl = 1e-4 / self.lengthscale
+    #     else:
+    #         # Overflow on exp and i0 by going backwards from sys.float_info.max (1.7976931348623157e+308): 1/l^2 < 709.782712893384
+    #         invL2 = np.clip(1 / np.where(self.lengthscale < 1e-100, 1e-200, self.lengthscale ** 2), 0, 705)
+    #         bessel0 = i0(invL2)
+    #         bessel1 = i1(invL2)
+    #         eInvL2 = np.exp(invL2)
+    #         denom = eInvL2 - bessel0
+    #         exp_term = np.exp(cos_term * invL2)
+    #
+    #         dK_dV = (exp_term - bessel0) / denom # = K / V
+    #
+    #         dK_dp = (self.variance * invL2 * trig_arg * sin_term / self.period) * (exp_term / denom) # exp terms division separate because of overflow risk
+    #
+    #         K = self.variance * dK_dV
+    #         dInvL2_dl = -2 / np.where(self.lengthscale < 1e-100, 1e-300, self.lengthscale ** 3)
+    #         dK_dl = dInvL2_dl * ( self.variance * ((cos_term * exp_term - bessel1) / denom) - K * ((eInvL2 - bessel1) / denom) ) # The brackets prevent some overflows; want those divisions first
+    #
+    #     self.variance.gradient = np.sum(dL_dK * dK_dV)
+    #     self.period.gradient = np.sum(dL_dK * dK_dp)
+    #     self.lengthscale.gradient = np.sum(dL_dK * dK_dl)
 
 
 
@@ -155,3 +234,5 @@ class PureStdPeriodicKernel(Kern):
     #         invL2 = np.sum(1 / self.lengthscale ** 2)
     #         exp_term = np.exp(cos_term * invL2)
     #         return - self.variance * invL2 * (trig_arg / r) * sin_term * exp_term / (np.exp(invL2) - i0(invL2))
+
+
