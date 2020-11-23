@@ -4,7 +4,7 @@ from multiprocessing import Pool, cpu_count
 from typing import Callable
 
 from GPy_ABCD.Models.model import *
-from GPy_ABCD.KernelExpansion.grammar import standard_start_kernels, production_rules_all, make_simple_kexs, expand
+from GPy_ABCD.KernelExpansion.grammar import start_kernels, production_rules, make_simple_kexs, expand
 from GPy_ABCD.Util.modelUtil import *
 from GPy_ABCD.Util.genericUtil import flatten, diff, unique
 
@@ -32,9 +32,9 @@ def fit_model_list_parallel(X, Y, k_exprs, restarts = 5, optimiser = GPy_optimis
 
 
 # start_kernels = make_simple_kexs(['WN']) #for the original ABCD
-def explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = production_rules_all, utility_function = BIC,
+def explore_model_space(X, Y, start_kernels = start_kernels['Default'], p_rules = production_rules['Default'], utility_function = BIC,
                         restarts = 5, rounds = 2, buffer = 4, dynamic_buffer = True, verbose = True, parallel = True, optimiser = GPy_optimisers[0]):
-    """
+    '''
     Perform `rounds` rounds of kernel expansion followed by model fit starting from the given `start_kernels` with and
     expanding the best `buffer` of them with `p_rules` production rules
 
@@ -60,7 +60,7 @@ def explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = 
     :type optimiser: str
 
     :rtype: (sorted_models: [GPModel], tested_models: [[GPModel]], tested_k_exprs: [KernelExpression], expanded: [GPModel], not_expanded: [GPModel])
-    """
+    '''
     if len(np.shape(X)) == 1: X = np.array(X)[:, None]
     if len(np.shape(Y)) == 1: Y = np.array(Y)[:, None]
 
@@ -90,11 +90,11 @@ def explore_model_space(X, Y, start_kernels = standard_start_kernels, p_rules = 
 # This function is split from the above both for tidiness and to allow the possibility of continuing a search if desired
 def model_search_rounds(X, Y, original_buffer, sorted_models, tested_models, tested_k_exprs, expanded, not_expanded,
                         fit_model_list, p_rules, utility_function, restarts, rounds, buffer, dynamic_buffer, verbose, optimiser):
-    """
+    '''
     See explore_model_space description and source code for argument explanation and context
 
     Note: sorted_models is not actually used but replaced with the new value; present as an argument just for consistency
-    """
+    '''
     def score(m): return m.compute_utility(utility_function)
 
     for d in range(1, rounds + 1):

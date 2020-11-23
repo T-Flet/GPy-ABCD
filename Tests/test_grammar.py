@@ -20,7 +20,7 @@ def test_unique():
 def test_unique_deeper(): # Uniqueness in expansions WITH unique REMOVED FROM THE FUNCTIONS THEMSELVES
     test_expr = ChangeKE('CP', ProductKE(['PER'], [SumKE(['WN', 'C', 'SE'])]),
                          ChangeKE('CW', 'SE', ProductKE(['WN', 'LIN'])))._initialise()
-    a = expand(test_expr, production_rules_all)
+    a = expand(test_expr, production_rules['Default'])
     astr = [str(x) for x in a]
     aUnique = unique(a)
     aUniqueStr = [str(x) for x in aUnique]
@@ -41,18 +41,18 @@ class TestByInspection:
 
     def test_simplest_expansion(self):
         print()
-        es = expand(SumKE(['WN'])._initialise(), production_rules_all)
+        es = expand(SumKE(['WN'])._initialise(), production_rules['Default'])
         for e in es: print(e)
         print(len(es))
         print(all([x._check_all_parents() for x in es]))
 
 
     @pytest.mark.parametrize('es', [
-        expand(SumKE(['SE'])._initialise(), production_rules_all),
-        expand(SumKE(['WN'])._initialise(), production_rules_all),
+        expand(SumKE(['SE'])._initialise(), production_rules['Default']),
+        expand(SumKE(['WN'])._initialise(), production_rules['Default']),
         # expand(SumKE(['SE'])._initialise(), production_rules_start),
         # expand(SumKE(['WN'])._initialise(), production_rules_start),
-        standard_start_kernels
+        start_kernels['Default']
     ])
     def test_start_expansions(self, es):
         print()
@@ -63,8 +63,8 @@ class TestByInspection:
     test_expr = ChangeKE('CP', ProductKE(['PER'], [SumKE(['WN', 'C', 'SE'])]), ChangeKE('CW', 'SE', ProductKE(['WN', 'LIN'])))._initialise()
     @pytest.mark.parametrize('es', [
         flatten(times_base(test_expr.left.composite_terms[0])),
-        expand_node(test_expr.left.composite_terms[0], production_rules_all),
-        expand(test_expr, production_rules_all)
+        expand_node(test_expr.left.composite_terms[0], production_rules['Default']),
+        expand(test_expr, production_rules['Default'])
     ])
     def test_long_expansions(self, es):
         assert self.test_expr._check_all_parents()

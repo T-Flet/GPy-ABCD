@@ -31,9 +31,14 @@ if __name__ == '__main__':
     # print(timeit(statement, number = 3))
 
 
+    # test_start_kernels = make_simple_kexs(list(base_kerns - {'SE'}) + # Base Kernels without SE
+    #                                       [ProductKE(['LIN', 'LIN']), ProductKE(['LIN', 'LIN', 'LIN']), SumKE(['PER', 'C'])] + # More generic LIN and PER
+    #                                       both_changes('LIN')) # To catch a possible changepoint or changewindow with simple enough shapes
+
+
     ## Model search
     best_mods, all_mods, all_exprs, expanded, not_expanded = explore_model_space(X, Y,
-                                start_kernels = standard_start_kernels, p_rules = production_rules_all,
+                                start_kernels = start_kernels['Default'], p_rules = production_rules['Default'],
                                 utility_function = BIC, restarts = 4, rounds = 1, buffer = 3, dynamic_buffer = False,
                                 verbose = True, parallel = True, optimiser = GPy_optimisers[0])
 
