@@ -192,6 +192,5 @@ class ChangeWindowKernelAlternating(ChangeKernelBase):
 #       Pros: have to fit HALF the number of change models
 #       Con: the kernel expression does not always match the actual shape anymore
 #   Separately: polish the two-location version of the sigmoidal indicator kernel
-#
-#   NOTE: is_reversed() is unreliable since these are covariances after all, therefore the curve may take one direction or the other
-#           Is there a check using X and location(s) in order to be sure?
+
+

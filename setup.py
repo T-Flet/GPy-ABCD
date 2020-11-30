@@ -14,7 +14,7 @@ def read(filename):
 
 setup(
     name = 'GPy-ABCD',
-    version = '1.0.2', # Change it in __init__.py too
+    version = '1.0.3', # Change it in __init__.py too
     url = 'https://github.com/T-Flet/GPy-ABCD',
     license = 'BSD 3-Clause',
 

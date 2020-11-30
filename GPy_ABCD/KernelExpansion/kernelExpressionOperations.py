@@ -143,3 +143,5 @@ def higher_curves(S):
     else: # elif isinstance(S, str): # This never occurs in the expansion though
         res = [[]]
     return res
+
+
