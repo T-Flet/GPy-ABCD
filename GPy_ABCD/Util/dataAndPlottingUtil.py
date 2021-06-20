@@ -3,18 +3,18 @@ import pandas as pd
 from plotnine import ggplot, geom_line, aes
 
 
-def gg_plot(X, Y):
+def gg_plot(X, Y, colour = 'blue'):
     if len(np.shape(X)) == 1: X = np.array(X)[:, None]
     if len(np.shape(Y)) == 1: Y = np.array(Y)[:, None]
     df = pd.DataFrame({'X': X[:, 0], 'Y': Y[:, 0]})
-    return ggplot(df) + geom_line(aes('X', 'Y'), color='blue')
+    return ggplot(df) + geom_line(aes('X', 'Y'), color = colour)
 # print(gg_plot(range(20), [x**2 for x in range(20)]))
 
-def gg_f_plot(f, X):
+def gg_f_plot(f, X, colour = 'blue'):
     if len(np.shape(X)) == 1: X = np.array(X)[:, None]
     Y = np.vectorize(f)(X)
     df = pd.DataFrame({'X': X[:, 0], 'Y': Y[:, 0]})
-    return ggplot(df) + geom_line(aes('X', 'Y'), color='blue')
+    return ggplot(df) + geom_line(aes('X', 'Y'), color = colour)
 # print(gg_f_plot(lambda x: x**2, range(20)))
 
 

@@ -71,7 +71,7 @@ A minimal example to showcase the various parameters follows:
         # Main function call with suggested arguments
         best_mods, all_mods, all_exprs, expanded, not_expanded = explore_model_space(X, Y,
             start_kernels = start_kernels['Default'], p_rules = production_rules['Default'], utility_function = BIC,
-            rounds = 1, buffer = 3, dynamic_buffer = False, verbose = True,
+            rounds = 2, buffer = 3, dynamic_buffer = False, verbose = True,
             restarts = 4, model_list_fitter = fit_mods_parallel_processes, optimiser = GPy_optimisers[0])
 
         # Typical output exploration printout

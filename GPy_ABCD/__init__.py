@@ -2,7 +2,7 @@
 
 __version__ = '1.0.3' # Change it in setup.py too
 __author__ = 'Thomas Fletcher <T-Fletcher@outlook.com>'
-__all__ = []
+# __all__ = []
 
 
 from GPy_ABCD.Models.modelSearch import explore_model_space, model_search_rounds,\

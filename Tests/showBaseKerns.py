@@ -6,23 +6,23 @@ from matplotlib import pyplot as plt
 
 WN().plot()
 print(WN())
-sampleCurves(WN())
+print(sampleCurves(WN()))
 
 C().plot()
 print(C())
-sampleCurves(C())
+print(sampleCurves(C()))
 
 LIN().plot()
 print(LIN())
-sampleCurves(LIN())
+print(sampleCurves(LIN()))
 
 SE().plot()
 print(SE())
-sampleCurves(SE())
+print(sampleCurves(SE()))
 
 PER().plot()
 print(PER())
-sampleCurves(PER())
+print(sampleCurves(PER()))
 
 
 plt.show()

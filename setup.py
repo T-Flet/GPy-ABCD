@@ -11,6 +11,11 @@ def read(filename):
     with io.open(filename, mode = 'r', encoding = 'utf-8') as fd:
         return re.sub(text_type(r':[a-z]+:`~?(.*?)`'), text_type(r'``\1``'), fd.read())
 
+def read_requirements():
+    filename = os.path.join(os.path.dirname(__file__), 'requirements.txt')
+    with io.open(filename) as f:
+        return [ine for line in f.read().splitlines() if (ine := str.lstrip(line)) if len(ine) > 0 if not ine.startswith('#')]
+
 
 setup(
     name = 'GPy-ABCD',
@@ -24,11 +29,11 @@ setup(
     description = 'Basic implementation with GPy of an Automatic Bayesian Covariance Discovery (ABCD) system',
     long_description = read('README.rst'),
 
-    packages = find_packages(exclude=('tests',)),
+    packages = find_packages(exclude=('Tests',)),
 
-    install_requires=[],
+    install_requires = read_requirements(),
 
-    classifiers=[
+    classifiers = [
         'Development Status :: 4 - Beta',
         # 'Development Status :: 5 - Production/Stable',
         'Programming Language :: Python',
