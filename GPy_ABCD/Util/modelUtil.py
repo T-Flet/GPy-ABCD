@@ -8,9 +8,11 @@ from GPy_ABCD.Models.model import GPModel
 
 # Standard Utility functions
 
-def BIC(ll, n, k): return -2 * ll + k * np.log(n)
-def AIC(ll, n, k): return 2 * (-ll + k)
-def AICc(ll, n, k): return 2 * (-ll + k + (k**2 + k) / (n - k - 1)) # Assumes univariate model linear in its parameters and with normally-distributed residuals conditional upon regressors
+# TODO: investigate WAIC, WBIC, BPIC and approximations of LOO
+def BIC(m, ll, n, k): return -2 * ll + k * np.log(n)
+def AIC(m, ll, n, k): return 2 * (-ll + k)
+def AICc(m, ll, n, k): return 2 * (-ll + k + (k**2 + k) / (n - k - 1)) # Assumes univariate model linear in its parameters and with normally-distributed residuals conditional upon regressors
+def LA_LOO(m, ll, n, k): return np.mean(m.inference_method.LOO(m.kern, m.X, m.Y, m.likelihood, m.posterior)) # See LOO method description for reference
 
 
 # Allowed GPy optimisers ('lbfgsb' is the default)
@@ -25,7 +27,7 @@ def model_printout(m):
     print(m.model.kern)
     print(f'Log-Lik: {m.model.log_likelihood()}')
     print(f'{m.cached_utility_function_type}: {m.cached_utility_function}')
-    m.model.plot()
+    m.plot()
     print(m.interpret())
 
 

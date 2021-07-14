@@ -55,16 +55,19 @@ def save_one_run(dataset_name, expected_best, best_mods, all_mods, all_exprs):
 
 
 
-if __name__ == '__main__':
-    # np.seterr(all='raise') # Raise exceptions instead of RuntimeWarnings. The exceptions can then be caught by the debugger
+# if __name__ == '__main__':
+#     # np.seterr(all='raise') # Raise exceptions instead of RuntimeWarnings. The exceptions can then be caught by the debugger
+#
+#     n_iterations = 3
+#     n_runs_stats = []
+#     for i in range(n_iterations):
+#         best_mods, all_mods, all_exprs, expanded, not_expanded = explore_model_space(X, Y,
+#              start_kernels = start_kernels['Default'], p_rules = production_rules['Default'], utility_function = BIC,
+#              rounds = 2, beam = 3, restarts = 4,
+#              model_list_fitter = fit_mods_parallel_processes, optimiser = GPy_optimisers[0], verbose = True)
+#         n_runs_stats.append(one_run_statistics(best_mods, all_mods, all_exprs, 5))
+#         print(f'{i+1} runs done')
+#
+#     get_and_save_stats(n_runs_stats)
 
-    n_iterations = 3
-    n_runs_stats = []
-    for i in range(n_iterations):
-        sorted_models, tested_models, tested_k_exprs, expanded, not_expanded = explore_model_space(X, Y, start_kernels=standard_start_kernels, p_rules=production_rules_all,
-                                                         restarts=3, utility_function='BIC', rounds=2, buffer=2,
-                                                         dynamic_buffer=True, verbose=True, parallel=True)
-        n_runs_stats.append(one_run_statistics(sorted_models, tested_models, tested_k_exprs, 5))
-        print(f'{i+1} runs done')
 
-    get_and_save_stats(n_runs_stats)

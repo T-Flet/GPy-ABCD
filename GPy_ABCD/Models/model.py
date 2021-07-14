@@ -1,6 +1,7 @@
 import warnings
 from copy import deepcopy
 from GPy.models import GPRegression
+from GPy.plotting import change_plotting_library
 
 from GPy_ABCD.KernelExpressions.all import SumKE
 from GPy_ABCD.KernelExpansion.kernelOperations import fit_ker_to_kex_with_params
@@ -36,6 +37,13 @@ class GPModel():
         qs = self.model.predict_quantiles(X, quantiles, Y_metadata, kern, likelihood)
         return {'mean': mean, 'covariance': cov, 'low_quantile': qs[0], 'high_quantile': qs[1]}
 
+    def change_plotting_library(self, library = 'plotly_offline'):
+        '''Wrapper of GPy.plotting's homonymous function;
+        supported values are: 'matplotlib', 'plotly', 'plotly_online', 'plotly_offline' and 'none'.
+        If 'plotly' then a 3-tuple is returned, with as 1st value the Figure object requiring a .show() to display.'''
+        change_plotting_library(library)
+
+    def plot(self): return self.model.plot()
 
 
     # Model fit objective criteria & related values:
@@ -44,7 +52,7 @@ class GPModel():
     def _n(self): return len(self.model.X) # number of data points
     def _k(self): return self.model._size_transformed() # number of estimated parameters, i.e. model degrees of freedom
 
-    def _ordered_score_ps(self): return self._ll(), self._n(), self._k()
+    def _ordered_score_ps(self): return self.model, self._ll(), self._n(), self._k()
 
     def compute_utility(self, score_f):
         self.cached_utility_function = score_f(*self._ordered_score_ps())

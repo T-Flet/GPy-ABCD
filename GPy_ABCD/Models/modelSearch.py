@@ -101,7 +101,8 @@ def explore_model_space(X, Y,
 def model_search_rounds(X, Y, sorted_models, tested_models, tested_k_exprs, expanded, not_expanded,
                         model_list_fitter, p_rules, utility_function, rounds, beam, restarts, optimiser, verbose):
     '''
-    See explore_model_space description and source code for argument explanation and context
+    This function can be used to continue a previous search: the 5 arguments after Y are the outputs of explore_model_space.
+    See explore_model_space description and definition for argument explanation and context.
 
     Note: sorted_models is not actually used but replaced with the new value; present as an argument just for consistency
     '''
