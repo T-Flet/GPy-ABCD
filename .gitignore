@@ -1,6 +1,7 @@
 .idea/
 Tests/Plots
 Tests/Stats
+Tests/Pickles
 
 
 # Byte-compiled / optimized / DLL files
