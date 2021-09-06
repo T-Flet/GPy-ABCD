@@ -20,19 +20,19 @@ X = np.linspace(-50, 50, 101)[:, None]
 # YS = sig((X - 5) / 10) * 5 + np.random.randn(101, 1) * 0.5 #- 100
 # fit_GPy_kern(X, YS, S(), 5)
 # fit_GPy_kern(X, YS, Sr(), 5)
-# fit_GPy_kern(X, YS, S + C, 5)
+# fit_GPy_kern(X, YS, S() + C(), 5)
 # YS = -YS
 # fit_GPy_kern(X, YS, S(), 5)
 # fit_GPy_kern(X, YS, Sr(), 5)
-# fit_GPy_kern(X, YS, S + C, 5)
+# fit_GPy_kern(X, YS, S() + C(), 5)
 # YS = sig((X - 5) / (-10)) * 5 + np.random.randn(101, 1) * 0.5 #- 100
 # fit_GPy_kern(X, YS, S(), 5)
 # fit_GPy_kern(X, YS, Sr(), 5)
-# fit_GPy_kern(X, YS, S + C, 5)
+# fit_GPy_kern(X, YS, S() + C(), 5)
 # YS = -YS
 # fit_GPy_kern(X, YS, S(), 5)
 # fit_GPy_kern(X, YS, Sr(), 5)
-# fit_GPy_kern(X, YS, S + C, 5)
+# fit_GPy_kern(X, YS, S() + C(), 5)
 
 # I.e: S only fits functions moving from 0 to +ve or -ve values; Sr ones going TO 0
 #   Also, adding a constant makes either version fit any vaguely sigmoidal shape

@@ -31,7 +31,7 @@ fits based on the identified functional shapes.
 See the picture in `Usage` below for an example input/output and read the paper for further details:
 
 `Fletcher, T., Bundy, A., & Nuamah, K. . GPy-ABCD: A Configurable Automatic Bayesian Covariance Discovery Implementation.
-8th ICML Workshop on Automated Machine Learning (2021) <http://icml2021.automl.org/>`_
+8th ICML Workshop on Automated Machine Learning (2021) <https://sites.google.com/view/automl2021/accepted-papers>`_
 
 
 

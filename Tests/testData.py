@@ -15,6 +15,7 @@ datasets = ['01-airline', '02-solar', '03-mauna', '04-wheat', '05-temperature', 
     # Only 1, 2, 10 and 11 have published analyses, and their identified formulae are (deciphered from component descriptions):
     #   1: LIN + PER * LIN + SE + WN * LIN
     #       Default Rules: (PER + C + LIN * (PER + C)) * (PER + PER + WN) * (C + LIN)
+    #           or LIN + PER * LIN * (C + WN) * (PER + PER + C), LIN + PER * (C + WN) * (PER + C) * (PER + LIN)
     #   2: C + CW_1643_1716(PER + SE + RQ + WN * LIN + WN * LIN, C + WN)
     #       Default Rules: C + (PER + C) * (PER + PER + PER + WN)
     #  10: PER + SE + CP_64(PER + WN, CW_69_77(SE, SE) + CP_90(C + WN, WN))

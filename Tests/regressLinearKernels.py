@@ -37,7 +37,11 @@ mod = fit_GPy_kern(X, Y, kernel, 20, optimizer = GPy_optimisers[0])
 
 plt.show()
 
-    # VERDICT: LinearWithOffset is just better: better fits (even accounting for extra params) which is interpretable (the offsets are just roots)
-    #           And having a single variance per product is even better
+    # VERDICT: LinearWithOffset is just better: better fits (even accounting for extra params), is interpretable (the offsets are just roots),
+    #           and having a single variance per product is even better
+
+# from GPy_ABCD.Util.benchmarking import timethis
+# times = timethis(fit_GPy_kern, 5, X, Y, kernel, 20, optimizer = GPy_optimisers[0])
+# print(sum(times) / len(times))
 
 

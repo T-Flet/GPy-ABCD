@@ -37,3 +37,7 @@ model_printout(mod)
 plt.show()
 
 
+# from GPy_ABCD.Util.benchmarking import timethis
+# times = timethis(fit_kex, 5, X, Y, correct_k, 10)
+# print(sum(times) / len(times))
+

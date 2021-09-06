@@ -1,8 +1,9 @@
-# paramz>=0.9.5
-plotnine>=0.7.1
-numpy>=1.19.2
-matplotlib>=3.3.2
+numpy==1.23.5 # Because GPy 1.12 uses np.int, which was removed in numpy 1.24
+numba>=0.55.2
+GPy>=1.12.0
 scipy>=1.6.2
 pandas>=1.2.4
-GPy>=1.10.0
+matplotlib>=3.3.2
+plotnine>=0.7.1
 # ipython>=7.25.0
+# paramz>=0.9.5

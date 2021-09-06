@@ -56,7 +56,7 @@ def fit_GPy_kern(X, Y, kernel, restarts, score = BIC, **kwargs):
     m.plot()
     print(m.kern)
     print(f'Log-Likelihood: {m.log_likelihood()}')
-    print(f'{score.__name__}: {score(m.log_likelihood(), len(X), m._size_transformed())}')
+    print(f'{score.__name__}: {score(m, m.log_likelihood(), len(X), m._size_transformed())}')
 
     plt.show()
 

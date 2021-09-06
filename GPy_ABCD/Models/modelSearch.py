@@ -39,8 +39,8 @@ def fit_mods_parallel_processes(X, Y, k_exprs, restarts = 5, optimiser = GPy_opt
 
 
 def explore_model_space(X, Y,
-                        start_kernels: List[Union[str, KernelExpression]] = start_kernels['Default'], p_rules: List[Callable] = production_rules['Default'], utility_function: Callable = BIC,
-                        rounds: int = 2, beam: Union[int, List[int]] = [3, 2, 1], restarts: int = 5,
+                        start_kernels: List[Union[str, KernelExpression]] = start_kernels['Default'], p_rules: List[Callable] = production_rules['Default'],
+                        utility_function: Callable = BIC, rounds: int = 2, beam: Union[int, List[int]] = [3, 2, 1], restarts: int = 5,
                         model_list_fitter: Callable = fit_mods_parallel_processes, optimiser: str = GPy_optimisers[0],
                         verbose: bool = True) -> Tuple[List[GPModel], List[List[GPModel]], List[KernelExpression], List[GPModel], List[GPModel]]:
     '''Perform `rounds` rounds of kernel expansion followed by model fit starting from the given `start_kernels` with and expanding the best `buffer` of them with `p_rules` production rules
