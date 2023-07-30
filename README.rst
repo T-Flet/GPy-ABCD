@@ -75,11 +75,11 @@ A minimal example to showcase the various parameters follows:
 
         print('\n\nTop-3 models\' details:')
         for bm in best_mods[:3]:
-            model_printout(bm) # See the definition of this convenience function for examples of model details' extraction
+            model_printout(bm, plotly = False) # See the definition of this convenience function for examples of model details' extraction
             print('Prediction at X = 11:', bm.predict(np.array([11])[:, None]), '\n')
 
         from matplotlib import pyplot as plt
-        plt.show()
+        plt.show() # Not required for plotly = True above
 
 
 
@@ -158,8 +158,8 @@ Further Notes
 
 Generic:
 
-- Please let know me if you have successfully used this project in your own research
-- Please feel free to fork and expand this project (pull requests are welcome) since it is not the focus of my research; it was written just because I needed to use it in a broader adaptive statistical modelling context and therefore I have no need to expand its functionality in the near future
+- Please reach out if you have successfully used this project in your own research
+- Feel free to fork and expand this project (pull requests are welcome) since it is not the focus of my research; it was written just because I needed to use it in a broader adaptive statistical modelling context and therefore I have no need to expand its functionality in the near future
 
 Code-related:
 

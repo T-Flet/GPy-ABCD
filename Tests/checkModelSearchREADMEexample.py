@@ -19,10 +19,10 @@ if __name__ == '__main__':
 
     print('\n\nTop-3 models\' details:')
     for bm in best_mods[:3]:
-        model_printout(bm) # See the definition of this convenience function for examples of model details' extraction
+        model_printout(bm, plotly = False) # See the definition of this convenience function for examples of model details' extraction
         print('Prediction at X = 11:', bm.predict(np.array([11])[:, None]), '\n')
 
     from matplotlib import pyplot as plt
-    plt.show()
+    plt.show() # Not required for plotly = True above
 
 

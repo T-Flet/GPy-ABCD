@@ -31,8 +31,8 @@ def C(): return _Gk.Bias(1)
 
 # def LIN(): return _Gk.Linear(1) # Not the same as ABCD's; missing horizontal offset
 def LIN(): return _Lk.Linear(1) # Not the same as ABCD's; missing horizontal offset
-if __USE_LIN_KERNEL_HORIZONTAL_OFFSET: # The version in ABCD; not sure if a good idea; the horizontal offset is the same as a vertical one, which is just kC
-    def LIN(): return _LOk.LinearWithOffset(1)
+if __USE_LIN_KERNEL_HORIZONTAL_OFFSET: # This flag also enables LIN + C -> LIN simplification
+    def LIN(): return _LOk.LinearWithOffset(1) # The version in ABCD; the horizontal offset is the same as a vertical one, which is just kC
 
 def SE(): return _Gk.RBF(1)
 

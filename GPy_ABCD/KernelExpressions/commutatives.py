@@ -5,6 +5,7 @@ from itertools import product
 from GPy_ABCD.KernelExpressions.commutative_base import KernelExpression, SumOrProductKE
 from GPy_ABCD.KernelExpansion.kernelOperations import *
 from GPy_ABCD.KernelExpansion.kernelInterpretation import *
+import GPy_ABCD.config as config
 
 
 class SumKE(SumOrProductKE):
@@ -15,6 +16,10 @@ class SumKE(SumOrProductKE):
         # WN and C are addition-idempotent
         if self.base_terms['WN'] > 1: self.base_terms['WN'] = 1
         if self.base_terms['C'] > 1: self.base_terms['C'] = 1
+
+        # If an offset-including LIN is used, remove any C in their presence (going through __dict__ because the class name gets prepended otherwise)
+        if config.__dict__['__USE_LIN_KERNEL_HORIZONTAL_OFFSET'] and self.base_terms['LIN'] > 0: self.base_terms['C'] = 0
+
         self.base_terms = + self.base_terms
         return self
 

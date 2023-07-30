@@ -86,3 +86,4 @@ class TestByInspection:
         for e in es: print(e)
         print(len(es))
 
+

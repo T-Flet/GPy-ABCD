@@ -22,12 +22,15 @@ def LA_LOO(m, ll, n, k): return np.mean(m.inference_method.LOO(m.kern, m.X, m.Y,
 GPy_optimisers = ['lbfgsb', 'org-bfgs', 'fmin_tnc', 'scg', 'simplex', 'adadelta', 'rprop', 'adam']
 
 
-def model_printout(m):
+def model_printout(m, plotly = False):
     print(m.kernel_expression)
     print(m.model.kern)
     print(f'Log-Lik: {m.model.log_likelihood()}')
     print(f'{m.cached_utility_function_type}: {m.cached_utility_function}')
-    m.plot()
+    if plotly:
+        m.change_plotting_library(library = 'plotly_offline')
+        m.plot()[0].show()
+    else: m.plot()
     print(m.interpret())
 
 
