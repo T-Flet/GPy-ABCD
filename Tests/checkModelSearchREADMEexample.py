@@ -11,7 +11,7 @@ if __name__ == '__main__':
     best_mods, all_mods, all_exprs, expanded, not_expanded = explore_model_space(X, Y,
         start_kernels = start_kernels['Default'], p_rules = production_rules['Default'],
         utility_function = BIC, rounds = 2, beam = [3, 2, 1], restarts = 5,
-        model_list_fitter = fit_mods_parallel_processes, optimiser = GPy_optimisers[0],
+        model_list_fitter = fit_mods_parallel_processes, optimiser = GPy_optimisers[0], max_retries = 1,
         verbose = True)
 
     print('\nFull lists of models by round:')

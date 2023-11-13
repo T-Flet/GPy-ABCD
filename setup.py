@@ -19,7 +19,7 @@ def read_requirements():
 
 setup(
     name = 'GPy-ABCD',
-    version = '1.2.1', # Change it in __init__.py too
+    version = '1.2.3', # Change it in __init__.py too
     url = 'https://github.com/T-Flet/GPy-ABCD',
     license = 'BSD 3-Clause',
 
@@ -40,6 +40,7 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11'
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12'
     ],
 )

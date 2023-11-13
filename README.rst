@@ -21,17 +21,25 @@ GPy-ABCD
     :target: https://github.com/T-Flet/GPy-ABCD/blob/master/LICENSE
     :alt: License
 
-Basic implementation with GPy of an Automatic Bayesian Covariance Discovery (ABCD) system
+*(Temporary note: the "failing" build badge above is due to the workflow pip not finding GPy 1.12.0 for some reason; the tests are successful)*
 
-Briefly: ABCD is a modelling system which consists in exploring a space of compositional kernels
-(i.e. covariances of Gaussian Processes) constructed by iteratively combining a small set of base ones,
-returning the best fitting models using them, and capable of generating simple text descriptions of the
+GPy-ABCD is a basic implementation with GPy of an Automatic Bayesian Covariance Discovery (ABCD) system.
+
+Briefly, ABCD is a (Gaussian Process) modelling method which consists in exploring a space of modular kernels
+(i.e. covariances) constructed by iteratively combining a small set of simple ones,
+and returning the best fitting models using them;
+due to its modularity, it is capable of generating simple text descriptions of the
 fits based on the identified functional shapes.
+
+The usefulness of ABCD is in identifying the underlying shape of data, but the process is
+computationally expensive, therefore a typical use for it is in initial data overviews
+(possibly on subsampled datasets for efficiency), then followed by more direct exploration
+of its top few results' kernels (on the full dataset if subsampled before).
 
 See the picture in `Usage` below for an example input/output and read the paper for further details:
 
 `Fletcher, T., Bundy, A., & Nuamah, K. . GPy-ABCD: A Configurable Automatic Bayesian Covariance Discovery Implementation.
-8th ICML Workshop on Automated Machine Learning (2021) <https://sites.google.com/view/automl2021/accepted-papers>`_
+8th ICML Workshop on Automated Machine Learning (2021) <https://www.research.ed.ac.uk/en/publications/gpy-abcd-a-configurable-automatic-bayesian-covariance-discovery-i>`_
 
 
 
@@ -67,8 +75,8 @@ A minimal example to showcase the various parameters follows:
         best_mods, all_mods, all_exprs, expanded, not_expanded = explore_model_space(X, Y,
             start_kernels = start_kernels['Default'], p_rules = production_rules['Default'],
             utility_function = BIC, rounds = 2, beam = [3, 2, 1], restarts = 5,
-            model_list_fitter = fit_mods_parallel_processes, optimiser = GPy_optimisers[0],
-            verbose = True)
+            model_list_fitter = fit_mods_parallel_processes,
+            optimiser = GPy_optimisers[0], max_retries = 1, verbose = True)
 
         print('\nFull lists of models by round:')
         for mod_depth in all_mods: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]) + f'\n{len(mod_depth)}')
@@ -81,9 +89,12 @@ A minimal example to showcase the various parameters follows:
         from matplotlib import pyplot as plt
         plt.show() # Not required for plotly = True above
 
+        # Later fit one of the top kernels to new data (e.g. if the original data was subsampled)
+        #fit_kex(other_X, other_Y, best_mods[0].kernel_expression, 10)
 
 
-.. figure:: selected_output_example.png
+
+.. figure:: output_example.png
     :align: center
     :figclass: align-center
 
@@ -114,9 +125,7 @@ see the definitions of entries of the :code:`start_kernels` and :code:`productio
 Project Structure
 -----------------
 
-A paper on GPy-ABCD and its differences from the original ABCD is planned, but for the time being read the paper mentioned above for a full picture of what an ABCD system is.
-
-However, briefly, it consists in exploring a space of compositional kernels built from a few carefully selected base ones,
+Briefly, the ABCD process consists in exploring a space of compositional kernels built from a few carefully selected base ones,
 returning the best fitting models using them and generating simple text interpretations of the fits based
 on the functional shapes of the final composed covariance kernels and parameter values.
 
@@ -159,7 +168,10 @@ Further Notes
 Generic:
 
 - Please reach out if you have successfully used this project in your own research
-- Feel free to fork and expand this project (pull requests are welcome) since it is not the focus of my research; it was written just because I needed to use it in a broader adaptive statistical modelling context and therefore I have no need to expand its functionality in the near future
+- Feel free to fork and expand this project (pull requests are welcome) since it
+  was only written because its particular features were required in a broader
+  adaptive statistical modelling context,
+  and therefore it is unlikely that its functionality will be expanded in the near future
 
 Code-related:
 

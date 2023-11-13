@@ -38,7 +38,8 @@ if __name__ == '__main__':
         Y = data['y']
 
         args_to_save = {'start_kernels': start_kernels['Default'], 'p_rules': production_rules['Default'], 'utility_function': BIC,
-             'rounds': 5, 'beam': 2, 'restarts': 10, 'model_list_fitter': fit_mods_parallel_processes, 'optimiser': GPy_optimisers[0], 'verbose': True}
+             'rounds': 5, 'beam': 2, 'restarts': 10, 'model_list_fitter': fit_mods_parallel_processes,
+             'optimiser': GPy_optimisers[0], 'max_retries': 1, 'verbose': True}
         best_mods, all_mods, all_exprs, expanded, not_expanded = explore_model_space(X, Y, **args_to_save)
 
         # for mod_depth in all_mods: print(', '.join([str(mod.kernel_expression) for mod in mod_depth]) + f'\n{len(mod_depth)}')
