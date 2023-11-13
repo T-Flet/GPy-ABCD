@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from GPy_ABCD.Kernels.baseKernels import *
 from GPy_ABCD.Kernels.baseKernels import __FIX_SIGMOIDAL_KERNELS_SLOPE
 
@@ -33,7 +35,8 @@ def fit_ker_to_kex_with_params(ker, kex, verbose = False):
     return kex.match_up_fit_parameters(param_dict, 'GP_regression.')
 
 
-def init_rand_params(kex, verbose = True): # A testing function to initialise a kernel with random parameters
+def init_rand_params(kex, verbose = True):
+    '''A testing function to initialise a kernel with random parameters'''
     if verbose: print(kex)
     ker = kex._initialise().to_kernel()
     ker.randomize()

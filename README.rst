@@ -21,17 +21,25 @@ GPy-ABCD
     :target: https://github.com/T-Flet/GPy-ABCD/blob/master/LICENSE
     :alt: License
 
-Basic implementation with GPy of an Automatic Bayesian Covariance Discovery (ABCD) system
+*(Temporary note: the "failing" build badge above is due to the workflow pip not finding GPy 1.12.0 for some reason; the tests are successful)*
 
-Briefly: ABCD is a modelling system which consists in exploring a space of compositional kernels
-(i.e. covariances of Gaussian Processes) constructed by iteratively combining a small set of base ones,
-returning the best fitting models using them, and capable of generating simple text descriptions of the
+GPy-ABCD is a basic implementation with GPy of an Automatic Bayesian Covariance Discovery (ABCD) system.
+
+Briefly, ABCD is a (Gaussian Process) modelling method which consists in exploring a space of modular kernels
+(i.e. covariances) constructed by iteratively combining a small set of simple ones,
+and returning the best fitting models using them;
+due to its modularity, it is capable of generating simple text descriptions of the
 fits based on the identified functional shapes.
+
+The usefulness of ABCD is in identifying the underlying shape of data, but the process is
+computationally expensive, therefore a typical use for it is in initial data overviews
+(possibly on subsampled datasets for efficiency), then followed by more direct exploration
+of its top few results' kernels (on the full dataset if subsampled before).
 
 See the picture in `Usage` below for an example input/output and read the paper for further details:
 
 `Fletcher, T., Bundy, A., & Nuamah, K. . GPy-ABCD: A Configurable Automatic Bayesian Covariance Discovery Implementation.
-8th ICML Workshop on Automated Machine Learning (2021) <https://sites.google.com/view/automl2021/accepted-papers>`_
+8th ICML Workshop on Automated Machine Learning (2021) <https://www.research.ed.ac.uk/en/publications/gpy-abcd-a-configurable-automatic-bayesian-covariance-discovery-i>`_
 
 
 
@@ -159,7 +167,10 @@ Further Notes
 Generic:
 
 - Please reach out if you have successfully used this project in your own research
-- Feel free to fork and expand this project (pull requests are welcome) since it is not the focus of my research; it was written just because I needed to use it in a broader adaptive statistical modelling context and therefore I have no need to expand its functionality in the near future
+- Feel free to fork and expand this project (pull requests are welcome) since it
+  was only written because its particular features were required in a broader
+  adaptive statistical modelling context,
+  and therefore it is unlikely that its functionality will be expanded in the near future
 
 Code-related:
 

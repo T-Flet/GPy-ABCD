@@ -115,6 +115,7 @@ class ChangeKE(KernelExpression):
         return res._set_all_parents()
 
     def sum_of_prods_form(self):
+        assert self.parameters, 'A sum-of-products form can only be generated when parameters are present (i.e. after .match_up_fit_parameters has been triggered), and should only be called indirectly through GPModel.sum_of_prods_kex or GPModel.interpret()'
         new_children = []
         for branch, kex in (('left', self.left), ('right', self.right)):
             sigmoid_parameters = (change_k_sigmoid_names[self.CP_or_CW][branch], self.parameters[self.CP_or_CW][0])

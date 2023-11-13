@@ -1,6 +1,6 @@
 """GPy-ABCD - Basic implementation with GPy of an Automatic Bayesian Covariance Discovery (ABCD) system"""
 
-__version__ = '1.2.1' # Change it in setup.py too
+__version__ = '1.2.2' # Change it in setup.py too
 __author__ = 'Thomas Fletcher <T-Fletcher@outlook.com>'
 # __all__ = []
 

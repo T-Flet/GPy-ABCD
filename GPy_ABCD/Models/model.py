@@ -12,6 +12,7 @@ class GPModel():
         self.X = X
         self.Y = Y
         self.kernel_expression = kernel_expression
+        self._sum_of_prods_kex = None
         self.restarts = None
         self.model = None
         self.cached_utility_function = None
@@ -30,7 +31,20 @@ class GPModel():
             self.model.optimize_restarts(num_restarts = self.restarts, verbose = verbose, robust = robust, optimizer = optimiser, **kwargs)
         return self
 
-    def interpret(self): return fit_ker_to_kex_with_params(self.model.kern, deepcopy(self.kernel_expression)).get_interpretation()
+    @property
+    def sum_of_prods_kex(self):
+        '''The canonical kernel form (the one described in .interpret).
+
+        NOTE: this property/method can only be called after the model has been fitted.'''
+        if self.model is None: raise ValueError('No parameters to insert into the kernel expression since the model has not yet been fitted')
+        elif self._sum_of_prods_kex is None: self._sum_of_prods_kex = fit_ker_to_kex_with_params(self.model.kern, deepcopy(self.kernel_expression)).sum_of_prods_form()
+        return self._sum_of_prods_kex
+
+    def interpret(self):
+        '''Describe the model with a few sentences (which break down the expanded kernel form, i.e. .sum_of_prods_kex).
+
+        NOTE: this method can only be called after the model has been fitted.'''
+        return self.sum_of_prods_kex.get_interpretation(sops = self._sum_of_prods_kex)
 
     def predict(self, X, quantiles = (2.5, 97.5), full_cov = False, Y_metadata = None, kern = None, likelihood = None, include_likelihood = True):
         mean, cov = self.model.predict(X, full_cov, Y_metadata, kern, likelihood, include_likelihood)

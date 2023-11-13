@@ -53,10 +53,10 @@ class KernelExpression(ABC): # Abstract
     def extract_if_singleton(self):
         pass
 
-    # NOTE: both traverse and reduce ignore raw-string leaves (which can only happen in ChangeKEs);
-    #       care has to be taken to perform required operations on them from their parent
     @abstractmethod
     def traverse(self):
+        '''NOTE: both traverse and reduce ignore raw-string leaves (which can only happen in ChangeKEs);
+        care has to be taken to perform required operations on them from their parent'''
         pass
 
     # Same note as traverse; see Test.checkKernelExpressions for an example func
@@ -98,7 +98,8 @@ class KernelExpression(ABC): # Abstract
             return copied_replacement.parent.reassign_child(copied_self, copied_replacement)
 
     @abstractmethod
-    def reassign_child(self, old_child, new_child): # NOTE: has to return new_child (used by new_tree_with_self_replaced)
+    def reassign_child(self, old_child, new_child):
+        '''NOTE: has to return new_child (used by new_tree_with_self_replaced)'''
         pass
 
     @abstractmethod
@@ -128,11 +129,16 @@ class KernelExpression(ABC): # Abstract
         return self
 
     @abstractmethod
-    def match_up_fit_parameters(self, fit_ker, prefix): # Note: the prefix has to already contain THIS node's name followed by a dot at the end
+    def match_up_fit_parameters(self, fit_ker, prefix):
+        '''NOTE: the prefix has to already contain THIS node's name followed by a dot at the end'''
         pass
 
     @abstractmethod
-    def sum_of_prods_form(self): # Return either a ProductKE or a SumKE whose composite_terms are only ProductKEs
+    def sum_of_prods_form(self):
+        '''Return either a ProductKE or a SumKE whose composite_terms are only ProductKEs.
+
+        NOTE: this method CAN only be called when parameters are present (i.e. after .match_up_fit_parameters has been called),
+        and SHOULD only be called indirectly through GPModel.sum_of_prods_kex or GPModel.interpret()'''
         pass
 
     def get_interpretation(self, sops = None):

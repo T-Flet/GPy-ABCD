@@ -73,8 +73,8 @@ def test_reduce():
         return acc
 
     res = test_expr.reduce(testFunc, [])
-    assert res == ['PER', 'LIN', 'WN', 'C', 'LIN', 'SE', 'LIN', 'WN', 'LIN'] # This is reduce handles str ChangeKE branches
-    # assert res == ['PER', 'LIN', 'WN', 'C', 'LIN', 'SE', 'WN'] # This one if it does not
+    assert res == ['PER', 'LIN', 'WN', 'LIN', 'SE', 'LIN', 'WN', 'LIN'] # This if reduce handles str ChangeKE branches
+    # assert res == ['PER', 'LIN', 'WN', 'LIN', 'SE', 'WN'] # This one if it does not
     assert [kex.root == 'HI' for kex in test_expr.traverse()]
     assert test_expr == ChangeKE('CP', ProductKE(['PER', 'LIN'], [SumKE(['WN', 'C', 'LIN'])]), ChangeKE('CW', 'SE', 'WN'))
 

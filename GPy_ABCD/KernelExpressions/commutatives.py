@@ -36,6 +36,7 @@ class SumKE(SumOrProductKE):
         return self
 
     def sum_of_prods_form(self):
+        assert self.parameters, 'A sum-of-products form can only be generated when parameters are present (i.e. after .match_up_fit_parameters has been triggered), and should only be called indirectly through GPModel.sum_of_prods_kex or GPModel.interpret()'
         cts = [ct.sum_of_prods_form() for ct in self.composite_terms]
         self.composite_terms.clear()
         for ct in cts: # Only SumKEs or ProductKEs now
@@ -133,6 +134,7 @@ class ProductKE(SumOrProductKE):
         return ProductKE([]).new_bases_with_parameters([(key, p) for kex in [k0] + ks for key, ps in list(kex.parameters.items()) for p in ps])
 
     def sum_of_prods_form(self):
+        assert self.parameters, 'A sum-of-products form can only be generated when parameters are present (i.e. after .match_up_fit_parameters has been triggered), and should only be called indirectly through GPModel.sum_of_prods_kex or GPModel.interpret()'
         sops = SumKE([])
         if not self.composite_terms:
             sops.composite_terms.append(ProductKE(self.base_terms)._new_parameters(self.parameters)) # Avoid triggering simplify()
